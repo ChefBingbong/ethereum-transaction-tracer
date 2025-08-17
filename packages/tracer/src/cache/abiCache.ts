@@ -1,7 +1,18 @@
 import { join } from 'node:path'
-import type { Abi, AbiEvent, AbiFunction } from 'viem'
-import { indexAbi, toL } from './abiReader'
+import { sleep } from 'bun'
+import {
+  type Abi,
+  type AbiEvent,
+  type AbiFunction,
+  type Address,
+  type Hex,
+  keccak256,
+  toBytes,
+} from 'viem'
+import { etherscanLikeSource } from './abiSources'
 import type { CacheJson, CacheOptions } from './types'
+
+export const toL = (a?: string) => (a ? a.toLowerCase() : a) as string
 
 export class TracerCache {
   public tokenDecimals = new Map<string, number>()
@@ -21,14 +32,14 @@ export class TracerCache {
         const key = toL(addr)
         if (!this.contractAbi.has(key)) {
           this.contractAbi.set(key, abi)
-          indexAbi(this, abi)
+          this.indexAbi(abi)
         }
       }
     }
     if (input?.extraAbis) {
       for (const abi of input.extraAbis) {
         this.extraAbis.push(abi)
-        indexAbi(this, abi)
+        this.indexAbi(abi)
       }
     }
     this.save()
@@ -61,6 +72,7 @@ export class TracerCache {
 
   async save(): Promise<void> {
     const filePath = this.getTracerCachePath()
+    await this.load()
 
     const payload: CacheJson = {
       tokenDecimals: Array.from(this.tokenDecimals.entries()),
@@ -81,5 +93,66 @@ export class TracerCache {
       throw new Error('[tracer] cachePath not set')
     }
     return join(this.cachePath, 'hardhat-tracer-cache', 'data.json')
+  }
+
+  public selectorOf = (fn: AbiFunction): Hex => {
+    const sig = `${fn.name}(${(fn.inputs ?? []).map((i) => i.type).join(',')})`
+    const hash = keccak256(toBytes(sig))
+    return `0x${hash.slice(2, 10)}` as Hex
+  }
+  public topic0Of = (ev: AbiEvent): Hex => {
+    const sig = `${ev.name}(${(ev.inputs ?? []).map((i) => i.type).join(',')})`
+    return keccak256(toBytes(sig))
+  }
+
+  public indexAbi(abi: Abi) {
+    for (const item of abi) {
+      if (item.type === 'function') {
+        const sel = this.selectorOf(item as AbiFunction)
+        if (!this.fourByteDir.has(sel)) this.fourByteDir.set(sel, item)
+      } else if (item.type === 'event') {
+        const t0 = this.topic0Of(item as AbiEvent)
+        if (!this.eventsDir.has(t0)) this.eventsDir.set(t0, item)
+      }
+    }
+  }
+
+  public addAbi = async (address: Address, abi: Abi) => {
+    const key = toL(address)
+    if (!this.contractAbi.has(key)) {
+      this.contractAbi.set(key, abi)
+    }
+    this.indexAbi(abi)
+    await this.save()
+    await this.load()
+  }
+
+  public ensureAbi = async (
+    address: Address | undefined,
+  ): Promise<Abi | undefined> => {
+    if (!address) return undefined
+    await this.load()
+
+    const key = toL(address)
+    if (this.contractAbi.has(key)) {
+      return this.contractAbi.get(key)
+    }
+
+    try {
+      const abi = await etherscanLikeSource(
+        address,
+        'https://api.etherscan.io/v2',
+        '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
+      )
+
+      if (abi?.length) {
+        this.addAbi(address, abi)
+        await sleep(2000)
+        return abi
+      }
+    } catch (e) {
+      console.warn(`ensureAbi: remote fetch failed for ${key}:`, e)
+    }
+    return undefined
   }
 }

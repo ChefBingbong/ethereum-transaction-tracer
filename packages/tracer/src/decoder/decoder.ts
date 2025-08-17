@@ -7,7 +7,7 @@ import {
   getAbiItem,
 } from 'viem'
 
-import { ensureAbi, type TracerCache, toL } from '../cache'
+import { type TracerCache, toL } from '../cache'
 import type { RpcCallTrace } from '../callTracer'
 import {
   formatArgsInline,
@@ -105,7 +105,7 @@ export class Decoder {
     if (!data || data === '0x') return null
 
     const abis: Abi[] = []
-    const specific = await ensureAbi(this.cache, addr)
+    const specific = await this.cache.ensureAbi(addr)
     if (specific) abis.push(specific)
 
     const extra = this.cache.extraAbis
