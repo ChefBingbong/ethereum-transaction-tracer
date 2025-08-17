@@ -1,0 +1,29 @@
+name: "Dependabot: Update bun.lock"
+on:
+  pull_request:
+    paths:
+      - "package.json"
+      - "**/package.json"
+
+permissions:
+  contents: write
+jobs:
+  update-bun-lockb:
+    name: "Update bun.lock"
+    if: github.actor == 'renovate[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.17
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+      - run: |
+          bun install
+          git add bun.lock
+          git config --global user.name 'renovate[bot]'
+          git config --global user.email 'renovate[bot]@users.noreply.github.com'
+          git commit -m 'chore(deps): update bun.lock'
+          git push

@@ -1,0 +1,45 @@
+name: Evm Tx Tracer - verify
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  lint:
+    name: Lint + Format
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v2
+        with:
+          version: 2.0.6
+      - name: Run Biome
+        run: biome ci .
+
+  types:
+    name: Types
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        uses: ./.github/actions/install
+      - name: Check types
+        run: bun check
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: [lint, types]
+    timeout-minutes: 10
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        uses: ./.github/actions/install
+      - name: Run Evm Tx Tracer tests
+        run: bun run test
