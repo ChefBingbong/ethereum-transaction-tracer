@@ -98,7 +98,8 @@ export class TraceFormatter {
       )
     }
 
-    out.push(...this.renderTail(node, nextPrefix, o, hasError))
+    const tail = await this.renderTail(node, nextPrefix, o, hasError)
+    out.push(...tail)
   }
 
   private renderHeader(
@@ -205,21 +206,21 @@ export class TraceFormatter {
     )}`
   }
 
-  private renderTail(
+  private async renderTail(
     node: RpcCallTrace,
     nextPrefix: string,
     o: Required<typeof defaultOpts>,
     hasError: boolean,
-  ): string[] {
+  ) {
     const lines: string[] = []
     const tailPrefix = nextPrefix
 
     if (hasError) {
       const pretty =
-        this.decoder.decodeRevertPrettyFromFrame(
+        (await this.decoder.decodeRevertPrettyFromFrame(
           node.to as Address,
           node.output as Hex,
-        ) ??
+        )) ??
         node.revertReason ??
         node.error
       lines.push(

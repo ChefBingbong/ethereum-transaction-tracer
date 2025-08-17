@@ -62,12 +62,25 @@ export class TracerCache {
       json = {}
     }
 
-    this.tokenDecimals = new Map(json.tokenDecimals ?? [])
-    this.contractNames = new Map(json.contractNames ?? [])
-    this.fourByteDir = new Map(json.fourByteDir ?? [])
-    this.contractAbi = new Map(json.contractAbi ?? [])
-    this.eventsDir = new Map(json.eventsDir ?? [])
-    this.extraAbis = json.extraAbis ?? []
+    json.tokenDecimals?.forEach(([key, v]) => {
+      this.tokenDecimals.set(key, v)
+    })
+    json.contractNames?.forEach(([key, v]) => {
+      this.contractNames.set(key, v)
+    })
+    json.fourByteDir?.forEach(([key, v]) => {
+      this.fourByteDir.set(key, v)
+    })
+    json.contractAbi?.forEach(([key, v]) => {
+      this.contractAbi.set(key, v)
+    })
+    json.eventsDir?.forEach(([key, v]) => {
+      this.eventsDir.set(key, v)
+    })
+
+    if (json.extraAbis) {
+      this.extraAbis = json.extraAbis
+    }
   }
 
   async save(): Promise<void> {
@@ -123,15 +136,12 @@ export class TracerCache {
       this.contractAbi.set(key, abi)
     }
     this.indexAbi(abi)
-    await this.save()
-    await this.load()
   }
 
   public ensureAbi = async (
     address: Address | undefined,
   ): Promise<Abi | undefined> => {
     if (!address) return undefined
-    await this.load()
 
     const key = toL(address)
     if (this.contractAbi.has(key)) {
@@ -153,6 +163,8 @@ export class TracerCache {
     } catch (e) {
       console.warn(`ensureAbi: remote fetch failed for ${key}:`, e)
     }
+
+    await this.save()
     return undefined
   }
 }
