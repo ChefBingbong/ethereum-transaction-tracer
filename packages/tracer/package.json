@@ -10,6 +10,7 @@
     "@evm-transaction-trace/typescript-config": "workspace:*"
   },
   "dependencies": {
+    "picocolors": "^1.1.1",
     "viem": "^2.33.3"
   }
 }

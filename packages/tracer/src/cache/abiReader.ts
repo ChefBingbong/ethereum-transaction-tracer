@@ -63,6 +63,7 @@ export function createAbiRegistry(
   }
   if (input.extraAbis) {
     for (const abi of input.extraAbis) {
+      cache.extraAbis.push(abi)
       indexAbi(cache, abi)
     }
   }

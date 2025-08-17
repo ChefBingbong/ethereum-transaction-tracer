@@ -15,6 +15,7 @@ export class TracerCache {
   public fourByteDir = new Map<string, AbiFunction>()
   public contractAbi = new Map<string, Abi>()
   public eventsDir = new Map<string, AbiEvent>()
+  public extraAbis: Abi[] = []
 
   public cachePath: string | undefined
 
