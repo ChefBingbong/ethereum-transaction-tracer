@@ -1,22 +1,7 @@
 import { join } from 'node:path'
 import type { Abi, AbiEvent, AbiFunction } from 'viem'
 import { indexAbi, toL } from './abiReader'
-import type { AbiSource } from './types'
-
-type CacheJson = {
-  tokenDecimals?: [string, number][]
-  contractNames?: [string, string][]
-  fourByteDir?: [string, AbiFunction][]
-  contractAbi?: [string, Abi][]
-  eventsDir?: [string, AbiEvent][]
-}
-
-type CacheOptions = {
-  byAddress?: Record<string, Abi>
-  labels?: Record<string, string>
-  extraAbis?: Abi[]
-  sources?: AbiSource[]
-}
+import type { CacheJson, CacheOptions } from './types'
 
 export class TracerCache {
   public tokenDecimals = new Map<string, number>()
@@ -60,7 +45,7 @@ export class TracerCache {
     let json: CacheJson = {}
     try {
       if (await file.exists()) {
-        json = (await file.json()) as CacheJson
+        json = await file.json()
       }
     } catch {
       json = {}
