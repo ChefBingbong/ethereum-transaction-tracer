@@ -1,56 +1,49 @@
 import {
   BaseError,
-  type Chain,
   formatTransactionRequest,
   numberToHex,
   type PublicClient,
   type TransactionRequest,
 } from 'viem'
-import { prepareTransactionRequest } from 'viem/actions'
 import {
   extract,
   getTransactionError,
   parseAccount,
   recoverAuthorizationAddress,
 } from 'viem/utils'
+import { type CacheOptions, TracerCache } from '../cache'
 import type {
-  RpcCallTrace,
   TraceCallParameters,
   TraceCallRpcSchema,
+  TraceTxParameters,
   TraceTxRpcSchema,
 } from './types'
 
-export async function traceCall<chain extends Chain | undefined>(
-  client: PublicClient,
-  {
-    txHash,
+export class TransactionTracer {
+  public cache: TracerCache
+  private client: PublicClient
+
+  constructor(
+    client: PublicClient,
+    args: { cachePath: string; cacheOptions?: CacheOptions },
+  ) {
+    this.client = client
+    this.cache = new TracerCache(args.cachePath, args.cacheOptions)
+  }
+
+  public init = async () => {
+    await this.cache.load()
+  }
+
+  public traceCall = async ({
     tracer = 'callTracer',
     tracerConfig,
     stateOverride,
     ...args
-  }: TraceCallParameters<chain>,
-) {
-  const account_ = args.account ?? client.account
-  const account = account_ ? parseAccount(account_) : null
+  }: TraceCallParameters) => {
+    const account_ = args.account ?? this.client.account
+    const account = account_ ? parseAccount(account_) : null
 
-  let trace: RpcCallTrace
-  if (txHash) {
-    trace = await client.request<TraceTxRpcSchema>(
-      {
-        method: 'debug_traceTransaction',
-        params: [
-          txHash,
-          {
-            tracer,
-            ...(tracerConfig && { tracerConfig }),
-            ...(stateOverride && { stateOverride }),
-          },
-        ],
-      },
-      { retryCount: 0 },
-    )
-    return trace
-  } else {
     try {
       const {
         accessList,
@@ -68,8 +61,8 @@ export async function traceCall<chain extends Chain | undefined>(
         nonce,
         value,
         ...tx
-      } = (await prepareTransactionRequest(client, {
-        ...(args as any),
+      } = (await this.client.prepareTransactionRequest({
+        ...args,
         parameters: ['blobVersionedHashes', 'chainId', 'fees', 'nonce', 'type'],
       })) as TraceCallParameters
 
@@ -80,7 +73,7 @@ export async function traceCall<chain extends Chain | undefined>(
         if (tx.to) return tx.to
         if (authorizationList && authorizationList.length > 0)
           return await recoverAuthorizationAddress({
-            authorization: authorizationList[0]!,
+            authorization: authorizationList[0],
           }).catch(() => {
             throw new BaseError(
               '`to` is required. Could not infer from `authorizationList`',
@@ -90,7 +83,8 @@ export async function traceCall<chain extends Chain | undefined>(
         return undefined
       })()
 
-      const chainFormat = client.chain?.formatters?.transactionRequest?.format
+      const chainFormat =
+        this.client.chain?.formatters?.transactionRequest?.format
       const format = chainFormat || formatTransactionRequest
 
       const request = format({
@@ -112,7 +106,7 @@ export async function traceCall<chain extends Chain | undefined>(
         stateOverride,
       } as TransactionRequest)
 
-      trace = await client.request<TraceCallRpcSchema>(
+      const trace = await this.client.request<TraceCallRpcSchema>(
         {
           method: 'debug_traceCall',
           params: [
@@ -133,7 +127,35 @@ export async function traceCall<chain extends Chain | undefined>(
       throw getTransactionError(err as BaseError, {
         ...args,
         account,
-        chain: client.chain,
+        chain: this.client.chain,
+      })
+    }
+  }
+
+  public traceTransactionHash = async ({
+    txHash,
+    tracer = 'callTracer',
+    tracerConfig,
+  }: TraceTxParameters) => {
+    try {
+      const trace = await this.client.request<TraceTxRpcSchema>(
+        {
+          method: 'debug_traceTransaction',
+          params: [
+            txHash,
+            {
+              tracer,
+              ...(tracerConfig && { tracerConfig }),
+            },
+          ],
+        },
+        { retryCount: 0 },
+      )
+      return trace
+    } catch (err) {
+      throw getTransactionError(err as BaseError, {
+        account: null,
+        chain: this.client.chain,
       })
     }
   }

@@ -26,3 +26,18 @@ export interface I4BytesEntry {
   hexSignature: string
   bytesSignature: string
 }
+
+export type CacheJson = {
+  tokenDecimals?: [string, number][]
+  contractNames?: [string, string][]
+  fourByteDir?: [string, AbiFunction][]
+  contractAbi?: [string, Abi][]
+  eventsDir?: [string, AbiEvent][]
+}
+
+export type CacheOptions = {
+  byAddress?: Record<string, Abi>
+  labels?: Record<string, string>
+  extraAbis?: Abi[]
+  sources?: AbiSource[]
+}

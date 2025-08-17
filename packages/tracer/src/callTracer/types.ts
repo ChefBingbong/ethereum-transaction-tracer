@@ -2,13 +2,11 @@ import type {
   Account,
   Address,
   BlockTag,
-  Chain,
   ExactPartial,
-  FormattedTransactionRequest,
   Hex,
+  PrepareTransactionRequestParameters,
   RpcTransactionRequest,
   StateOverride,
-  UnionOmit,
 } from 'viem'
 
 export type RpcCallType =
@@ -70,11 +68,8 @@ export type TraceTxRpcSchema = {
   ReturnType: RpcCallTrace
 }
 
-export type TraceCallParameters<
-  chain extends Chain | undefined = Chain | undefined,
-> = UnionOmit<FormattedTransactionRequest<chain>, 'from'> & {
-  account?: Account | Address | undefined
-  txHash?: Hex
+export type TraceCallParameters = PrepareTransactionRequestParameters & {
+  _chainnt?: Account | Address | undefined
   tracer?: 'callTracer' | 'prestateTracer'
   tracerConfig?: { onlyTopCall?: boolean; withLog?: boolean } // ← add withLog
   stateOverride?: StateOverride
