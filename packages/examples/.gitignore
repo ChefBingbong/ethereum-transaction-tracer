@@ -4,8 +4,8 @@ node_modules
 # output
 out
 dist
+tx-cache-dir
 *.tgz
-
 # code coverage
 coverage
 *.lcov
