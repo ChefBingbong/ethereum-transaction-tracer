@@ -2,10 +2,22 @@
   "name": "evm-transaction-trace",
   "module": "index.ts",
   "type": "module",
+  "workspaces": [
+    "config/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "build": "turbo run build",
+    "check": "turbo run check --cache=local:r,remote:r",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "turbo": "^2.5.4"
   },
   "peerDependencies": {
     "typescript": "^5"
-  }
+  },
+  "packageManager": "bun@1.2.0"
 }
