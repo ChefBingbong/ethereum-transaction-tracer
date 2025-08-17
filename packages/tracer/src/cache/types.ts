@@ -33,6 +33,7 @@ export type CacheJson = {
   fourByteDir?: [string, AbiFunction][]
   contractAbi?: [string, Abi][]
   eventsDir?: [string, AbiEvent][]
+  extraAbis?: Abi[]
 }
 
 export type CacheOptions = {

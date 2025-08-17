@@ -56,6 +56,7 @@ export class TracerCache {
     this.fourByteDir = new Map(json.fourByteDir ?? [])
     this.contractAbi = new Map(json.contractAbi ?? [])
     this.eventsDir = new Map(json.eventsDir ?? [])
+    this.extraAbis = json.extraAbis ?? []
   }
 
   async save(): Promise<void> {
@@ -67,6 +68,7 @@ export class TracerCache {
       fourByteDir: Array.from(this.fourByteDir.entries()),
       contractAbi: Array.from(this.contractAbi.entries()),
       eventsDir: Array.from(this.eventsDir.entries()),
+      extraAbis: this.extraAbis,
     }
 
     await Bun.write(filePath, JSON.stringify(payload, null, 2), {

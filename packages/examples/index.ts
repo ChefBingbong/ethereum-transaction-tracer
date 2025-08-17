@@ -1,7 +1,4 @@
-import {
-  formatTraceColored,
-  TransactionTracer,
-} from '@evm-transaction-trace/tracer'
+import { TransactionTracer } from '@evm-transaction-trace/tracer'
 import { erc20Abi } from 'viem'
 import { hyperBrickFactoryAbi } from './abi/HyperBrickFactory.abi'
 import { HyperBrickPairABI } from './abi/HyperBrickPair.abi'
@@ -53,12 +50,4 @@ const trace = await tracer.traceTransactionHash({
   tracerConfig: { withLog: true },
 })
 
-const out = await formatTraceColored(trace, tracer.cache, {
-  showReturnData: true,
-  showLogs: true,
-  progress: {
-    onUpdate: () => null,
-    includeLogs: true,
-  },
-})
-console.log(out)
+console.log(trace)
