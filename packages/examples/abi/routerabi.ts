@@ -1,0 +1,682 @@
+export const RouterAbi = [
+  {
+    type: 'constructor',
+    inputs: [
+      {
+        name: '_owner',
+        type: 'address',
+        internalType: 'address',
+      },
+      {
+        name: '_weth',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'receive',
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    name: 'FEE_DENOM',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'REFERRAL_WITH_FEE_THRESHOLD',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'WETH',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'addApprovedAddress',
+    inputs: [
+      {
+        name: '_address',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'isApproved',
+    inputs: [
+      {
+        name: '_address',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [
+      {
+        name: '',
+        type: 'bool',
+        internalType: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'owner',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'pause',
+    inputs: [],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'paused',
+    inputs: [],
+    outputs: [
+      {
+        name: '',
+        type: 'bool',
+        internalType: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'referralLookup',
+    inputs: [
+      {
+        name: '',
+        type: 'uint32',
+        internalType: 'uint32',
+      },
+    ],
+    outputs: [
+      {
+        name: 'referralFee',
+        type: 'uint64',
+        internalType: 'uint64',
+      },
+      {
+        name: 'beneficiary',
+        type: 'address',
+        internalType: 'address',
+      },
+      {
+        name: 'registered',
+        type: 'bool',
+        internalType: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+  },
+  {
+    type: 'function',
+    name: 'registerReferralCode',
+    inputs: [
+      {
+        name: '_referralCode',
+        type: 'uint32',
+        internalType: 'uint32',
+      },
+      {
+        name: '_referralFee',
+        type: 'uint64',
+        internalType: 'uint64',
+      },
+      {
+        name: '_beneficiary',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'removeApprovedAddress',
+    inputs: [
+      {
+        name: '_address',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'renounceOwnership',
+    inputs: [],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'swap',
+    inputs: [
+      {
+        name: 'tokenInfo',
+        type: 'tuple',
+        internalType: 'struct IOBRouter.swapTokenInfo',
+        components: [
+          {
+            name: 'inputToken',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'inputAmount',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'outputToken',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'outputQuote',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'outputMin',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'outputReceiver',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
+      },
+      {
+        name: 'pathDefinition',
+        type: 'bytes',
+        internalType: 'bytes',
+      },
+      {
+        name: 'executor',
+        type: 'address',
+        internalType: 'address',
+      },
+      {
+        name: 'referralCode',
+        type: 'uint32',
+        internalType: 'uint32',
+      },
+    ],
+    outputs: [
+      {
+        name: 'amountOut',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'payable',
+  },
+  {
+    type: 'function',
+    name: 'swapPermit2',
+    inputs: [
+      {
+        name: 'permit2',
+        type: 'tuple',
+        internalType: 'struct IOBRouter.permit2Info',
+        components: [
+          {
+            name: 'contractAddress',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'nonce',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'deadline',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'signature',
+            type: 'bytes',
+            internalType: 'bytes',
+          },
+        ],
+      },
+      {
+        name: 'tokenInfo',
+        type: 'tuple',
+        internalType: 'struct IOBRouter.swapTokenInfo',
+        components: [
+          {
+            name: 'inputToken',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'inputAmount',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'outputToken',
+            type: 'address',
+            internalType: 'address',
+          },
+          {
+            name: 'outputQuote',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'outputMin',
+            type: 'uint256',
+            internalType: 'uint256',
+          },
+          {
+            name: 'outputReceiver',
+            type: 'address',
+            internalType: 'address',
+          },
+        ],
+      },
+      {
+        name: 'pathDefinition',
+        type: 'bytes',
+        internalType: 'bytes',
+      },
+      {
+        name: 'executor',
+        type: 'address',
+        internalType: 'address',
+      },
+      {
+        name: 'referralCode',
+        type: 'uint32',
+        internalType: 'uint32',
+      },
+    ],
+    outputs: [
+      {
+        name: 'amountOut',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'transferOwnership',
+    inputs: [
+      {
+        name: 'newOwner',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'transferRouterFunds',
+    inputs: [
+      {
+        name: 'tokens',
+        type: 'address[]',
+        internalType: 'address[]',
+      },
+      {
+        name: 'amounts',
+        type: 'uint256[]',
+        internalType: 'uint256[]',
+      },
+      {
+        name: 'dest',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'function',
+    name: 'unpause',
+    inputs: [],
+    outputs: [],
+    stateMutability: 'nonpayable',
+  },
+  {
+    type: 'event',
+    name: 'OwnershipTransferred',
+    inputs: [
+      {
+        name: 'previousOwner',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+      {
+        name: 'newOwner',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'Paused',
+    inputs: [
+      {
+        name: 'account',
+        type: 'address',
+        indexed: false,
+        internalType: 'address',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'Swap',
+    inputs: [
+      {
+        name: 'sender',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+      {
+        name: 'inputAmount',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+      {
+        name: 'inputToken',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+      {
+        name: 'amountOut',
+        type: 'uint256',
+        indexed: false,
+        internalType: 'uint256',
+      },
+      {
+        name: 'outputToken',
+        type: 'address',
+        indexed: true,
+        internalType: 'address',
+      },
+      {
+        name: 'slippage',
+        type: 'int256',
+        indexed: false,
+        internalType: 'int256',
+      },
+      {
+        name: 'referralCode',
+        type: 'uint32',
+        indexed: false,
+        internalType: 'uint32',
+      },
+      {
+        name: 'to',
+        type: 'address',
+        indexed: false,
+        internalType: 'address',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'Unpaused',
+    inputs: [
+      {
+        name: 'account',
+        type: 'address',
+        indexed: false,
+        internalType: 'address',
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'error',
+    name: 'EnforcedPause',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'ExpectedPause',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'FeeTooHigh',
+    inputs: [
+      {
+        name: 'fee',
+        type: 'uint64',
+        internalType: 'uint64',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'InvalidFeeForCode',
+    inputs: [
+      {
+        name: 'fee',
+        type: 'uint64',
+        internalType: 'uint64',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'InvalidNativeTransfer',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'InvalidNativeValueDepositOnERC20Swap',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'InvalidRouterFundsTransfer',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'MinimumOutputGreaterThanQuote',
+    inputs: [
+      {
+        name: 'outputMin',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: 'outputQuote',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'MinimumOutputIsZero',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'NativeDepositValueMismatch',
+    inputs: [
+      {
+        name: 'expected',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: 'received',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'NotApprovedAddress',
+    inputs: [
+      {
+        name: 'caller',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'NullBeneficiary',
+    inputs: [],
+  },
+  {
+    type: 'error',
+    name: 'OwnableInvalidOwner',
+    inputs: [
+      {
+        name: 'owner',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'OwnableUnauthorizedAccount',
+    inputs: [
+      {
+        name: 'account',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'ReferralCodeInUse',
+    inputs: [
+      {
+        name: 'referralCode',
+        type: 'uint32',
+        internalType: 'uint32',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'SafeCastOverflowedUintToInt',
+    inputs: [
+      {
+        name: 'value',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'SafeERC20FailedOperation',
+    inputs: [
+      {
+        name: 'token',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'SameTokenInAndOut',
+    inputs: [
+      {
+        name: 'token',
+        type: 'address',
+        internalType: 'address',
+      },
+    ],
+  },
+  {
+    type: 'error',
+    name: 'SlippageExceeded',
+    inputs: [
+      {
+        name: 'amountOut',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+      {
+        name: 'outputMin',
+        type: 'uint256',
+        internalType: 'uint256',
+      },
+    ],
+  },
+] as const

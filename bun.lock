@@ -20,6 +20,10 @@
     },
     "packages/examples": {
       "name": "@evm-transaction-trace/examples",
+      "dependencies": {
+        "@evm-transaction-trace/tracer": "workspace:*",
+        "viem": "^2.33.3",
+      },
       "devDependencies": {
         "@types/bun": "latest",
       },
