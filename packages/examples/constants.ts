@@ -1,0 +1,4 @@
+export const ROUTER = '0x5fbd1b5aa82d09359c05428647871fe9add3f411'
+export const ERC20A = '0xb8ce59fc3717ada4c02eadf9682a9e934f625ebb'
+export const EXECUTOR = '0x5577D98EC04BCC73111c7B2f45C13Ed70d14a505'
+export const LBRouter = '0x4044e34336e41b9653931c4e0717587837993ca2'
