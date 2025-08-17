@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "VisualStudioExptTeam.vscodeintellicode",
+    "mattpocock.ts-error-translator",
+    "bierner.markdown-mermaid",
+    "biomejs.biome",
+    "aaron-bond.better-comments",
+    "matthewpi.caddyfile-support",
+    "streetsidesoftware.code-spell-checker",
+    "usernamehw.errorlens",
+    "pflannery.vscode-versionlens"
+  ]
+}
