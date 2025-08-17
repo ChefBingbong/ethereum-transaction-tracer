@@ -31,6 +31,7 @@
     "packages/tracer": {
       "name": "@evm-transaction-trace/tracer",
       "dependencies": {
+        "picocolors": "^1.1.1",
         "viem": "^2.33.3",
       },
       "devDependencies": {
