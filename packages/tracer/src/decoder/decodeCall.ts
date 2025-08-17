@@ -14,6 +14,19 @@ export function nameFromSelector(
   return sig
 }
 
+export const stringify = (v: unknown): string => {
+  if (typeof v === 'bigint') return v.toString()
+  if (typeof v === 'string') return v
+  if (Array.isArray(v)) return `[${v.map(stringify).join(', ')}]`
+  if (v && typeof v === 'object') {
+    return `{ ${Object.entries(v)
+      .filter(([k]) => Number.isNaN(Number(k)))
+      .map(([k, x]) => `${k}: ${stringify(x)}`)
+      .join(', ')} }`
+  }
+  return String(v)
+}
+
 export function decodeReturnPretty(
   fnItem: AbiFunction | undefined,
   output?: Hex,
@@ -25,7 +38,7 @@ export function decodeReturnPretty(
       functionName: fnItem.name,
       data: output,
     })
-    return JSON.stringify(data)
+    return stringify(data)
   } catch {
     return undefined
   }
@@ -41,8 +54,8 @@ export function decodeCallWithNames(
       | AbiFunction
       | undefined
     const prettyArgs = Array.isArray(args)
-      ? args.map((arg) => JSON.stringify(arg)).join(', ')
-      : JSON.stringify(args)
+      ? args.map(stringify).join(', ')
+      : stringify(args)
     return { fnName: functionName, prettyArgs, fnItem: item }
   } catch {
     return {}

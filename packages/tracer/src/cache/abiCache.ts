@@ -1,5 +1,7 @@
 import { join } from 'node:path'
 import type { Abi, AbiEvent, AbiFunction } from 'viem'
+import { indexAbi, toL } from './abiReader'
+import type { AbiSource } from './types'
 
 type CacheJson = {
   tokenDecimals?: [string, number][]
@@ -7,6 +9,13 @@ type CacheJson = {
   fourByteDir?: [string, AbiFunction][]
   contractAbi?: [string, Abi][]
   eventsDir?: [string, AbiEvent][]
+}
+
+type CacheOptions = {
+  byAddress?: Record<string, Abi>
+  labels?: Record<string, string>
+  extraAbis?: Abi[]
+  sources?: AbiSource[]
 }
 
 export class TracerCache {
@@ -18,6 +27,27 @@ export class TracerCache {
   public extraAbis: Abi[] = []
 
   public cachePath: string | undefined
+
+  constructor(cachePath: string, input?: CacheOptions) {
+    this.setCachePath(cachePath)
+
+    if (input?.byAddress) {
+      for (const [addr, abi] of Object.entries(input.byAddress)) {
+        const key = toL(addr)
+        if (!this.contractAbi.has(key)) {
+          this.contractAbi.set(key, abi)
+          indexAbi(this, abi)
+        }
+      }
+    }
+    if (input?.extraAbis) {
+      for (const abi of input.extraAbis) {
+        this.extraAbis.push(abi)
+        indexAbi(this, abi)
+      }
+    }
+    this.save()
+  }
 
   setCachePath(cachePath: string) {
     this.cachePath = cachePath
