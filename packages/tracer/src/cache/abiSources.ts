@@ -1,4 +1,5 @@
-import type { Abi, Address } from 'viem'
+import type { Abi, Address, Hex } from 'viem'
+import type { I4BytesEntry } from './types'
 
 export async function etherscanLikeSource(
   address: Address,
@@ -22,4 +23,16 @@ export async function etherscanLikeSource(
   } catch {
     return undefined
   }
+}
+
+export async function fourByteLikeSource(
+  signature: Hex,
+  apiBase = 'https://www.4byte.directory',
+): Promise<I4BytesEntry[] | undefined> {
+  const url = new URL('api/v1/signatures', apiBase)
+  url.searchParams.set('hex_signature', signature)
+
+  const res = await fetch(url.toString())
+  const json = (await res.json()) as { results: I4BytesEntry[] }
+  return json.results
 }
