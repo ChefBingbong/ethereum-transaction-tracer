@@ -1,13 +1,14 @@
+import { sleep } from 'bun'
+import type { Abi, Address } from 'viem'
 import {
-  type Abi,
   type AbiEvent,
   type AbiFunction,
-  type Address,
   type Hex,
   keccak256,
   toBytes,
 } from 'viem'
 import type { TracerCache } from './abiCache'
+import { etherscanLikeSource } from './abiSources'
 
 export const toL = (a?: string) => (a ? a.toLowerCase() : a) as string
 
@@ -40,4 +41,60 @@ export function addAbi(cache: TracerCache, address: Address, abi: Abi) {
   }
   indexAbi(cache, abi)
   cache.save()
+}
+
+export function createAbiRegistry(
+  cache: TracerCache,
+  input: {
+    byAddress?: Record<string, Abi>
+    // labels?: Record<string, string>
+    extraAbis?: Abi[]
+    // sources?: AbiSource[]
+  } = {},
+) {
+  if (input.byAddress) {
+    for (const [addr, abi] of Object.entries(input.byAddress)) {
+      const key = toL(addr)
+      if (!cache.contractAbi.has(key)) {
+        cache.contractAbi.set(key, abi)
+        indexAbi(cache, abi)
+      }
+    }
+  }
+  if (input.extraAbis) {
+    for (const abi of input.extraAbis) {
+      indexAbi(cache, abi)
+    }
+  }
+  cache.save()
+}
+
+export async function ensureAbi(
+  cache: TracerCache,
+  address: Address | undefined,
+): Promise<Abi | undefined> {
+  if (!address) return undefined
+  await cache.load()
+
+  const key = toL(address)
+  if (cache.contractAbi.has(key)) {
+    return cache.contractAbi.get(key)
+  }
+
+  try {
+    const abi = await etherscanLikeSource(
+      address,
+      'https://api.etherscan.io/v2',
+      '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
+    )
+
+    if (abi?.length) {
+      addAbi(cache, address, abi)
+      await sleep(2000)
+      return abi
+    }
+  } catch (e) {
+    console.warn(`ensureAbi: remote fetch failed for ${key}:`, e)
+  }
+  return undefined
 }
