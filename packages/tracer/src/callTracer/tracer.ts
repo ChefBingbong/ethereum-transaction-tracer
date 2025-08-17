@@ -12,6 +12,8 @@ import {
   recoverAuthorizationAddress,
 } from 'viem/utils'
 import { type CacheOptions, TracerCache } from '../cache'
+import { Decoder } from '../decoder'
+import { TraceFormatter } from '../format'
 import type {
   TraceCallParameters,
   TraceCallRpcSchema,
@@ -21,7 +23,9 @@ import type {
 
 export class TransactionTracer {
   public cache: TracerCache
+  public decoder: Decoder
   private client: PublicClient
+  private formatter: TraceFormatter
 
   constructor(
     client: PublicClient,
@@ -29,6 +33,8 @@ export class TransactionTracer {
   ) {
     this.client = client
     this.cache = new TracerCache(args.cachePath, args.cacheOptions)
+    this.decoder = new Decoder(this.cache, true)
+    this.formatter = new TraceFormatter(this.cache, this.decoder)
   }
 
   public init = async () => {
@@ -122,7 +128,14 @@ export class TransactionTracer {
         { retryCount: 0 },
       )
 
-      return trace
+      return this.formatter.formatTraceColored(trace, {
+        showReturnData: true,
+        showLogs: true,
+        progress: {
+          onUpdate: () => null,
+          includeLogs: true,
+        },
+      })
     } catch (err) {
       throw getTransactionError(err as BaseError, {
         ...args,
@@ -151,7 +164,14 @@ export class TransactionTracer {
         },
         { retryCount: 0 },
       )
-      return trace
+      return this.formatter.formatTraceColored(trace, {
+        showReturnData: true,
+        showLogs: true,
+        progress: {
+          onUpdate: () => null,
+          includeLogs: true,
+        },
+      })
     } catch (err) {
       throw getTransactionError(err as BaseError, {
         account: null,

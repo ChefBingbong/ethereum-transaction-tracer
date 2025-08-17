@@ -1,31 +1,6 @@
 import type { Abi, AbiFunction, Hex } from 'viem'
 import { decodeFunctionData, decodeFunctionResult, getAbiItem } from 'viem'
-import type { TracerCache } from '../cache'
-
-export function nameFromSelector(
-  input: Hex | undefined,
-  cache: TracerCache,
-): string | undefined {
-  if (!input || input.length < 10) return undefined
-  const sel = input.slice(0, 10) as Hex
-  const fn = cache.fourByteDir.get(sel)
-  if (!fn) return undefined
-  const sig = `${fn.name}(${(fn.inputs ?? []).map((i) => i.type).join(',')})`
-  return sig
-}
-
-export const stringify = (v: unknown): string => {
-  if (typeof v === 'bigint') return v.toString()
-  if (typeof v === 'string') return v
-  if (Array.isArray(v)) return `[${v.map(stringify).join(', ')}]`
-  if (v && typeof v === 'object') {
-    return `{ ${Object.entries(v)
-      .filter(([k]) => Number.isNaN(Number(k)))
-      .map(([k, x]) => `${k}: ${stringify(x)}`)
-      .join(', ')} }`
-  }
-  return String(v)
-}
+import { stringify } from './utils'
 
 export function decodeReturnPretty(
   fnItem: AbiFunction | undefined,

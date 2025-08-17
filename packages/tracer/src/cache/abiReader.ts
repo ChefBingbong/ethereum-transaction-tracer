@@ -89,6 +89,7 @@ export async function ensureAbi(
       '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
     )
 
+    console.log(abi)
     if (abi?.length) {
       addAbi(cache, address, abi)
       await sleep(2000)
