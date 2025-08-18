@@ -2,6 +2,11 @@
   "name": "@evm-transaction-trace/examples",
   "module": "index.ts",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ChefBingbong/ethereum-transaction-tracer.git",
+    "directory": "packages/examples"
+  },
   "scripts": {
     "check": "tsc --pretty --noEmit",
     "clean": "rm -rf .turbo && rm -rf node_modules",

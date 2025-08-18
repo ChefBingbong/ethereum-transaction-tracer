@@ -2,6 +2,11 @@
   "name": "@evm-transaction-trace/tracer",
   "module": "src/index.ts",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ChefBingbong/ethereum-transaction-tracer.git",
+    "directory": "packages/tracer"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
