@@ -36,7 +36,7 @@ await tracer.init()
 
 const trace = await tracer.traceTransactionHash({
   tracer: 'callTracer',
-  txHash: '0xc6effb9050055931f2b6cf12eb28fe81c1bd9005d13be20053a8a6fb59e2a48d',
+  txHash: '0x28b9f313d6beb43e0c71f23206b3d75db3255f772fefdc995fe45ff7cf0ca009',
   tracerConfig: { withLog: true },
 })
 

@@ -1,5 +1,5 @@
 import type { Abi, Address, Hex } from 'viem'
-import type { I4BytesEntry } from './types'
+import type { DecodeResult, I4BytesEntry } from './types'
 
 export async function etherscanLikeSource(
   address: Address,
@@ -35,4 +35,16 @@ export async function fourByteLikeSource(
   const res = await fetch(url.toString())
   const json = (await res.json()) as { results: I4BytesEntry[] }
   return json.results
+}
+
+export async function fourByteLikeSourceOp(
+  signature: Hex,
+  apiBase = 'https://api.openchain.xyz',
+): Promise<DecodeResult | undefined> {
+  const url = new URL('signature-database/v1/lookup', apiBase)
+  url.searchParams.set('function', signature)
+
+  const res = await fetch(url.toString())
+  const json = (await res.json()) as { result: DecodeResult }
+  return json.result
 }
