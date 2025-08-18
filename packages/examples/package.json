@@ -17,7 +17,8 @@
     "@evm-transaction-trace/typescript-config": "workspace:*"
   },
   "dependencies": {
+    "@evm-transaction-trace/tracer": "workspace:*",
     "viem": "^2.33.3",
-    "@evm-transaction-trace/tracer": "workspace:*"
+    "zod": "^4.0.17"
   }
 }

@@ -7,7 +7,7 @@ import {
   getAbiItem,
 } from 'viem'
 
-import { type TracerCache, toL } from '../cache'
+import type { TracerCache } from '../cache'
 import type { RpcCallTrace } from '../callTracer'
 import {
   formatArgsInline,
@@ -50,12 +50,21 @@ export class Decoder {
       return undefined
     }
   }
-  public decodeCallWithNames = (address: Address, input?: Hex) => {
-    const abi = this.cache.contractAbi.get(toL(address))
-    if (!abi || !input || input === '0x') return {}
+  public decodeCallWithNames = (_address: Address, input?: Hex) => {
+    const sel = input?.slice(0, 10)
+    if (!sel || !input || input === '0x') return {}
+
+    const fn = this.cache.contractAbi.get(_address.toLowerCase())
+    if (!fn) {
+      console.log('h')
+      return {}
+    }
     try {
-      const { functionName, args } = decodeFunctionData({ abi, data: input })
-      const item = getAbiItem({ abi, name: functionName }) as
+      const { functionName, args } = decodeFunctionData({
+        abi: fn,
+        data: input,
+      })
+      const item = getAbiItem({ abi: fn, name: functionName }) as
         | AbiFunction
         | undefined
       const prettyArgs = Array.isArray(args)
@@ -84,17 +93,30 @@ export class Decoder {
           strict: false,
         })
         const argsObj: Record<string, unknown> = {}
-        if (dec.args && typeof dec.args === 'object') {
-          for (const [k, v] of Object.entries(dec.args)) {
-            if (!/^\d+$/.test(k)) argsObj[k] = v
+
+        console.log(dec)
+        if (dec.args) {
+          if (dec.args && typeof dec.args === 'object') {
+            for (const [k, v] of Object.entries(dec.args)) {
+              if (!/^\d+$/.test(k)) argsObj[k] = v
+            }
           }
+          return { name: dec.eventName, args: argsObj }
         }
-        return { name: dec.eventName, args: argsObj }
       } catch {}
     }
     const t0 = topics[0] as Hex
     const ev = this.cache.eventsDir.get(t0)
-    if (ev) return { name: ev.name }
+
+    if (ev) {
+      const dec = decodeEventLog({
+        abi: [ev],
+        topics,
+        data: data ?? '0x',
+        strict: false,
+      })
+      return { name: ev.name, args: dec.args }
+    }
     return {}
   }
 

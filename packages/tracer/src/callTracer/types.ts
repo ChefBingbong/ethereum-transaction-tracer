@@ -6,7 +6,6 @@ import type {
   Hex,
   PrepareTransactionRequestParameters,
   RpcTransactionRequest,
-  StateOverride,
 } from 'viem'
 
 export type RpcCallType =
@@ -40,6 +39,9 @@ export type RpcCallTrace = {
   type: RpcCallType
 }
 
+export type StateOverrides = {
+  [x: Address]: { stateDiff: Record<Address, Address> } | { balance: bigint }
+}
 export type TraceCallRpcSchema = {
   Method: 'debug_traceCall'
   Parameters:
@@ -50,7 +52,7 @@ export type TraceCallRpcSchema = {
         {
           tracer: 'callTracer' | 'prestateTracer'
           tracerConfig?: { onlyTopCall?: boolean; withLog?: boolean }
-          stateOverride?: StateOverride
+          stateOverride?: StateOverrides
         },
       ]
   ReturnType: RpcCallTrace
@@ -72,7 +74,7 @@ export type TraceCallParameters = PrepareTransactionRequestParameters & {
   _chainnt?: Account | Address | undefined
   tracer?: 'callTracer' | 'prestateTracer'
   tracerConfig?: { onlyTopCall?: boolean; withLog?: boolean } // ← add withLog
-  stateOverride?: StateOverride
+  stateOverride?: StateOverrides
 } & (
     | { blockNumber?: bigint | undefined; blockTag?: undefined }
     | { blockNumber?: undefined; blockTag?: BlockTag | undefined }

@@ -21,10 +21,13 @@ export class TracerCache {
   public contractAbi = new Map<string, Abi>()
   public eventsDir = new Map<string, AbiEvent>()
   public extraAbis: Abi[] = []
+  public undefinedSignatures: Address[] = []
+  private input?: CacheOptions
 
   public cachePath: string | undefined
 
   constructor(cachePath: string, input?: CacheOptions) {
+    this.input = input
     this.setCachePath(cachePath)
 
     if (input?.byAddress) {
@@ -81,6 +84,9 @@ export class TracerCache {
     if (json.extraAbis) {
       this.extraAbis = json.extraAbis
     }
+    if (json.undefinedSignatures) {
+      this.undefinedSignatures = json.undefinedSignatures
+    }
   }
 
   async save(): Promise<void> {
@@ -93,6 +99,7 @@ export class TracerCache {
       fourByteDir: Array.from(this.fourByteDir.entries()),
       contractAbi: Array.from(this.contractAbi.entries()),
       eventsDir: Array.from(this.eventsDir.entries()),
+      undefinedSignatures: this.undefinedSignatures,
       extraAbis: this.extraAbis,
     }
 
@@ -100,7 +107,6 @@ export class TracerCache {
       createPath: true,
     })
   }
-
   private getTracerCachePath(): string {
     if (!this.cachePath) {
       throw new Error('[tracer] cachePath not set')
@@ -148,23 +154,28 @@ export class TracerCache {
       return this.contractAbi.get(key)
     }
 
+    if (
+      this.undefinedSignatures.includes(address) ||
+      !this.input?.etherscanApiKey
+    )
+      return undefined
     try {
       const abi = await etherscanLikeSource(
         address,
         'https://api.etherscan.io/v2',
-        '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
+        this.input?.etherscanApiKey,
       )
 
       if (abi?.length) {
         this.addAbi(address, abi)
-        await sleep(2000)
+        await sleep(1000)
         return abi
       }
+      this.undefinedSignatures.push(address)
+      await this.save()
     } catch (e) {
       console.warn(`ensureAbi: remote fetch failed for ${key}:`, e)
     }
-
-    await this.save()
     return undefined
   }
 }

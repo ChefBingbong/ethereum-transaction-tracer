@@ -190,7 +190,7 @@ export class TraceFormatter {
 
   private renderLog(
     addr: Address,
-    topics: Hex[],
+    topics: [signature: `0x${string}`, ...args: `0x${string}`[]],
     data: Hex,
     o: Required<typeof defaultOpts>,
   ): string {

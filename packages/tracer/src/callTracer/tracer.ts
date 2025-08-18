@@ -69,6 +69,7 @@ export class TransactionTracer {
         ...tx
       } = (await this.client.prepareTransactionRequest({
         ...args,
+        stateOverride,
         parameters: ['blobVersionedHashes', 'chainId', 'fees', 'nonce', 'type'],
       })) as TraceCallParameters
 
@@ -121,7 +122,7 @@ export class TransactionTracer {
             {
               tracer,
               ...(tracerConfig && { tracerConfig }),
-              ...(stateOverride && { stateOverride }),
+              ...(stateOverride && { stateOverrides: { ...stateOverride } }),
             },
           ],
         },

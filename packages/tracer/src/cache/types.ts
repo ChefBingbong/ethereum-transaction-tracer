@@ -34,9 +34,11 @@ export type CacheJson = {
   contractAbi?: [string, Abi][]
   eventsDir?: [string, AbiEvent][]
   extraAbis?: Abi[]
+  undefinedSignatures?: Address[]
 }
 
 export type CacheOptions = {
+  etherscanApiKey?: string
   byAddress?: Record<string, Abi>
   labels?: Record<string, string>
   extraAbis?: Abi[]
