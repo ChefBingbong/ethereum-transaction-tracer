@@ -19538,6 +19538,32 @@
         ],
         "outputs": []
       }
+    ],
+    [
+      "0x6a111a56",
+      {
+        "name": "logFee",
+        "type": "function",
+        "stateMutability": "nonpayable",
+        "inputs": [
+          {
+            "type": "address"
+          },
+          {
+            "type": "uint256"
+          },
+          {
+            "type": "uint256"
+          },
+          {
+            "type": "uint256"
+          },
+          {
+            "type": "uint256"
+          }
+        ],
+        "outputs": []
+      }
     ]
   ],
   "contractAbi": [

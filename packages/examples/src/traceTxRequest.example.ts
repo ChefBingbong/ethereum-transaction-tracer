@@ -46,11 +46,10 @@ const trace = await tracer.traceCall({
   chain: client.chain,
   tracerConfig: { withLog: true },
   stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(
-    TOKEN,
+    SENDER,
     TOKEN,
     ROUTER,
   ),
 })
-// "reserve0": "13097228",
-// "reserve1": "881653096920182452748",
+
 console.log(trace)
