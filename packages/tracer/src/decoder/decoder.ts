@@ -5,9 +5,10 @@ import {
   decodeFunctionData,
   decodeFunctionResult,
   getAbiItem,
+  parseAbiItem,
 } from 'viem'
 
-import type { TracerCache } from '../cache'
+import { fourByteLikeSourceOp, type TracerCache } from '../cache'
 import type { RpcCallTrace } from '../callTracer'
 import {
   formatArgsInline,
@@ -51,13 +52,42 @@ export class Decoder {
     }
   }
   public decodeCallWithNames = (_address: Address, input?: Hex) => {
-    const sel = input?.slice(0, 10)
+    const sel = input?.slice(0, 10) as Hex
     if (!sel || !input || input === '0x') return {}
 
     const fn = this.cache.contractAbi.get(_address.toLowerCase())
     if (!fn) {
-      console.log('h')
-      return {}
+      const selector = this.cache.fourByteDir.get(sel)
+      if (!selector) {
+        fourByteLikeSourceOp(sel).then((res) => {
+          if (res?.function[sel]?.[0].name) {
+            const abi = parseAbiItem(
+              `function ${res.function[sel]?.[0].name}`,
+            ) as AbiFunction
+            this.cache.fourByteDir.set(
+              sel,
+              getAbiItem({ abi: [abi], name: abi?.name }) as AbiFunction,
+            )
+          }
+        })
+
+        // this.cache.fourByteDir.set(selector, parseAbiItem(res.function[selector][0].name))
+      }
+      try {
+        const { functionName, args } = decodeFunctionData({
+          abi: [selector],
+          data: input,
+        })
+        const item = getAbiItem({ abi: [selector], name: functionName }) as
+          | AbiFunction
+          | undefined
+        const prettyArgs = Array.isArray(args)
+          ? args.map(stringify).join(', ')
+          : stringify(args)
+        return { fnName: functionName, prettyArgs, fnItem: item }
+      } catch {
+        return {}
+      }
     }
     try {
       const { functionName, args } = decodeFunctionData({
@@ -94,7 +124,6 @@ export class Decoder {
         })
         const argsObj: Record<string, unknown> = {}
 
-        console.log(dec)
         if (dec.args) {
           if (dec.args && typeof dec.args === 'object') {
             for (const [k, v] of Object.entries(dec.args)) {

@@ -8,6 +8,7 @@ import {
   type Hex,
   keccak256,
   toBytes,
+  zeroAddress,
 } from 'viem'
 import { etherscanLikeSource } from './abiSources'
 import type { CacheJson, CacheOptions } from './types'
@@ -147,18 +148,16 @@ export class TracerCache {
   public ensureAbi = async (
     address: Address | undefined,
   ): Promise<Abi | undefined> => {
-    if (!address) return undefined
+    if (!address || address === zeroAddress) return undefined
 
     const key = toL(address)
     if (this.contractAbi.has(key)) {
       return this.contractAbi.get(key)
     }
 
-    if (
-      this.undefinedSignatures.includes(address) ||
-      !this.input?.etherscanApiKey
-    )
+    if (!this.input?.etherscanApiKey) {
       return undefined
+    }
     try {
       const abi = await etherscanLikeSource(
         address,
@@ -171,7 +170,6 @@ export class TracerCache {
         await sleep(1000)
         return abi
       }
-      this.undefinedSignatures.push(address)
       await this.save()
     } catch (e) {
       console.warn(`ensureAbi: remote fetch failed for ${key}:`, e)

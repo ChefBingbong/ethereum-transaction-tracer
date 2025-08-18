@@ -3,7 +3,8 @@ import type { Address, Hex } from 'viem'
 import type { TracerCache } from '../cache/index'
 import type { RpcCallTrace, RpcCallType } from '../callTracer'
 import type { Decoder } from '../decoder'
-import { nameFromSelector } from '../decoder/utils'
+import { nameFromSelector, stringify } from '../decoder/utils'
+import { formatPrecompilePretty } from './formatPrecompile'
 import { theme } from './theme'
 import { defaultOpts, type PrettyOpts } from './types'
 import { formatGas, formatValueEth, truncate } from './utils'
@@ -20,7 +21,10 @@ export class TraceFormatter {
   ) {
     const paint = color ?? theme.addr
     if (!addr) return paint('<unknown>')
-    const key = addr.toLowerCase()
+    const key =
+      addr.toLowerCase() === '0x0000000000000000000000000000000000000004'
+        ? 'Precompile.DataCopy'
+        : addr.toLowerCase()
     return paint(key)
   }
 
@@ -164,6 +168,29 @@ export class TraceFormatter {
   }
 
   private renderMethod(node: RpcCallTrace, hasError: boolean): string {
+    const pre = formatPrecompilePretty(node.to, node.input, node.output)
+    if (pre) {
+      const selectorSig = !pre.name
+        ? nameFromSelector(node.input, this.cache)
+        : undefined
+
+      if (pre.name) {
+        const styled = hasError ? pc.bold(pc.red(pre.name)) : theme.fn(pre.name)
+        return `${styled}(${pre.inputText ?? ''})`
+      }
+      if (selectorSig) {
+        const styled = hasError
+          ? pc.bold(pc.red(selectorSig))
+          : theme.fn(selectorSig)
+        return styled
+      }
+      if (node.input && node.input !== '0x') {
+        return theme.dim(
+          `calldata=${truncate(node.input, defaultOpts.maxData)}`,
+        )
+      }
+      return theme.dim('()')
+    }
     const { fnName, prettyArgs } = this.decoder.decodeCallWithNames(
       node.to,
       node.input,
@@ -197,7 +224,7 @@ export class TraceFormatter {
     const dec = this.decoder.safeDecodeEvent(addr, topics, data)
     if (dec.name) {
       const argPairs = Object.entries(dec.args ?? {})
-        .map(([k, v]) => `${theme.argKey(k)}: ${theme.argVal(String(v))}`)
+        .map(([k, v]) => `${theme.eventArgVal(k)}: ${theme.argVal(String(v))}`)
         .join(', ')
       return `${theme.emit('emit')} ${theme.emit(dec.name)}(${argPairs})`
     }
@@ -230,6 +257,18 @@ export class TraceFormatter {
     }
 
     if (!o.showReturnData) return lines
+
+    // 1) PRECOMPILE fast-path
+    const pre = formatPrecompilePretty(node.to, node.input, node.output)
+    if (pre) {
+      node.output && node.output !== '0x'
+        ? truncate(node.output, o.maxData)
+        : theme.dim('()')
+      lines.push(
+        `${tailPrefix}${theme.retLabel('[Return]')} ${stringify(pre.outputText)}`,
+      )
+      return lines
+    }
 
     const { fnItem } = this.decoder.decodeCallWithNames(node.to, node.input)
     const decoded = this.decoder.decodeReturnPretty(fnItem, node.output)

@@ -44,3 +44,17 @@ export type CacheOptions = {
   extraAbis?: Abi[]
   sources?: AbiSource[]
 }
+
+export type FourByteSelector = `0x${string}`
+
+export type SignatureEntry = {
+  name: string
+  filtered: boolean
+}
+
+export type SelectorIndex = Record<FourByteSelector, SignatureEntry[]>
+
+export type DecodeResult = {
+  event: SelectorIndex
+  function: SelectorIndex
+}
