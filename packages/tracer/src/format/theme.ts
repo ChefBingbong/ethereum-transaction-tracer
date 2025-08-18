@@ -5,7 +5,7 @@ export const theme = {
   contract: pc.cyan,
   fn: (s: string) => pc.bold(pc.white(s)),
   typeBadge: pc.yellow,
-  emit: pc.magenta,
+  emit: pc.magentaBright,
   argKey: pc.blue,
   argVal: pc.green,
   eventArgVal: pc.magenta,
