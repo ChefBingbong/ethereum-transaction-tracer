@@ -8,7 +8,11 @@ import {
 import pc from 'picocolors'
 import type { Address, Hex } from 'viem'
 import type { TracerCache } from '../cache/index'
-import type { RpcCallTrace, RpcCallType } from '../callTracer'
+import {
+  LogVerbosity,
+  type RpcCallTrace,
+  type RpcCallType,
+} from '../callTracer'
 import type { Decoder } from '../decoder'
 import { nameFromSelector, stringify } from '../decoder/utils'
 import { formatPrecompilePretty } from './formatPrecompile'
@@ -31,6 +35,7 @@ export class TraceFormatter {
     private readonly cache: TracerCache,
     private readonly decoder: Decoder,
     level: boolean,
+    private readonly verbosity: LogVerbosity,
   ) {
     this.logger = new LoggerProvider(level)
     this.logger.init()
@@ -77,6 +82,14 @@ export class TraceFormatter {
 
     const out: string[] = []
     await this.walk(root, '', true, 0, { ...defaultOpts, ...(opts || {}) }, out)
+
+    // Summary
+    const totalGas =
+      root.calls?.reduce((acc, curr) => acc + Number(curr.gasUsed), 0) ?? 0
+    const totalHex = `0x${totalGas.toString(16)}`
+    out.push('')
+    out.push(pc.bold('— Gas summary —'))
+    out.push(`total used: ${pc.bold(Number(totalGas))} (${pc.dim(totalHex)})`)
     return safeResult(out.join('\n'))
   }
 
@@ -255,7 +268,7 @@ export class TraceFormatter {
     out.push(branch + this.renderHeader(node, hasError, o).trimEnd())
 
     // Logs
-    if (o.showLogs && node.logs?.length) {
+    if (o.showLogs && node.logs?.length && this.verbosity > LogVerbosity.High) {
       const lastIdx = node.logs.length - 1
       for (let i = 0; i < node.logs.length; i++) {
         const lg = node.logs[i]
@@ -269,20 +282,22 @@ export class TraceFormatter {
       }
     }
 
-    const children = node.calls ?? []
-    for (let i = 0; i < children.length; i++) {
-      const [error, _] = await safeTry(
-        this.walk(
-          children[i]!,
-          nextPrefix,
-          i === children.length - 1,
-          depth + 1,
-          o,
-          out,
-        ),
-      )
-      if (error) {
-        this.logger.debug('error.message')
+    if (this.verbosity > LogVerbosity.Low) {
+      const children = node.calls ?? []
+      for (let i = 0; i < children.length; i++) {
+        const [error, _] = await safeTry(
+          this.walk(
+            children[i]!,
+            nextPrefix,
+            i === children.length - 1,
+            depth + 1,
+            o,
+            out,
+          ),
+        )
+        if (error) {
+          this.logger.debug('error.message')
+        }
       }
     }
 
@@ -317,6 +332,11 @@ export class TraceFormatter {
       }
       case 'DELEGATECALL':
       case 'CALLCODE': {
+        if (
+          node.type === 'DELEGATECALL' &&
+          this.verbosity <= LogVerbosity.Medium
+        )
+          return ''
         const left =
           this.addrLabelStyled(node.from as Address, paint) +
           ' → ' +
@@ -385,7 +405,9 @@ export class TraceFormatter {
 
     if (fnName) {
       const styled = hasError ? pc.bold(pc.red(fnName)) : theme.fn(fnName)
-      return `${styled}(${prettyArgs ?? ''})`
+
+      if (this.verbosity <= LogVerbosity.Medium) return `${styled}()`
+      else return `${styled}(${prettyArgs ?? ''})`
     }
     if (selectorSig) {
       const styled = hasError

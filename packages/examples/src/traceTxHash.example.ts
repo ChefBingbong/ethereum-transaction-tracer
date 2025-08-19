@@ -1,4 +1,4 @@
-import { TransactionTracer } from '@evm-transaction-trace/tracer'
+import { LogVerbosity, TransactionTracer } from '@evm-transaction-trace/tracer'
 import { erc20Abi, type PublicClient } from 'viem'
 import { hyperBrickFactoryAbi } from './abi/HyperBrickFactory.abi'
 import { HyperBrickPairABI } from './abi/HyperBrickPair.abi'
@@ -30,6 +30,7 @@ const tracer = new TransactionTracer(client, {
       hyperBrickFactoryAbi,
     ],
   },
+  verbosity: LogVerbosity.Highest,
 })
 
 await tracer.init()
