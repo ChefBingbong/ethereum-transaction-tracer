@@ -1,4 +1,5 @@
 import {
+  LoggerProvider,
   safeError,
   safeResult,
   safeTimeoutPromiseAll,
@@ -15,11 +16,25 @@ import { theme } from './theme'
 import { defaultOpts, type PrettyOpts } from './types'
 import { formatGas, formatValueEth, truncate } from './utils'
 
+const hexToBig = (h?: Hex) => (h ? BigInt(h) : 0n)
+
+type GasTally = {
+  totalGas: bigint
+  frames: number
+  succeeded: number
+  failed: number
+  abortedAt?: string // pretty label of the frame that reverted
+}
 export class TraceFormatter {
+  private readonly logger: LoggerProvider
   constructor(
     private readonly cache: TracerCache,
     private readonly decoder: Decoder,
-  ) {}
+    level: boolean,
+  ) {
+    this.logger = new LoggerProvider(level)
+    this.logger.init()
+  }
 
   private addrLabelStyled(
     addr: Address | undefined,
@@ -65,6 +80,163 @@ export class TraceFormatter {
     return safeResult(out.join('\n'))
   }
 
+  public async formatGasTraceColored(root: RpcCallTrace) {
+    const [error, _] = await this.prefetchAbis(root)
+    if (error) safeError(error)
+    const usedAddrSet: Set<Address> = new Set()
+
+    const out: string[] = []
+    const tally: GasTally = {
+      totalGas: 0n,
+      frames: 0,
+      succeeded: 0,
+      failed: 0,
+    }
+
+    const walk = async (
+      node: RpcCallTrace,
+      prefix: string,
+      isLast: boolean,
+      depth: number,
+      usedAddrSet: Set<Address>,
+    ): Promise<boolean> => {
+      const branch = ''
+      const nextPrefix = prefix + (isLast ? '   ' : '│  ')
+
+      await this.cache.ensureAbi(node.to, node.input).catch(() => {})
+
+      const hasError = Boolean(node.error)
+      const methodLabel = this.gasMethodLabel(node, hasError, usedAddrSet)
+      usedAddrSet.add(node.to)
+
+      const used = hexToBig(node.gasUsed)
+      tally.totalGas += used
+      tally.frames += 1
+      if (hasError) tally.failed += 1
+      else tally.succeeded += 1
+
+      const usedStr = Number(used).toString() // decimal for readability
+      const line =
+        branch +
+        methodLabel +
+        ' ' +
+        pc.dim('—') +
+        ` used=${pc.bold(usedStr)}` +
+        (hasError ? ` ${pc.red('❌')}` : '')
+      out.push(line)
+
+      if (hasError) {
+        tally.abortedAt = methodLabel
+        return true
+      }
+
+      const children = node.calls ?? []
+      for (let i = 0; i < children.length; i++) {
+        const abort = await walk(
+          children[i]!,
+          nextPrefix,
+          i === children.length - 1,
+          depth + 1,
+          usedAddrSet,
+        )
+        if (abort) return true
+      }
+      return false
+    }
+
+    await walk(root, '', true, 0, usedAddrSet)
+
+    // Summary
+    const totalHex = `0x${tally.totalGas.toString(16)}`
+    out.push('')
+    out.push(pc.bold('— Gas summary —'))
+    if (tally.abortedAt) {
+      out.push(`${pc.red('reverted at')}: ${pc.red(tally.abortedAt)}`)
+    }
+    out.push(
+      `frames: ${tally.frames}   ok: ${tally.succeeded}   fail: ${tally.failed}`,
+    )
+    out.push(
+      `total used: ${pc.bold(Number(hexToBig(root.gasUsed)))} (${pc.dim(totalHex)})`,
+    )
+
+    return safeResult(out.join('\n'))
+  }
+
+  private gasMethodLabel(
+    node: RpcCallTrace,
+    hasError: boolean,
+    usedAddrSet: Set<Address>,
+  ): string {
+    const paint = hasError ? pc.red : undefined
+
+    const left = (() => {
+      switch (node.type) {
+        case 'DELEGATECALL':
+        case 'CALLCODE':
+          return (
+            this.addrLabelStyled(node.from as Address, paint) +
+            ' → ' +
+            this.addrLabelStyled(node.to, paint)
+          )
+        case 'CREATE':
+        case 'CREATE2': {
+          const created = node.to
+            ? this.addrLabelStyled(node.to, paint)
+            : this.addrLabelStyled(undefined, paint)
+          const initLen = node.input ? (node.input.length - 2) / 2 : 0
+          const createFn = hasError
+            ? pc.bold(pc.red('create'))
+            : theme.fn('create')
+          return `${created} :: ${createFn}(init_code_len=${initLen})`
+        }
+        case 'SELFDESTRUCT': {
+          const target = this.addrLabelStyled(node.to, paint)
+          const sd = hasError
+            ? pc.bold(pc.red('selfdestruct'))
+            : theme.fn('selfdestruct')
+          return `${target} :: ${sd}`
+        }
+        default:
+          return this.addrLabelStyled(node.to, paint)
+      }
+    })()
+
+    if (
+      left.includes('::') &&
+      (node.type === 'CREATE' ||
+        node.type === 'CREATE2' ||
+        node.type === 'SELFDESTRUCT')
+    ) {
+      return left
+    }
+
+    const pre = formatPrecompilePretty(node.to, node.input, node.output)
+    if (pre?.name) {
+      const styled = hasError ? pc.bold(pc.red(pre.name)) : theme.fn(pre.name)
+      return `${!usedAddrSet.has(node.to) ? `${left}\n` : '• '}${styled}()`
+    }
+
+    const { fnName } = this.decoder.decodeCallWithNames(node.to, node.input)
+    if (fnName) {
+      const styled = hasError ? pc.bold(pc.red(fnName)) : theme.retData(fnName)
+      return `${!usedAddrSet.has(node.to) ? `${left}\n` : ''} • ${styled}()`
+    }
+
+    const selectorSig = nameFromSelector(node.to, this.cache)
+    if (selectorSig) {
+      const styled = hasError
+        ? pc.bold(pc.red(selectorSig))
+        : theme.fn(selectorSig)
+      return `${left} :: ${styled}`
+    }
+
+    if (node.input && node.input !== '0x') {
+      return `${theme.dim('')}`
+    }
+    return `• ${theme.dim('()')}`
+  }
+
   private async walk(
     node: RpcCallTrace,
     prefix: string,
@@ -78,9 +250,7 @@ export class TraceFormatter {
     const hasError = Boolean(node.error)
 
     const [error, _] = await safeTry(this.cache.ensureAbi(node.to, node.input))
-    if (error) {
-      //log
-    }
+    if (error) this.logger.debug(error.message)
 
     out.push(branch + this.renderHeader(node, hasError, o).trimEnd())
 
@@ -112,7 +282,7 @@ export class TraceFormatter {
         ),
       )
       if (error) {
-        //log
+        this.logger.debug('error.message')
       }
     }
 
