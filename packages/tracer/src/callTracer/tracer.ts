@@ -31,7 +31,11 @@ export class TransactionTracer {
 
   constructor(
     client: PublicClient,
-    args: { cachePath: string; cacheOptions?: CacheOptions },
+    args: {
+      cachePath: string
+      cacheOptions?: CacheOptions
+      logDebug?: boolean
+    },
   ) {
     this.client = client
     this.chainId = this.client.chain?.id
@@ -44,16 +48,19 @@ export class TransactionTracer {
       args.cacheOptions,
     )
     this.decoder = new Decoder(this.cache, true)
-    this.formatter = new TraceFormatter(this.cache, this.decoder)
+    this.formatter = new TraceFormatter(
+      this.cache,
+      this.decoder,
+      args.logDebug ?? false,
+    )
   }
 
   public init = async () => {
     await this.cache.load()
   }
 
-  public traceCall = async ({
+  private callTraceRequest = async ({
     tracer = 'callTracer',
-    tracerConfig,
     stateOverride,
     ...args
   }: TraceCallParameters) => {
@@ -144,7 +151,10 @@ export class TransactionTracer {
             block,
             {
               tracer,
-              ...(tracerConfig && { tracerConfig }),
+              tracerConfig: {
+                onlyTopCall: false,
+                withLog: false,
+              },
               ...(stateOverride && { stateOverrides: { ...stateOverride } }),
             },
           ],
@@ -158,6 +168,62 @@ export class TransactionTracer {
         getTransactionError(traceError as BaseError, {
           ...args,
           account,
+          chain: this.client.chain,
+        }),
+      )
+    }
+    return safeResult(trace)
+  }
+
+  private callTraceTxHash = async ({
+    txHash,
+    tracer = 'callTracer',
+    tracerConfig,
+  }: TraceTxParameters) => {
+    const [error, trace] = await safeTry(
+      this.client.request<TraceTxRpcSchema>(
+        {
+          method: 'debug_traceTransaction',
+          params: [
+            txHash,
+            {
+              tracer,
+              ...(tracerConfig && { tracerConfig }),
+            },
+          ],
+        },
+        { retryCount: 0 },
+      ),
+    )
+
+    if (error) {
+      return safeError(
+        getTransactionError(error as BaseError, {
+          account: null,
+          chain: this.client.chain,
+        }),
+      )
+    }
+    return safeResult(trace)
+  }
+
+  public traceCall = async ({
+    tracer = 'callTracer',
+    tracerConfig,
+    stateOverride,
+    ...args
+  }: TraceCallParameters) => {
+    const [traceError, trace] = await this.callTraceRequest({
+      tracer,
+      stateOverride,
+      ...args,
+    })
+
+    if (traceError) {
+      return safeError(
+        getTransactionError(traceError as BaseError, {
+          ...args,
+          account: null,
           chain: this.client.chain,
         }),
       )
@@ -187,21 +253,11 @@ export class TransactionTracer {
     tracer = 'callTracer',
     tracerConfig,
   }: TraceTxParameters) => {
-    const [error, trace] = await safeTry(
-      this.client.request<TraceTxRpcSchema>(
-        {
-          method: 'debug_traceTransaction',
-          params: [
-            txHash,
-            {
-              tracer,
-              ...(tracerConfig && { tracerConfig }),
-            },
-          ],
-        },
-        { retryCount: 0 },
-      ),
-    )
+    const [error, trace] = await this.callTraceTxHash({
+      txHash,
+      tracer,
+      tracerConfig,
+    })
 
     if (error) {
       return safeError(
@@ -223,6 +279,62 @@ export class TransactionTracer {
         },
       },
     )
+
+    if (formatError) {
+      return safeError(formatError)
+    }
+
+    return safeResult(formatResult)
+  }
+
+  public traceGasCall = async ({
+    tracer = 'callTracer',
+    stateOverride,
+    ...args
+  }: TraceCallParameters) => {
+    const [traceError, trace] = await this.callTraceRequest({
+      tracer,
+      stateOverride,
+      ...args,
+    })
+
+    if (traceError) {
+      return safeError(
+        getTransactionError(traceError as BaseError, {
+          ...args,
+          account: null,
+          chain: this.client.chain,
+        }),
+      )
+    }
+
+    const [formatError, formatResult] =
+      await this.formatter.formatGasTraceColored(trace)
+
+    if (formatError) {
+      return safeError(formatError)
+    }
+
+    return safeResult(formatResult)
+  }
+
+  public traceGasFromTransactionHash = async ({
+    txHash,
+    tracer = 'callTracer',
+  }: TraceTxParameters) => {
+    const [error, trace] = await this.callTraceTxHash({ txHash, tracer })
+
+    if (error) {
+      return safeError(
+        getTransactionError(error as BaseError, {
+          account: null,
+          chain: this.client.chain,
+        }),
+      )
+    }
+
+    const [formatError, formatResult] =
+      await this.formatter.formatGasTraceColored(trace)
 
     if (formatError) {
       return safeError(formatError)

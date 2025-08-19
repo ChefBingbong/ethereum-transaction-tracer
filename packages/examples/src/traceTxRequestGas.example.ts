@@ -37,7 +37,7 @@ const tracer = new TransactionTracer(client, {
 
 await tracer.init()
 
-const [_error, trace] = await tracer.traceCall({
+const [_error, trace] = await tracer.traceGasCall({
   account: SENDER,
   //   blockTag: 'latest',
   to: ROUTER,
