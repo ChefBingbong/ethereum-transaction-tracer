@@ -7,10 +7,11 @@ import {
   type Address,
   type Hex,
   keccak256,
+  parseAbiItem,
   toBytes,
   zeroAddress,
 } from 'viem'
-import { etherscanLikeSource } from './abiSources'
+import { getAbiFromEtherscan, getAbiFunctionFromOpenChain } from './abiSources'
 import type { CacheJson, CacheOptions } from './types'
 
 export const toL = (a?: string) => (a ? a.toLowerCase() : a) as string
@@ -147,6 +148,7 @@ export class TracerCache {
 
   public ensureAbi = async (
     address: Address | undefined,
+    input?: string,
   ): Promise<Abi | undefined> => {
     if (!address || address === zeroAddress) return undefined
 
@@ -155,25 +157,31 @@ export class TracerCache {
       return this.contractAbi.get(key)
     }
 
-    if (!this.input?.etherscanApiKey) {
-      return undefined
-    }
-    try {
-      const abi = await etherscanLikeSource(
-        address,
-        'https://api.etherscan.io/v2',
-        this.input?.etherscanApiKey,
-      )
+    if (input) {
+      const selector = input.slice(0, 10) as Hex
+      if (!this.fourByteDir.get(selector)) {
+        const [error, abiSig] = await getAbiFunctionFromOpenChain(selector)
 
-      if (abi?.length) {
-        this.addAbi(address, abi)
-        await sleep(1000)
-        return abi
+        if (!error) {
+          const abiItem = parseAbiItem(abiSig) as AbiFunction
+          this.fourByteDir.set(selector, abiItem)
+        }
       }
-      await this.save()
-    } catch (e) {
-      console.warn(`ensureAbi: remote fetch failed for ${key}:`, e)
     }
+
+    const [error, abi] = await getAbiFromEtherscan(
+      address,
+      999,
+      this.input?.etherscanApiKey,
+    )
+
+    if (!error) {
+      this.addAbi(address, abi)
+      await sleep(1000)
+      return abi
+    }
+
+    await this.save()
     return undefined
   }
 }

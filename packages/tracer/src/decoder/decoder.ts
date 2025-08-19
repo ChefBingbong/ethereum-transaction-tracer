@@ -5,10 +5,9 @@ import {
   decodeFunctionData,
   decodeFunctionResult,
   getAbiItem,
-  parseAbiItem,
 } from 'viem'
 
-import { fourByteLikeSourceOp, type TracerCache } from '../cache'
+import type { TracerCache } from '../cache'
 import type { RpcCallTrace } from '../callTracer'
 import {
   formatArgsInline,
@@ -55,24 +54,11 @@ export class Decoder {
     const sel = input?.slice(0, 10) as Hex
     if (!sel || !input || input === '0x') return {}
 
-    const fn = this.cache.contractAbi.get(_address.toLowerCase())
-    if (!fn) {
+    const abi = this.cache.contractAbi.get(_address.toLowerCase())
+    if (!abi) {
       const selector = this.cache.fourByteDir.get(sel)
-      if (!selector) {
-        fourByteLikeSourceOp(sel).then((res) => {
-          if (res?.function[sel]?.[0].name) {
-            const abi = parseAbiItem(
-              `function ${res.function[sel]?.[0].name}`,
-            ) as AbiFunction
-            this.cache.fourByteDir.set(
-              sel,
-              getAbiItem({ abi: [abi], name: abi?.name }) as AbiFunction,
-            )
-          }
-        })
+      if (!selector) return {}
 
-        // this.cache.fourByteDir.set(selector, parseAbiItem(res.function[selector][0].name))
-      }
       try {
         const { functionName, args } = decodeFunctionData({
           abi: [selector],
@@ -91,10 +77,10 @@ export class Decoder {
     }
     try {
       const { functionName, args } = decodeFunctionData({
-        abi: fn,
+        abi,
         data: input,
       })
-      const item = getAbiItem({ abi: fn, name: functionName }) as
+      const item = getAbiItem({ abi, name: functionName }) as
         | AbiFunction
         | undefined
       const prettyArgs = Array.isArray(args)

@@ -48,8 +48,10 @@
     "packages/tracer": {
       "name": "@evm-transaction-trace/tracer",
       "dependencies": {
+        "@evm-transaction-trace/core": "workspace:*",
         "picocolors": "^1.1.1",
         "viem": "^2.33.3",
+        "zod": "^4.0.17",
       },
       "devDependencies": {
         "@types/bun": "latest",

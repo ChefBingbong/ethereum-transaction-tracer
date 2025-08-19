@@ -1,50 +1,56 @@
+import {
+  reliableFetchJson,
+  safeError,
+  safeErrorStr,
+  safeResult,
+} from '@evm-transaction-trace/core'
 import type { Abi, Address, Hex } from 'viem'
-import type { DecodeResult, I4BytesEntry } from './types'
+import { ETHERSCAN_BASE_URL, OPENCHAIN_BASE_URL } from './constants'
+import { etherscanAbiSchema, openChainAbiSchema } from './schemas'
 
-export async function etherscanLikeSource(
+export async function getAbiFromEtherscan(
   address: Address,
-  apiBase = 'https://api.etherscan.io',
+  chainId: number,
   apiKey?: string,
-): Promise<Abi | undefined> {
-  const url = new URL('v2/api/', apiBase)
-  url.searchParams.set('chainId', '999')
-  url.searchParams.set('module', 'contract')
-  url.searchParams.set('action', 'getabi')
-  url.searchParams.set('address', address)
-  if (apiKey) url.searchParams.set('apikey', apiKey)
-  const res = await fetch(url.toString())
-  const json = (await res.json()) as { status: string; result: string }
+) {
+  if (!apiKey) return safeErrorStr('[Etherscan]: invalid api key')
 
-  if (json.status !== '1') return undefined
-
-  try {
-    const abi = JSON.parse(json.result) as Abi
-    return Array.isArray(abi) ? abi : undefined
-  } catch {
-    return undefined
+  const [error, response] = await reliableFetchJson(
+    etherscanAbiSchema,
+    new Request(
+      `${ETHERSCAN_BASE_URL}/v2/api/?${new URLSearchParams({
+        chainId: chainId.toString(),
+        module: 'contract',
+        action: 'getabi',
+        address,
+        apiKey,
+      })}`,
+    ),
+  )
+  if (error) return safeError(error)
+  if (response.status !== '1') {
+    return safeErrorStr('[Etherscan]: invalid response')
   }
+  const abi: Abi = JSON.parse(response.result)
+  return safeResult(abi)
 }
 
-export async function fourByteLikeSource(
-  signature: Hex,
-  apiBase = 'https://www.4byte.directory',
-): Promise<I4BytesEntry[] | undefined> {
-  const url = new URL('api/v1/signatures', apiBase)
-  url.searchParams.set('hex_signature', signature)
+export async function getAbiFunctionFromOpenChain(signature: Hex) {
+  const [error, response] = await reliableFetchJson(
+    openChainAbiSchema,
+    new Request(
+      `${OPENCHAIN_BASE_URL}/signature-database/v1/lookup?${new URLSearchParams(
+        {
+          function: signature,
+        },
+      )}`,
+    ),
+  )
+  if (error) return safeError(error)
 
-  const res = await fetch(url.toString())
-  const json = (await res.json()) as { results: I4BytesEntry[] }
-  return json.results
-}
-
-export async function fourByteLikeSourceOp(
-  signature: Hex,
-  apiBase = 'https://api.openchain.xyz',
-): Promise<DecodeResult | undefined> {
-  const url = new URL('signature-database/v1/lookup', apiBase)
-  url.searchParams.set('function', signature)
-
-  const res = await fetch(url.toString())
-  const json = (await res.json()) as { result: DecodeResult }
-  return json.result
+  const entry = Object.values(response.result.function)[0]
+  if (!entry?.[0].name) {
+    return safeErrorStr('[OpenChain]: invalid response')
+  }
+  return safeResult(`function ${entry[0].name}`)
 }
