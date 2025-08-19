@@ -72,7 +72,7 @@ export class TraceFormatter {
     const nextPrefix = prefix + (isLast ? '   ' : '│  ')
     const hasError = Boolean(node.error)
 
-    await this.cache.ensureAbi(node.to)
+    await this.cache.ensureAbi(node.to, node.input)
 
     out.push(branch + this.renderHeader(node, hasError, o).trimEnd())
 

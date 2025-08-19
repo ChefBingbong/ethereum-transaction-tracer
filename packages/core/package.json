@@ -16,6 +16,6 @@
     "zod": "^4.0.17"
   },
   "exports": {
-    ".": "./index.ts"
+    ".": "./src/index.ts"
   }
 }
