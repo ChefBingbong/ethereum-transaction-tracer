@@ -4,8 +4,6 @@
   "type": "module",
   "scripts": {
     "check": "tsc --pretty --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest run",
     "clean": "rm -rf .turbo && rm -rf node_modules"
   },
   "devDependencies": {
