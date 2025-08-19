@@ -1,0 +1,23 @@
+{
+  "name": "@evm-transaction-trace/core",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "check": "tsc --pretty --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest run",
+    "clean": "rm -rf .turbo && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@evm-transaction-trace/typescript-config": "workspace:*"
+  },
+  "dependencies": {
+    "radash": "^12.1.1",
+    "viem": "^2.34.0",
+    "zod": "^4.0.17"
+  },
+  "exports": {
+    ".": "./index.ts"
+  }
+}
