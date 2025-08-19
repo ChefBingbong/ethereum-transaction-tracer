@@ -157,7 +157,7 @@ export class TraceFormatter {
       `frames: ${tally.frames}   ok: ${tally.succeeded}   fail: ${tally.failed}`,
     )
     out.push(
-      `total used: ${pc.bold(Number(hexToBig(root.gasUsed)))} (${pc.dim(totalHex)})`,
+      `total used: ${pc.bold(Number(hexToBig(root.gasUsed) - tally.totalGas))} (${pc.dim(totalHex)})`,
     )
 
     return safeResult(out.join('\n'))
