@@ -15,11 +15,12 @@ import {
 import { type CacheOptions, TracerCache } from '../cache'
 import { Decoder } from '../decoder'
 import { TraceFormatter } from '../format'
-import type {
-  TraceCallParameters,
-  TraceCallRpcSchema,
-  TraceTxParameters,
-  TraceTxRpcSchema,
+import {
+  LogVerbosity,
+  type TraceCallParameters,
+  type TraceCallRpcSchema,
+  type TraceTxParameters,
+  type TraceTxRpcSchema,
 } from './types'
 
 export class TransactionTracer {
@@ -35,6 +36,7 @@ export class TransactionTracer {
       cachePath: string
       cacheOptions?: CacheOptions
       logDebug?: boolean
+      verbosity?: LogVerbosity
     },
   ) {
     this.client = client
@@ -52,6 +54,7 @@ export class TransactionTracer {
       this.cache,
       this.decoder,
       args.logDebug ?? false,
+      args.verbosity ?? LogVerbosity.Highest,
     )
   }
 

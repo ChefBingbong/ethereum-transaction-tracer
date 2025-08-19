@@ -33,6 +33,7 @@ const tracer = new TransactionTracer(client, {
       hyperBrickFactoryAbi,
     ],
   },
+  verbosity: 2,
 })
 
 await tracer.init()

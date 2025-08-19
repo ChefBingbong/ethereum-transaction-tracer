@@ -8,6 +8,12 @@ import type {
   RpcTransactionRequest,
 } from 'viem'
 
+export enum LogVerbosity {
+  Low = 0,
+  Medium = 1,
+  High = 2,
+  Highest = 3,
+}
 export type RpcCallType =
   | 'CALL'
   | 'STATICCALL'
