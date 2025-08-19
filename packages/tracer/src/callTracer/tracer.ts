@@ -1,3 +1,4 @@
+import { safeError, safeResult, safeTry } from '@evm-transaction-trace/core'
 import {
   BaseError,
   formatTransactionRequest,
@@ -24,6 +25,7 @@ import type {
 export class TransactionTracer {
   public cache: TracerCache
   public decoder: Decoder
+  public chainId?: number
   private client: PublicClient
   private formatter: TraceFormatter
 
@@ -32,7 +34,15 @@ export class TransactionTracer {
     args: { cachePath: string; cacheOptions?: CacheOptions },
   ) {
     this.client = client
-    this.cache = new TracerCache(args.cachePath, args.cacheOptions)
+    this.chainId = this.client.chain?.id
+    if (!this.chainId) {
+      throw new Error('[Tracer]: Unable to detect chainId from client')
+    }
+    this.cache = new TracerCache(
+      this.chainId,
+      args.cachePath,
+      args.cacheOptions,
+    )
     this.decoder = new Decoder(this.cache, true)
     this.formatter = new TraceFormatter(this.cache, this.decoder)
   }
@@ -50,70 +60,83 @@ export class TransactionTracer {
     const account_ = args.account ?? this.client.account
     const account = account_ ? parseAccount(account_) : null
 
-    try {
-      const {
-        accessList,
-        authorizationList,
-        blobs,
-        blobVersionedHashes,
-        blockNumber,
-        blockTag = 'latest',
-        data,
-        gas,
-        gasPrice,
-        maxFeePerBlobGas,
-        maxFeePerGas,
-        maxPriorityFeePerGas,
-        nonce,
-        value,
-        ...tx
-      } = (await this.client.prepareTransactionRequest({
+    const [error, txRequest] = await safeTry(
+      this.client.prepareTransactionRequest({
         ...args,
         stateOverride,
         parameters: ['blobVersionedHashes', 'chainId', 'fees', 'nonce', 'type'],
-      })) as TraceCallParameters
+      }),
+    )
 
-      const blockNumberHex = blockNumber ? numberToHex(blockNumber) : undefined
-      const block = blockNumberHex || blockTag
+    if (error) {
+      return safeError(
+        getTransactionError(error as BaseError, {
+          ...args,
+          account,
+          chain: this.client.chain,
+        }),
+      )
+    }
+    const {
+      accessList,
+      authorizationList,
+      blobs,
+      blobVersionedHashes,
+      blockNumber,
+      blockTag = 'latest',
+      data,
+      gas,
+      gasPrice,
+      maxFeePerBlobGas,
+      maxFeePerGas,
+      maxPriorityFeePerGas,
+      nonce,
+      value,
+      ...tx
+    } = txRequest as TraceCallParameters
 
-      const to = await (async () => {
-        if (tx.to) return tx.to
-        if (authorizationList && authorizationList.length > 0)
-          return await recoverAuthorizationAddress({
-            authorization: authorizationList[0],
-          }).catch(() => {
-            throw new BaseError(
-              '`to` is required. Could not infer from `authorizationList`',
-            )
-          })
+    const blockNumberHex = blockNumber ? numberToHex(blockNumber) : undefined
+    const block = blockNumberHex || blockTag
 
-        return undefined
-      })()
+    const to = await (async () => {
+      if (tx.to) return tx.to
+      if (authorizationList && authorizationList.length > 0)
+        return await recoverAuthorizationAddress({
+          authorization: authorizationList[0],
+        }).catch(() => {
+          throw new BaseError(
+            '`to` is required. Could not infer from `authorizationList`',
+          )
+        })
 
-      const chainFormat =
-        this.client.chain?.formatters?.transactionRequest?.format
-      const format = chainFormat || formatTransactionRequest
+      return undefined
+    })()
 
-      const request = format({
-        ...extract(tx, { format: chainFormat }),
-        from: account?.address,
-        accessList,
-        authorizationList,
-        blobs,
-        blobVersionedHashes,
-        data,
-        gas,
-        gasPrice,
-        maxFeePerBlobGas,
-        maxFeePerGas,
-        maxPriorityFeePerGas,
-        nonce,
-        to,
-        value,
-        stateOverride,
-      } as TransactionRequest)
+    const chainFormat =
+      this.client.chain?.formatters?.transactionRequest?.format
+    const format = chainFormat || formatTransactionRequest
 
-      const trace = await this.client.request<TraceCallRpcSchema>(
+    const request = format({
+      ...extract(tx, { format: chainFormat }),
+      from: account?.address,
+      accessList,
+      authorizationList,
+      blobs,
+      blobVersionedHashes,
+      data,
+      gas,
+      gasPrice,
+      maxFeePerBlobGas,
+      maxFeePerGas,
+      maxPriorityFeePerGas,
+      nonce,
+      to,
+      value,
+      stateOverride,
+    } as TransactionRequest)
+
+    const [traceError, trace] = await safeTry(
+      this.client.request<TraceCallRpcSchema>(
         {
           method: 'debug_traceCall',
           params: [
@@ -127,23 +150,36 @@ export class TransactionTracer {
           ],
         },
         { retryCount: 0 },
-      )
+      ),
+    )
 
-      return this.formatter.formatTraceColored(trace, {
+    if (traceError) {
+      return safeError(
+        getTransactionError(traceError as BaseError, {
+          ...args,
+          account,
+          chain: this.client.chain,
+        }),
+      )
+    }
+
+    const [formatError, formatResult] = await this.formatter.formatTraceColored(
+      trace,
+      {
         showReturnData: true,
         showLogs: true,
         progress: {
           onUpdate: () => null,
           includeLogs: true,
         },
-      })
-    } catch (err) {
-      throw getTransactionError(err as BaseError, {
-        ...args,
-        account,
-        chain: this.client.chain,
-      })
+      },
+    )
+
+    if (formatError) {
+      return safeError(formatError)
     }
+
+    return safeResult(formatResult)
   }
 
   public traceTransactionHash = async ({
@@ -151,8 +187,8 @@ export class TransactionTracer {
     tracer = 'callTracer',
     tracerConfig,
   }: TraceTxParameters) => {
-    try {
-      const trace = await this.client.request<TraceTxRpcSchema>(
+    const [error, trace] = await safeTry(
+      this.client.request<TraceTxRpcSchema>(
         {
           method: 'debug_traceTransaction',
           params: [
@@ -164,20 +200,34 @@ export class TransactionTracer {
           ],
         },
         { retryCount: 0 },
+      ),
+    )
+
+    if (error) {
+      return safeError(
+        getTransactionError(error as BaseError, {
+          account: null,
+          chain: this.client.chain,
+        }),
       )
-      return this.formatter.formatTraceColored(trace, {
+    }
+
+    const [formatError, formatResult] = await this.formatter.formatTraceColored(
+      trace,
+      {
         showReturnData: true,
         showLogs: true,
         progress: {
           onUpdate: () => null,
           includeLogs: true,
         },
-      })
-    } catch (err) {
-      throw getTransactionError(err as BaseError, {
-        account: null,
-        chain: this.client.chain,
-      })
+      },
+    )
+
+    if (formatError) {
+      return safeError(formatError)
     }
+
+    return safeResult(formatResult)
   }
 }

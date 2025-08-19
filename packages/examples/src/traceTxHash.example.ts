@@ -34,7 +34,7 @@ const tracer = new TransactionTracer(client, {
 
 await tracer.init()
 
-const trace = await tracer.traceTransactionHash({
+const [_error, trace] = await tracer.traceTransactionHash({
   tracer: 'callTracer',
   txHash: '0x174721db20862a1f673cab866c76a899c3bdb8f4508aadfab92b2b9537d58fb2',
   tracerConfig: { withLog: true },

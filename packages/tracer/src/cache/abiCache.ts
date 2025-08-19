@@ -24,12 +24,15 @@ export class TracerCache {
   public eventsDir = new Map<string, AbiEvent>()
   public extraAbis: Abi[] = []
   public undefinedSignatures: Address[] = []
+  public chainId: number
+
   private input?: CacheOptions
 
   public cachePath: string | undefined
 
-  constructor(cachePath: string, input?: CacheOptions) {
+  constructor(chainId: number, cachePath: string, input?: CacheOptions) {
     this.input = input
+    this.chainId = chainId
     this.setCachePath(cachePath)
 
     if (input?.byAddress) {
@@ -146,16 +149,11 @@ export class TracerCache {
     this.indexAbi(abi)
   }
 
-  public ensureAbi = async (
-    address: Address | undefined,
-    input?: string,
-  ): Promise<Abi | undefined> => {
-    if (!address || address === zeroAddress) return undefined
+  public ensureAbi = async (address: Address | undefined, input?: string) => {
+    if (!address || address === zeroAddress) return
 
     const key = toL(address)
-    if (this.contractAbi.has(key)) {
-      return this.contractAbi.get(key)
-    }
+    if (this.contractAbi.has(key)) return
 
     if (input) {
       const selector = input.slice(0, 10) as Hex
@@ -171,17 +169,13 @@ export class TracerCache {
 
     const [error, abi] = await getAbiFromEtherscan(
       address,
-      999,
+      this.chainId,
       this.input?.etherscanApiKey,
     )
 
     if (!error) {
       this.addAbi(address, abi)
       await sleep(1000)
-      return abi
-    }
-
-    await this.save()
-    return undefined
+    } else await this.save()
   }
 }
