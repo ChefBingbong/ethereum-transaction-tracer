@@ -135,16 +135,13 @@ export class Decoder {
     return {}
   }
 
-  async decodeRevertPrettyFromFrame(
+  decodeRevertPrettyFromFrame(
     addr: Address | undefined,
     data: Hex | undefined,
   ) {
     if (!data || data === '0x') return null
-
+    this.cache.ensureAbi(addr)
     const abis: Abi[] = []
-    const specific = await this.cache.ensureAbi(addr)
-    if (specific) abis.push(specific)
-
     const extra = this.cache.extraAbis
     if (extra?.length)
       abis.push(...extra, ...this.cache.contractAbi.values().toArray())

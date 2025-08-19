@@ -33,14 +33,6 @@ export const stringify = (v: unknown): string => {
   return String(v)
 }
 
-export async function fetch4byte(selector: string): Promise<FourByteEntry[]> {
-  const url = `https://www.4byte.directory/api/v1/signatures/?hex_signature=${selector}`
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`4byte.directory HTTP ${res.status}`)
-  const json = (await res.json()) as { results: FourByteEntry[] }
-  return json.results ?? []
-}
-
 export function tryDecodeErrorString(data?: Hex): string | null {
   if (!data || data === '0x') return null
   // Error(string) selector

@@ -1,3 +1,9 @@
+import {
+  safeError,
+  safeResult,
+  safeTimeoutPromiseAll,
+  safeTry,
+} from '@evm-transaction-trace/core'
 import pc from 'picocolors'
 import type { Address, Hex } from 'viem'
 import type { TracerCache } from '../cache/index'
@@ -30,9 +36,7 @@ export class TraceFormatter {
 
   badgeFor = (t: RpcCallType) => theme.typeBadge(`[${t.toLowerCase()}]`)
 
-  private collectAddresses = async (
-    root: RpcCallTrace,
-  ): Promise<Set<Address>> => {
+  private collectAddresses = (root: RpcCallTrace) => {
     const s = new Set<Address>()
     const walk = (n: RpcCallTrace) => {
       if (n.to) s.add(n.to)
@@ -45,19 +49,20 @@ export class TraceFormatter {
   }
 
   private prefetchAbis = async (root: RpcCallTrace) => {
-    const addrs = await this.collectAddresses(root)
-    return await Promise.all(
+    const addrs = this.collectAddresses(root)
+    return safeTimeoutPromiseAll(
       Array.from(addrs).map((a) => this.cache.ensureAbi(a)),
+      5000,
     )
   }
 
   public formatTraceColored = async (root: RpcCallTrace, opts?: PrettyOpts) => {
-    const o = { ...defaultOpts, ...(opts || {}) }
-    await this.prefetchAbis(root)
+    const [error, _] = await this.prefetchAbis(root)
+    if (error) safeError(error)
 
     const out: string[] = []
-    await this.walk(root, '', true, 0, o, out)
-    return out.join('\n')
+    await this.walk(root, '', true, 0, { ...defaultOpts, ...(opts || {}) }, out)
+    return safeResult(out.join('\n'))
   }
 
   private async walk(
@@ -67,12 +72,15 @@ export class TraceFormatter {
     depth: number,
     o: Required<typeof defaultOpts>,
     out: string[],
-  ): Promise<void> {
+  ) {
     const branch = depth === 0 ? '' : prefix + (isLast ? '└─ ' : '├─ ')
     const nextPrefix = prefix + (isLast ? '   ' : '│  ')
     const hasError = Boolean(node.error)
 
-    await this.cache.ensureAbi(node.to, node.input)
+    const [error, _] = await safeTry(this.cache.ensureAbi(node.to, node.input))
+    if (error) {
+      //log
+    }
 
     out.push(branch + this.renderHeader(node, hasError, o).trimEnd())
 
@@ -80,7 +88,8 @@ export class TraceFormatter {
     if (o.showLogs && node.logs?.length) {
       const lastIdx = node.logs.length - 1
       for (let i = 0; i < node.logs.length; i++) {
-        const lg = node.logs[i]!
+        const lg = node.logs[i]
+        if (!lg) continue
         const lastLog = i === lastIdx && (node.calls?.length ?? 0) === 0
         out.push(
           nextPrefix +
@@ -92,17 +101,22 @@ export class TraceFormatter {
 
     const children = node.calls ?? []
     for (let i = 0; i < children.length; i++) {
-      await this.walk(
-        children[i]!,
-        nextPrefix,
-        i === children.length - 1,
-        depth + 1,
-        o,
-        out,
+      const [error, _] = await safeTry(
+        this.walk(
+          children[i]!,
+          nextPrefix,
+          i === children.length - 1,
+          depth + 1,
+          o,
+          out,
+        ),
       )
+      if (error) {
+        //log
+      }
     }
 
-    const tail = await this.renderTail(node, nextPrefix, o, hasError)
+    const tail = this.renderTail(node, nextPrefix, o, hasError)
     out.push(...tail)
   }
 
@@ -233,7 +247,7 @@ export class TraceFormatter {
     )}`
   }
 
-  private async renderTail(
+  private renderTail(
     node: RpcCallTrace,
     nextPrefix: string,
     o: Required<typeof defaultOpts>,
@@ -244,10 +258,10 @@ export class TraceFormatter {
 
     if (hasError) {
       const pretty =
-        (await this.decoder.decodeRevertPrettyFromFrame(
+        this.decoder.decodeRevertPrettyFromFrame(
           node.to as Address,
           node.output as Hex,
-        )) ??
+        ) ??
         node.revertReason ??
         node.error
       lines.push(
