@@ -149,7 +149,7 @@ export class TransactionTracer {
               tracer,
               tracerConfig: {
                 onlyTopCall: false,
-                withLog: false,
+                withLog: true,
               },
               ...(stateOverride && { stateOverrides: { ...stateOverride } }),
             },

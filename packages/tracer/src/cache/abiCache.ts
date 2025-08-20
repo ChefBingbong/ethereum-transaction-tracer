@@ -86,6 +86,7 @@ export class TracerCache {
       tempAddressCache: Array.from(this.tempAddressCache.values()),
     }
 
+    console.log(this.fourByteDir.has('0xd2ac1c8e'))
     await Bun.write(filePath, JSON.stringify(payload, null, 2), {
       createPath: true,
     })
@@ -112,7 +113,6 @@ export class TracerCache {
       if (item.type === 'function') {
         const sel = toFunctionSelector(item as AbiFunction).toLowerCase()
         if (!this.fourByteDir.has(sel)) {
-          console.log('heyyy', sel)
           this.fourByteDir.set(sel, item)
         }
       } else if (item.type === 'event') {
@@ -124,7 +124,6 @@ export class TracerCache {
 
   public indexTraceAbis = async (address: Address | undefined, input?: string) => {
     if (!address || address === zeroAddress) return
-    if (this.tempAddressCache.has(address)) return
 
     if (input) {
       const selector = input.slice(0, 10).toLowerCase() as Hex
@@ -136,8 +135,6 @@ export class TracerCache {
       this.chainId,
       this.input?.etherscanApiKey,
     )
-
-    if (!error && !this.tempAddressCache.has(address)) this.tempAddressCache.add(address)
 
     if (!error) {
       this.indexAbi(abi)
