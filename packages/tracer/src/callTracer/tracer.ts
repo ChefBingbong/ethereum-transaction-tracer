@@ -6,12 +6,7 @@ import {
   type PublicClient,
   type TransactionRequest,
 } from 'viem'
-import {
-  extract,
-  getTransactionError,
-  parseAccount,
-  recoverAuthorizationAddress,
-} from 'viem/utils'
+import { extract, getTransactionError, parseAccount, recoverAuthorizationAddress } from 'viem/utils'
 import { type CacheOptions, TracerCache } from '../cache'
 import { Decoder } from '../decoder'
 import { TraceFormatter } from '../format'
@@ -44,11 +39,7 @@ export class TransactionTracer {
     if (!this.chainId) {
       throw new Error('[Tracer]: Unable to detect chainId from client')
     }
-    this.cache = new TracerCache(
-      this.chainId,
-      args.cachePath,
-      args.cacheOptions,
-    )
+    this.cache = new TracerCache(this.chainId, args.cachePath, args.cacheOptions)
     this.decoder = new Decoder(this.cache, true)
     this.formatter = new TraceFormatter(
       this.cache,
@@ -114,16 +105,13 @@ export class TransactionTracer {
         return await recoverAuthorizationAddress({
           authorization: authorizationList[0],
         }).catch(() => {
-          throw new BaseError(
-            '`to` is required. Could not infer from `authorizationList`',
-          )
+          throw new BaseError('`to` is required. Could not infer from `authorizationList`')
         })
 
       return undefined
     })()
 
-    const chainFormat =
-      this.client.chain?.formatters?.transactionRequest?.format
+    const chainFormat = this.client.chain?.formatters?.transactionRequest?.format
     const format = chainFormat || formatTransactionRequest
 
     const request = format({
@@ -232,17 +220,14 @@ export class TransactionTracer {
       )
     }
 
-    const [formatError, formatResult] = await this.formatter.formatTraceColored(
-      trace,
-      {
-        showReturnData: true,
-        showLogs: true,
-        progress: {
-          onUpdate: () => null,
-          includeLogs: true,
-        },
+    const [formatError, formatResult] = await this.formatter.formatTraceColored(trace, {
+      showReturnData: true,
+      showLogs: true,
+      progress: {
+        onUpdate: () => null,
+        includeLogs: true,
       },
-    )
+    })
 
     if (formatError) {
       return safeError(formatError)
@@ -271,17 +256,14 @@ export class TransactionTracer {
       )
     }
 
-    const [formatError, formatResult] = await this.formatter.formatTraceColored(
-      trace,
-      {
-        showReturnData: true,
-        showLogs: true,
-        progress: {
-          onUpdate: () => null,
-          includeLogs: true,
-        },
+    const [formatError, formatResult] = await this.formatter.formatTraceColored(trace, {
+      showReturnData: true,
+      showLogs: true,
+      progress: {
+        onUpdate: () => null,
+        includeLogs: true,
       },
-    )
+    })
 
     if (formatError) {
       return safeError(formatError)
@@ -311,8 +293,7 @@ export class TransactionTracer {
       )
     }
 
-    const [formatError, formatResult] =
-      await this.formatter.formatGasTraceColored(trace)
+    const [formatError, formatResult] = await this.formatter.formatGasTraceColored(trace)
 
     if (formatError) {
       return safeError(formatError)
@@ -336,8 +317,7 @@ export class TransactionTracer {
       )
     }
 
-    const [formatError, formatResult] =
-      await this.formatter.formatGasTraceColored(trace)
+    const [formatError, formatResult] = await this.formatter.formatGasTraceColored(trace)
 
     if (formatError) {
       return safeError(formatError)

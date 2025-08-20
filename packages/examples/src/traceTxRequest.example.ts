@@ -46,11 +46,7 @@ const [_error, trace] = await tracer.traceCall({
   tracer: 'callTracer',
   chain: client.chain,
   tracerConfig: { withLog: true },
-  stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(
-    SENDER,
-    TOKEN,
-    ROUTER,
-  ),
+  stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, ROUTER),
 })
 
 console.log(trace)

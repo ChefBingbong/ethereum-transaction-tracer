@@ -21,11 +21,3 @@ export type PrettyOpts = {
     includeLogs?: boolean
   }
 }
-
-export const defaultOpts: Required<Omit<PrettyOpts, 'progress'>> = {
-  showGas: true,
-  showReturnData: true,
-  showLogs: true,
-  hexGas: false,
-  maxData: 64,
-}

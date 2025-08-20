@@ -1,4 +1,5 @@
 import { join } from 'node:path'
+import { safeTry } from '@evm-transaction-trace/core'
 import { sleep } from 'bun'
 import {
   type Abi,
@@ -52,14 +53,11 @@ export class TracerCache {
     const filePath = this.getTracerCachePath()
     const file = Bun.file(filePath)
 
-    let json: CacheJson = {}
-    try {
-      if (await file.exists()) {
-        json = await file.json()
-      }
-    } catch {
-      json = {}
-    }
+    const fileExists = await file.exists()
+    if (!fileExists) return
+
+    const [error, json] = await safeTry<CacheJson>(file.json())
+    if (error) return
 
     json.tokenDecimals?.forEach(([key, v]) => {
       this.tokenDecimals.set(key, v)
@@ -77,7 +75,6 @@ export class TracerCache {
 
   async save(): Promise<void> {
     const filePath = this.getTracerCachePath()
-    await this.load()
 
     const payload: CacheJson = {
       tokenDecimals: Array.from(this.tokenDecimals.entries()),
@@ -111,8 +108,7 @@ export class TracerCache {
     for (const item of abi) {
       if (item.type === 'function') {
         const sel = toFunctionSelector(item as AbiFunction)
-        if (!this.fourByteDir.has(sel))
-          this.fourByteDir.set(sel.toLowerCase(), item)
+        if (!this.fourByteDir.has(sel)) this.fourByteDir.set(sel.toLowerCase(), item)
       } else if (item.type === 'event') {
         const t0 = this.topic0Of(item as AbiEvent)
         if (!this.eventsDir.has(t0)) this.eventsDir.set(t0.toLowerCase(), item)

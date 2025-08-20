@@ -565,9 +565,7 @@ export const HyperBrickPairABI = [
       },
     ],
     name: 'burn',
-    outputs: [
-      { internalType: 'bytes32[]', name: 'amounts', type: 'bytes32[]' },
-    ],
+    outputs: [{ internalType: 'bytes32[]', name: 'amounts', type: 'bytes32[]' }],
     stateMutability: 'nonpayable',
     type: 'function',
   },
@@ -674,9 +672,7 @@ export const HyperBrickPairABI = [
     type: 'function',
   },
   {
-    inputs: [
-      { internalType: 'uint40', name: 'lookupTimestamp', type: 'uint40' },
-    ],
+    inputs: [{ internalType: 'uint40', name: 'lookupTimestamp', type: 'uint40' }],
     name: 'getOracleSampleAt',
     outputs: [
       { internalType: 'uint64', name: 'cumulativeId', type: 'uint64' },
@@ -775,18 +771,14 @@ export const HyperBrickPairABI = [
   {
     inputs: [],
     name: 'getTokenX',
-    outputs: [
-      { internalType: 'contract IERC20', name: 'tokenX', type: 'address' },
-    ],
+    outputs: [{ internalType: 'contract IERC20', name: 'tokenX', type: 'address' }],
     stateMutability: 'pure',
     type: 'function',
   },
   {
     inputs: [],
     name: 'getTokenY',
-    outputs: [
-      { internalType: 'contract IERC20', name: 'tokenY', type: 'address' },
-    ],
+    outputs: [{ internalType: 'contract IERC20', name: 'tokenY', type: 'address' }],
     stateMutability: 'pure',
     type: 'function',
   },
