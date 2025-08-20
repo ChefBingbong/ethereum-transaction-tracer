@@ -7,11 +7,11 @@ import {
   type Address,
   type Hex,
   keccak256,
-  parseAbiItem,
   toBytes,
+  toFunctionSelector,
   zeroAddress,
 } from 'viem'
-import { getAbiFromEtherscan, getAbiFunctionFromOpenChain } from './abiSources'
+import { getAbiFromEtherscan } from './abiSources'
 import type { CacheJson, CacheOptions } from './types'
 
 export const toL = (a?: string) => (a ? a.toLowerCase() : a) as string
@@ -35,15 +35,6 @@ export class TracerCache {
     this.chainId = chainId
     this.setCachePath(cachePath)
 
-    if (input?.byAddress) {
-      for (const [addr, abi] of Object.entries(input.byAddress)) {
-        const key = toL(addr)
-        if (!this.contractAbi.has(key)) {
-          this.contractAbi.set(key, abi)
-          this.indexAbi(abi)
-        }
-      }
-    }
     if (input?.extraAbis) {
       for (const abi of input.extraAbis) {
         this.extraAbis.push(abi)
@@ -79,19 +70,9 @@ export class TracerCache {
     json.fourByteDir?.forEach(([key, v]) => {
       this.fourByteDir.set(key, v)
     })
-    json.contractAbi?.forEach(([key, v]) => {
-      this.contractAbi.set(key, v)
-    })
     json.eventsDir?.forEach(([key, v]) => {
       this.eventsDir.set(key, v)
     })
-
-    if (json.extraAbis) {
-      this.extraAbis = json.extraAbis
-    }
-    if (json.undefinedSignatures) {
-      this.undefinedSignatures = json.undefinedSignatures
-    }
   }
 
   async save(): Promise<void> {
@@ -102,10 +83,7 @@ export class TracerCache {
       tokenDecimals: Array.from(this.tokenDecimals.entries()),
       contractNames: Array.from(this.contractNames.entries()),
       fourByteDir: Array.from(this.fourByteDir.entries()),
-      contractAbi: Array.from(this.contractAbi.entries()),
       eventsDir: Array.from(this.eventsDir.entries()),
-      undefinedSignatures: this.undefinedSignatures,
-      extraAbis: this.extraAbis,
     }
 
     await Bun.write(filePath, JSON.stringify(payload, null, 2), {
@@ -132,39 +110,21 @@ export class TracerCache {
   public indexAbi(abi: Abi) {
     for (const item of abi) {
       if (item.type === 'function') {
-        const sel = this.selectorOf(item as AbiFunction)
-        if (!this.fourByteDir.has(sel)) this.fourByteDir.set(sel, item)
+        const sel = toFunctionSelector(item as AbiFunction)
+        if (!this.fourByteDir.has(sel))
+          this.fourByteDir.set(sel.toLowerCase(), item)
       } else if (item.type === 'event') {
         const t0 = this.topic0Of(item as AbiEvent)
-        if (!this.eventsDir.has(t0)) this.eventsDir.set(t0, item)
+        if (!this.eventsDir.has(t0)) this.eventsDir.set(t0.toLowerCase(), item)
       }
     }
-  }
-
-  public addAbi = async (address: Address, abi: Abi) => {
-    const key = toL(address)
-    if (!this.contractAbi.has(key)) {
-      this.contractAbi.set(key, abi)
-    }
-    this.indexAbi(abi)
   }
 
   public ensureAbi = async (address: Address | undefined, input?: string) => {
     if (!address || address === zeroAddress) return
-
-    const key = toL(address)
-    if (this.contractAbi.has(key)) return
-
     if (input) {
-      const selector = input.slice(0, 10) as Hex
-      if (!this.fourByteDir.get(selector)) {
-        const [error, abiSig] = await getAbiFunctionFromOpenChain(selector)
-
-        if (!error) {
-          const abiItem = parseAbiItem(abiSig) as AbiFunction
-          this.fourByteDir.set(selector, abiItem)
-        }
-      }
+      const selector = input.slice(0, 10).toLowerCase() as Hex
+      if (this.fourByteDir.has(selector)) return
     }
 
     const [error, abi] = await getAbiFromEtherscan(
@@ -174,7 +134,7 @@ export class TracerCache {
     )
 
     if (!error) {
-      this.addAbi(address, abi)
+      this.indexAbi(abi)
       await sleep(1000)
     } else await this.save()
   }

@@ -1,4 +1,4 @@
-import type { Abi, AbiFunction, Address, Hex } from 'viem'
+import type { AbiFunction, Address, Hex } from 'viem'
 import {
   decodeErrorResult,
   decodeEventLog,
@@ -51,36 +51,19 @@ export class Decoder {
     }
   }
   public decodeCallWithNames = (_address: Address, input?: Hex) => {
-    const sel = input?.slice(0, 10) as Hex
-    if (!sel || !input || input === '0x') return {}
+    if (!input || input === '0x') return {}
 
-    const abi = this.cache.contractAbi.get(_address.toLowerCase())
-    if (!abi) {
-      const selector = this.cache.fourByteDir.get(sel)
-      if (!selector) return {}
+    const selector = this.cache.fourByteDir.get(
+      input?.slice(0, 10).toLowerCase() as Hex,
+    )
+    if (!selector) return {}
 
-      try {
-        const { functionName, args } = decodeFunctionData({
-          abi: [selector],
-          data: input,
-        })
-        const item = getAbiItem({ abi: [selector], name: functionName }) as
-          | AbiFunction
-          | undefined
-        const prettyArgs = Array.isArray(args)
-          ? args.map(stringify).join(', ')
-          : stringify(args)
-        return { fnName: functionName, prettyArgs, fnItem: item }
-      } catch {
-        return {}
-      }
-    }
     try {
       const { functionName, args } = decodeFunctionData({
-        abi,
+        abi: [selector],
         data: input,
       })
-      const item = getAbiItem({ abi, name: functionName }) as
+      const item = getAbiItem({ abi: [selector], name: functionName }) as
         | AbiFunction
         | undefined
       const prettyArgs = Array.isArray(args)
@@ -93,33 +76,10 @@ export class Decoder {
   }
 
   public safeDecodeEvent = (
-    address: Address,
     topics: [signature: `0x${string}`, ...args: `0x${string}`[]] | undefined,
     data: Hex | undefined,
   ) => {
     if (!topics || topics.length === 0) return {}
-    const addrKey = address.toLowerCase()
-    const abi = this.cache.contractAbi.get(addrKey)
-    if (abi) {
-      try {
-        const dec = decodeEventLog({
-          abi,
-          topics,
-          data: data ?? '0x',
-          strict: false,
-        })
-        const argsObj: Record<string, unknown> = {}
-
-        if (dec.args) {
-          if (dec.args && typeof dec.args === 'object') {
-            for (const [k, v] of Object.entries(dec.args)) {
-              if (!/^\d+$/.test(k)) argsObj[k] = v
-            }
-          }
-          return { name: dec.eventName, args: argsObj }
-        }
-      } catch {}
-    }
     const t0 = topics[0] as Hex
     const ev = this.cache.eventsDir.get(t0)
 
@@ -135,17 +95,9 @@ export class Decoder {
     return {}
   }
 
-  decodeRevertPrettyFromFrame(
-    addr: Address | undefined,
-    data: Hex | undefined,
-  ) {
+  decodeRevertPrettyFromFrame(data: Hex | undefined) {
     if (!data || data === '0x') return null
-    this.cache.ensureAbi(addr)
-    const abis: Abi[] = []
-    const extra = this.cache.extraAbis
-    if (extra?.length)
-      abis.push(...extra, ...this.cache.contractAbi.values().toArray())
-
+    const abis = this.cache.extraAbis
     for (const abi of abis) {
       try {
         const dec = decodeErrorResult({ abi, data })

@@ -69,10 +69,10 @@ export class TraceFormatter {
   }
 
   private prefetchAbis = async (root: RpcCallTrace) => {
-    const addrs = this.collectAddresses(root)
+    if (!root.calls) return safeResult(undefined)
     return safeTimeoutPromiseAll(
-      Array.from(addrs).map((a) => this.cache.ensureAbi(a)),
-      5000,
+      root.calls.map((a) => this.cache.ensureAbi(a.to, a.input)),
+      10000,
     )
   }
 
@@ -90,6 +90,7 @@ export class TraceFormatter {
     out.push('')
     out.push(pc.bold('— Gas summary —'))
     out.push(`total used: ${pc.bold(Number(totalGas))} (${pc.dim(totalHex)})`)
+    await this.cache.save()
     return safeResult(out.join('\n'))
   }
 
@@ -427,7 +428,7 @@ export class TraceFormatter {
     data: Hex,
     o: Required<typeof defaultOpts>,
   ): string {
-    const dec = this.decoder.safeDecodeEvent(addr, topics, data)
+    const dec = this.decoder.safeDecodeEvent(topics, data)
     if (dec.name) {
       const argPairs = Object.entries(dec.args ?? {})
         .map(([k, v]) => `${theme.eventArgVal(k)}: ${theme.argVal(String(v))}`)
@@ -450,10 +451,7 @@ export class TraceFormatter {
 
     if (hasError) {
       const pretty =
-        this.decoder.decodeRevertPrettyFromFrame(
-          node.to as Address,
-          node.output as Hex,
-        ) ??
+        this.decoder.decodeRevertPrettyFromFrame(node.output as Hex) ??
         node.revertReason ??
         node.error
       lines.push(
