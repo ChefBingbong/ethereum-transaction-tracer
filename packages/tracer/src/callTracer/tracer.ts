@@ -1,3 +1,4 @@
+import { createWriteStream } from 'node:fs'
 import { safeError, safeResult, safeTry } from '@evm-transaction-trace/core'
 import {
   BaseError,
@@ -41,11 +42,15 @@ export class TransactionTracer {
     }
     this.cache = new TracerCache(this.chainId, args.cachePath, args.cacheOptions)
     this.decoder = new Decoder(this.cache, true)
+    const stream = createWriteStream('./trace.log', { flags: 'w' })
     this.formatter = new TraceFormatter(
       this.cache,
       this.decoder,
       args.logDebug ?? false,
       args.verbosity ?? LogVerbosity.Highest,
+      {
+        sink: (line) => stream.write(`${line}\n`),
+      },
     )
   }
 
@@ -163,6 +168,10 @@ export class TransactionTracer {
         }),
       )
     }
+
+    const [fetchError, _] = await this.cache.prefetchTraceAbis(trace)
+    if (fetchError) return safeError(fetchError)
+
     return safeResult(trace)
   }
 
@@ -195,6 +204,10 @@ export class TransactionTracer {
         }),
       )
     }
+
+    const [fetchError, _] = await this.cache.prefetchTraceAbis(trace)
+    if (fetchError) return safeError(fetchError)
+
     return safeResult(trace)
   }
 
@@ -220,7 +233,7 @@ export class TransactionTracer {
       )
     }
 
-    const [formatError, formatResult] = await this.formatter.formatTraceColored(trace, {
+    await this.formatter.formatTraceColored(trace, {
       showReturnData: true,
       showLogs: true,
       progress: {
@@ -228,12 +241,7 @@ export class TransactionTracer {
         includeLogs: true,
       },
     })
-
-    if (formatError) {
-      return safeError(formatError)
-    }
-
-    return safeResult(formatResult)
+    return safeResult('formatResult')
   }
 
   public traceTransactionHash = async ({
@@ -256,7 +264,7 @@ export class TransactionTracer {
       )
     }
 
-    const [formatError, formatResult] = await this.formatter.formatTraceColored(trace, {
+    const formatResult = await this.formatter.formatTraceColored(trace, {
       showReturnData: true,
       showLogs: true,
       progress: {
@@ -265,9 +273,9 @@ export class TransactionTracer {
       },
     })
 
-    if (formatError) {
-      return safeError(formatError)
-    }
+    // if (formatError) {
+    //   return safeError(formatError)
+    // }
 
     return safeResult(formatResult)
   }
@@ -293,13 +301,7 @@ export class TransactionTracer {
       )
     }
 
-    const [formatError, formatResult] = await this.formatter.formatGasTraceColored(trace)
-
-    if (formatError) {
-      return safeError(formatError)
-    }
-
-    return safeResult(formatResult)
+    await this.formatter.formatGasTraceColored(trace)
   }
 
   public traceGasFromTransactionHash = async ({
@@ -317,12 +319,6 @@ export class TransactionTracer {
       )
     }
 
-    const [formatError, formatResult] = await this.formatter.formatGasTraceColored(trace)
-
-    if (formatError) {
-      return safeError(formatError)
-    }
-
-    return safeResult(formatResult)
+    await this.formatter.formatGasTraceColored(trace)
   }
 }

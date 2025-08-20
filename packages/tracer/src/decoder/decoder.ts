@@ -83,7 +83,7 @@ export class Decoder {
     data: Hex | undefined,
   ) => {
     if (!topics || topics.length === 0) return {}
-    const t0 = topics[0] as Hex
+    const t0 = topics[0].toLowerCase() as Hex
     const ev = this.cache.eventsDir.get(t0)
 
     if (ev) {

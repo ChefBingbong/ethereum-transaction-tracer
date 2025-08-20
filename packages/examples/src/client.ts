@@ -1,5 +1,4 @@
 import { createPublicClient, defineChain, http } from 'viem'
-import { mainnet } from 'viem/chains'
 
 export const hyperEvm = defineChain({
   id: 999,
@@ -27,5 +26,5 @@ export const getPublicClient = (rpcUrl: string) =>
       multicall: true,
     },
     transport: http(rpcUrl),
-    chain: mainnet,
+    chain: hyperEvm,
   })

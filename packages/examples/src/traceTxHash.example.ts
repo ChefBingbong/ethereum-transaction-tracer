@@ -28,14 +28,14 @@ const tracer = new TransactionTracer(client, {
     //   hyperBrickFactoryAbi,
     // ],
   },
-  verbosity: LogVerbosity.High,
+  verbosity: LogVerbosity.Highest,
 })
 
 await tracer.init()
 
 const [_error, trace] = await tracer.traceTransactionHash({
   tracer: 'callTracer',
-  txHash: '0x5cddfc029b9f3eeb7bbe187cf6cbb9d3bbd64e6c93d4c52b52738e3fa325d633',
+  txHash: '0xb69ca89fe47b48e360dce1d0c5acbebcdab8dc5c844488197a48723ccdcc7674',
   tracerConfig: { withLog: true },
 })
 

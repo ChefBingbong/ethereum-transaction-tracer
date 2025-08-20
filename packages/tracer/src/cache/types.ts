@@ -35,6 +35,7 @@ export type CacheJson = {
   eventsDir?: [string, AbiEvent][]
   extraAbis?: Abi[]
   undefinedSignatures?: Address[]
+  tempAddressCache?: Address[]
 }
 
 export type CacheOptions = {

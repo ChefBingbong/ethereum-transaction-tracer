@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { safeTry } from '@evm-transaction-trace/core'
+import { safeResult, safeTimeoutPromiseAll, safeTry } from '@evm-transaction-trace/core'
 import { sleep } from 'bun'
 import {
   type Abi,
@@ -12,6 +12,7 @@ import {
   toFunctionSelector,
   zeroAddress,
 } from 'viem'
+import type { RpcCallTrace } from '../callTracer'
 import { getAbiFromEtherscan } from './abiSources'
 import type { CacheJson, CacheOptions } from './types'
 
@@ -26,6 +27,7 @@ export class TracerCache {
   public extraAbis: Abi[] = []
   public undefinedSignatures: Address[] = []
   public chainId: number
+  public tempAddressCache: Set<Address> = new Set()
 
   private input?: CacheOptions
 
@@ -42,7 +44,6 @@ export class TracerCache {
         this.indexAbi(abi)
       }
     }
-    this.save()
   }
 
   setCachePath(cachePath: string) {
@@ -71,6 +72,7 @@ export class TracerCache {
     json.eventsDir?.forEach(([key, v]) => {
       this.eventsDir.set(key, v)
     })
+    this.tempAddressCache = new Set(json.tempAddressCache)
   }
 
   async save(): Promise<void> {
@@ -81,6 +83,7 @@ export class TracerCache {
       contractNames: Array.from(this.contractNames.entries()),
       fourByteDir: Array.from(this.fourByteDir.entries()),
       eventsDir: Array.from(this.eventsDir.entries()),
+      tempAddressCache: Array.from(this.tempAddressCache.values()),
     }
 
     await Bun.write(filePath, JSON.stringify(payload, null, 2), {
@@ -107,17 +110,22 @@ export class TracerCache {
   public indexAbi(abi: Abi) {
     for (const item of abi) {
       if (item.type === 'function') {
-        const sel = toFunctionSelector(item as AbiFunction)
-        if (!this.fourByteDir.has(sel)) this.fourByteDir.set(sel.toLowerCase(), item)
+        const sel = toFunctionSelector(item as AbiFunction).toLowerCase()
+        if (!this.fourByteDir.has(sel)) {
+          console.log('heyyy', sel)
+          this.fourByteDir.set(sel, item)
+        }
       } else if (item.type === 'event') {
-        const t0 = this.topic0Of(item as AbiEvent)
-        if (!this.eventsDir.has(t0)) this.eventsDir.set(t0.toLowerCase(), item)
+        const t0 = this.topic0Of(item as AbiEvent).toLowerCase()
+        if (!this.eventsDir.has(t0)) this.eventsDir.set(t0, item)
       }
     }
   }
 
-  public ensureAbi = async (address: Address | undefined, input?: string) => {
+  public indexTraceAbis = async (address: Address | undefined, input?: string) => {
     if (!address || address === zeroAddress) return
+    if (this.tempAddressCache.has(address)) return
+
     if (input) {
       const selector = input.slice(0, 10).toLowerCase() as Hex
       if (this.fourByteDir.has(selector)) return
@@ -129,9 +137,19 @@ export class TracerCache {
       this.input?.etherscanApiKey,
     )
 
+    if (!error && !this.tempAddressCache.has(address)) this.tempAddressCache.add(address)
+
     if (!error) {
       this.indexAbi(abi)
       await sleep(1000)
-    } else await this.save()
+    }
+  }
+
+  public prefetchTraceAbis = async (root: RpcCallTrace) => {
+    if (!root.calls) return safeResult(undefined)
+    return safeTimeoutPromiseAll(
+      root.calls.map((a) => this.indexTraceAbis(a.to, a.input)),
+      10000,
+    )
   }
 }
