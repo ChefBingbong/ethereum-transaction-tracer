@@ -37,9 +37,7 @@ export const safeTimeoutPromiseAll = async <T>(
 
   if (signal.aborted) {
     return safeError(
-      signal.reason instanceof Error
-        ? signal.reason
-        : new Error(String(signal.reason)),
+      signal.reason instanceof Error ? signal.reason : new Error(String(signal.reason)),
     )
   }
 
@@ -47,10 +45,7 @@ export const safeTimeoutPromiseAll = async <T>(
   return safeResult(result)
 }
 
-export const safeTimeoutPromise = async <T>(
-  promise: Promise<T>,
-  ms: number,
-): SafePromise<T> => {
+export const safeTimeoutPromise = async <T>(promise: Promise<T>, ms: number): SafePromise<T> => {
   const controller = new AbortController()
   const signal = controller.signal
 
@@ -61,9 +56,7 @@ export const safeTimeoutPromise = async <T>(
   const [error, result] = await _.try(() => promise)()
   if (signal.aborted) {
     return safeError(
-      signal.reason instanceof Error
-        ? signal.reason
-        : new Error(String(signal.reason)),
+      signal.reason instanceof Error ? signal.reason : new Error(String(signal.reason)),
     )
   }
 

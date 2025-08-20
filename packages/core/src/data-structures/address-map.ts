@@ -3,9 +3,7 @@ import { toLowerCaseAddress } from './utils'
 
 export class AddressMap<T> extends Map<Address, T> {
   constructor(values?: [Address, T][] | null) {
-    super(
-      values?.map(([address, value]) => [toLowerCaseAddress(address), value]),
-    )
+    super(values?.map(([address, value]) => [toLowerCaseAddress(address), value]))
   }
 
   override set(value: Address, data: T): this {

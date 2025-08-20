@@ -6,18 +6,25 @@ import {
   safeTry,
 } from '@evm-transaction-trace/core'
 import pc from 'picocolors'
-import type { Address, Hex } from 'viem'
+import { type Address, type Hex, isAddressEqual, zeroAddress } from 'viem'
 import type { TracerCache } from '../cache/index'
-import {
-  LogVerbosity,
-  type RpcCallTrace,
-  type RpcCallType,
-} from '../callTracer'
+import { LogVerbosity, type RpcCallTrace, type RpcCallType } from '../callTracer'
 import type { Decoder } from '../decoder'
 import { nameFromSelector, stringify } from '../decoder/utils'
-import { formatPrecompilePretty } from './formatPrecompile'
-import { theme } from './theme'
-import { defaultOpts, type PrettyOpts } from './types'
+import {
+  addr,
+  argVal,
+  dim,
+  emit,
+  eventArgVal,
+  fn,
+  retData,
+  retLabel,
+  revData,
+  revLabel,
+  typeBadge,
+} from './theme'
+import type { PrettyOpts } from './types'
 import { formatGas, formatValueEth, truncate } from './utils'
 
 const hexToBig = (h?: Hex) => (h ? BigInt(h) : 0n)
@@ -41,55 +48,22 @@ export class TraceFormatter {
     this.logger.init()
   }
 
-  private addrLabelStyled(
-    addr: Address | undefined,
-    color?: (s: string) => string,
-  ) {
-    const paint = color ?? theme.addr
-    if (!addr) return paint('<unknown>')
-    const key =
-      addr.toLowerCase() === '0x0000000000000000000000000000000000000004'
-        ? 'Precompile.DataCopy'
-        : addr.toLowerCase()
-    return paint(key)
-  }
-
-  badgeFor = (t: RpcCallType) => theme.typeBadge(`[${t.toLowerCase()}]`)
-
-  private collectAddresses = (root: RpcCallTrace) => {
-    const s = new Set<Address>()
-    const walk = (n: RpcCallTrace) => {
-      if (n.to) s.add(n.to)
-      if (n.from) s.add(n.from)
-      if (n.logs) for (const lg of n.logs) s.add(lg.address)
-      if (n.calls) n.calls.forEach(walk)
-    }
-    walk(root)
-    return s
-  }
-
-  private prefetchAbis = async (root: RpcCallTrace) => {
-    if (!root.calls) return safeResult(undefined)
-    return safeTimeoutPromiseAll(
-      root.calls.map((a) => this.cache.ensureAbi(a.to, a.input)),
-      10000,
-    )
-  }
-
-  public formatTraceColored = async (root: RpcCallTrace, opts?: PrettyOpts) => {
+  public formatTraceColored = async (root: RpcCallTrace, _opts?: PrettyOpts) => {
     const [error, _] = await this.prefetchAbis(root)
     if (error) safeError(error)
 
     const out: string[] = []
-    await this.walk(root, '', true, 0, { ...defaultOpts, ...(opts || {}) }, out)
+    await this.walk(root, '', true, 0, out)
 
-    // Summary
     const totalGas =
-      root.calls?.reduce((acc, curr) => acc + Number(curr.gasUsed), 0) ?? 0
-    const totalHex = `0x${totalGas.toString(16)}`
+      root.calls?.reduce((acc, curr) => {
+        return acc + Number(curr.gasUsed)
+      }, 0) ?? 0
+
     out.push('')
     out.push(pc.bold('— Gas summary —'))
-    out.push(`total used: ${pc.bold(Number(totalGas))} (${pc.dim(totalHex)})`)
+    out.push(`total used: ${pc.bold(Number(totalGas))}`)
+
     await this.cache.save()
     return safeResult(out.join('\n'))
   }
@@ -116,33 +90,31 @@ export class TraceFormatter {
     ): Promise<boolean> => {
       const branch = ''
       const nextPrefix = prefix + (isLast ? '   ' : '│  ')
-
-      await this.cache.ensureAbi(node.to, node.input).catch(() => {})
-
       const hasError = Boolean(node.error)
-      const methodLabel = this.gasMethodLabel(node, hasError, usedAddrSet)
-      usedAddrSet.add(node.to)
-
+      const method = this.gasMethodLabel(node, hasError, usedAddrSet)
       const used = hexToBig(node.gasUsed)
+
+      if (hasError) {
+        tally.abortedAt = method
+        return true
+      }
+
       tally.totalGas += used
       tally.frames += 1
       if (hasError) tally.failed += 1
       else tally.succeeded += 1
+      usedAddrSet.add(node.to)
 
       const usedStr = Number(used).toString() // decimal for readability
-      const line =
-        branch +
-        methodLabel +
-        ' ' +
-        pc.dim('—') +
-        ` used=${pc.bold(usedStr)}` +
-        (hasError ? ` ${pc.red('❌')}` : '')
-      out.push(line)
 
-      if (hasError) {
-        tally.abortedAt = methodLabel
-        return true
-      }
+      out.push(
+        branch +
+          method +
+          ' ' +
+          pc.dim('—') +
+          ` used=${pc.bold(usedStr)}` +
+          (hasError ? ` ${pc.red('❌')}` : ''),
+      )
 
       const children = node.calls ?? []
       for (let i = 0; i < children.length; i++) {
@@ -160,28 +132,34 @@ export class TraceFormatter {
 
     await walk(root, '', true, 0, usedAddrSet)
 
-    // Summary
-    const totalHex = `0x${tally.totalGas.toString(16)}`
     out.push('')
     out.push(pc.bold('— Gas summary —'))
     if (tally.abortedAt) {
       out.push(`${pc.red('reverted at')}: ${pc.red(tally.abortedAt)}`)
     }
-    out.push(
-      `frames: ${tally.frames}   ok: ${tally.succeeded}   fail: ${tally.failed}`,
-    )
-    out.push(
-      `total used: ${pc.bold(Number(hexToBig(root.gasUsed) - tally.totalGas))} (${pc.dim(totalHex)})`,
-    )
+    out.push(`frames: ${tally.frames}   ok: ${tally.succeeded}   fail: ${tally.failed}`)
+    out.push(`total used: ${pc.bold(Number(hexToBig(root.gasUsed) - tally.totalGas))}`)
 
     return safeResult(out.join('\n'))
   }
 
-  private gasMethodLabel(
-    node: RpcCallTrace,
-    hasError: boolean,
-    usedAddrSet: Set<Address>,
-  ): string {
+  private addrLabelStyled(_addr: Address | undefined, color?: (s: string) => string) {
+    const paint = color ?? addr
+    if (!_addr) return paint('<unknown>')
+    return paint(isAddressEqual(_addr, zeroAddress) ? 'Precompile.DataCopy' : _addr.toLowerCase())
+  }
+
+  badgeFor = (t: RpcCallType) => typeBadge(`[${t.toLowerCase()}]`)
+
+  private prefetchAbis = async (root: RpcCallTrace) => {
+    if (!root.calls) return safeResult(undefined)
+    return safeTimeoutPromiseAll(
+      root.calls.map((a) => this.cache.ensureAbi(a.to, a.input)),
+      10000,
+    )
+  }
+
+  private gasMethodLabel(node: RpcCallTrace, hasError: boolean, usedAddrSet: Set<Address>): string {
     const paint = hasError ? pc.red : undefined
 
     const left = (() => {
@@ -198,17 +176,14 @@ export class TraceFormatter {
           const created = node.to
             ? this.addrLabelStyled(node.to, paint)
             : this.addrLabelStyled(undefined, paint)
+
           const initLen = node.input ? (node.input.length - 2) / 2 : 0
-          const createFn = hasError
-            ? pc.bold(pc.red('create'))
-            : theme.fn('create')
+          const createFn = hasError ? pc.bold(pc.red('create')) : fn('create')
           return `${created} :: ${createFn}(init_code_len=${initLen})`
         }
         case 'SELFDESTRUCT': {
           const target = this.addrLabelStyled(node.to, paint)
-          const sd = hasError
-            ? pc.bold(pc.red('selfdestruct'))
-            : theme.fn('selfdestruct')
+          const sd = hasError ? pc.bold(pc.red('selfdestruct')) : fn('selfdestruct')
           return `${target} :: ${sd}`
         }
         default:
@@ -218,37 +193,34 @@ export class TraceFormatter {
 
     if (
       left.includes('::') &&
-      (node.type === 'CREATE' ||
-        node.type === 'CREATE2' ||
-        node.type === 'SELFDESTRUCT')
+      (node.type === 'CREATE' || node.type === 'CREATE2' || node.type === 'SELFDESTRUCT')
     ) {
       return left
     }
 
-    const pre = formatPrecompilePretty(node.to, node.input, node.output)
+    const { fnName } = this.decoder.decodeCallWithNames(node.to, node.input)
+    const pre = this.decoder.formatPrecompilePretty(node.to, node.input, node.output)
+    const selectorSig = nameFromSelector(node.to, this.cache)
+
     if (pre?.name) {
-      const styled = hasError ? pc.bold(pc.red(pre.name)) : theme.fn(pre.name)
+      const styled = hasError ? pc.bold(pc.red(pre.name)) : fn(pre.name)
       return `${!usedAddrSet.has(node.to) ? `${left}\n` : '• '}${styled}()`
     }
 
-    const { fnName } = this.decoder.decodeCallWithNames(node.to, node.input)
     if (fnName) {
-      const styled = hasError ? pc.bold(pc.red(fnName)) : theme.retData(fnName)
+      const styled = hasError ? pc.bold(pc.red(fnName)) : retData(fnName)
       return `${!usedAddrSet.has(node.to) ? `${left}\n` : ''} • ${styled}()`
     }
 
-    const selectorSig = nameFromSelector(node.to, this.cache)
     if (selectorSig) {
-      const styled = hasError
-        ? pc.bold(pc.red(selectorSig))
-        : theme.fn(selectorSig)
+      const styled = hasError ? pc.bold(pc.red(selectorSig)) : fn(selectorSig)
       return `${left} :: ${styled}`
     }
 
     if (node.input && node.input !== '0x') {
-      return `${theme.dim('')}`
+      return `${dim('')}`
     }
-    return `• ${theme.dim('()')}`
+    return `• ${dim('()')}`
   }
 
   private async walk(
@@ -256,7 +228,6 @@ export class TraceFormatter {
     prefix: string,
     isLast: boolean,
     depth: number,
-    o: Required<typeof defaultOpts>,
     out: string[],
   ) {
     const branch = depth === 0 ? '' : prefix + (isLast ? '└─ ' : '├─ ')
@@ -266,19 +237,15 @@ export class TraceFormatter {
     const [error, _] = await safeTry(this.cache.ensureAbi(node.to, node.input))
     if (error) this.logger.debug(error.message)
 
-    out.push(branch + this.renderHeader(node, hasError, o).trimEnd())
+    out.push(branch + this.renderHeader(node, hasError).trimEnd())
 
-    // Logs
-    if (o.showLogs && node.logs?.length && this.verbosity > LogVerbosity.High) {
-      const lastIdx = node.logs.length - 1
+    if (node.logs?.length && this.verbosity > LogVerbosity.High) {
       for (let i = 0; i < node.logs.length; i++) {
         const lg = node.logs[i]
-        if (!lg) continue
-        const lastLog = i === lastIdx && (node.calls?.length ?? 0) === 0
+        if (!node.logs[i]) continue
+        const lastLog = i === node.logs.length - 1 && (node.calls?.length ?? 0) === 0
         out.push(
-          nextPrefix +
-            (lastLog ? '└─ ' : '├─ ') +
-            this.renderLog(lg.address, lg.topics, lg.data, o),
+          nextPrefix + (lastLog ? '└─ ' : '├─ ') + this.renderLog(lg.address, lg.topics, lg.data),
         )
       }
     }
@@ -287,14 +254,7 @@ export class TraceFormatter {
       const children = node.calls ?? []
       for (let i = 0; i < children.length; i++) {
         const [error, _] = await safeTry(
-          this.walk(
-            children[i]!,
-            nextPrefix,
-            i === children.length - 1,
-            depth + 1,
-            o,
-            out,
-          ),
+          this.walk(children[i]!, nextPrefix, i === children.length - 1, depth + 1, out),
         )
         if (error) {
           this.logger.debug('error.message')
@@ -302,25 +262,16 @@ export class TraceFormatter {
       }
     }
 
-    const tail = this.renderTail(node, nextPrefix, o, hasError)
+    const tail = this.renderTail(node, nextPrefix, hasError)
     out.push(...tail)
   }
 
-  private renderHeader(
-    node: RpcCallTrace,
-    hasError: boolean,
-    o: Required<typeof defaultOpts>,
-  ): string {
+  private renderHeader(node: RpcCallTrace, hasError: boolean): string {
     const typeBadge = ` ${this.badgeFor(node.type)}`
     const failBadge = hasError ? ` ${pc.red('❌')}` : ''
 
-    // Common trailing info
-    const valueStr = theme.dim(`value=${formatValueEth(node.value)} `)
-    const gasStr = o.showGas
-      ? theme.dim(
-          `gas=${formatGas(node.gas, !o.hexGas)} used=${formatGas(node.gasUsed, !o.hexGas)}`,
-        )
-      : ''
+    const valueStr = dim(`value=${formatValueEth(node.value)} `)
+    const gasStr = dim(`gas=${formatGas(node.gas, true)} used=${formatGas(node.gasUsed, true)}`)
 
     const paint = hasError ? pc.red : undefined
 
@@ -333,11 +284,7 @@ export class TraceFormatter {
       }
       case 'DELEGATECALL':
       case 'CALLCODE': {
-        if (
-          node.type === 'DELEGATECALL' &&
-          this.verbosity <= LogVerbosity.Medium
-        )
-          return ''
+        if (node.type === 'DELEGATECALL' && this.verbosity <= LogVerbosity.Medium) return ''
         const left =
           this.addrLabelStyled(node.from as Address, paint) +
           ' → ' +
@@ -351,101 +298,78 @@ export class TraceFormatter {
           ? this.addrLabelStyled(node.to, paint)
           : this.addrLabelStyled(undefined, paint)
         const initLen = node.input ? (node.input.length - 2) / 2 : 0
-        const method = hasError ? pc.bold(pc.red('create')) : theme.fn('create')
+        const method = hasError ? pc.bold(pc.red('create')) : fn('create')
         return `${created} :: ${method}(init_code_len=${initLen}) ${valueStr}${gasStr}${typeBadge}${failBadge}`
       }
       case 'SELFDESTRUCT': {
         const target = this.addrLabelStyled(node.to, paint)
-        const method = hasError
-          ? pc.bold(pc.red('selfdestruct'))
-          : theme.fn('selfdestruct')
+        const method = hasError ? pc.bold(pc.red('selfdestruct')) : fn('selfdestruct')
         return `${target} :: ${method} ${valueStr}${gasStr}${typeBadge}${failBadge}`
       }
       default: {
         const left = this.addrLabelStyled(node.to, paint)
         const calld =
-          node.input && node.input !== '0x'
-            ? theme.dim(`calldata=${truncate(node.input, o.maxData)}`)
-            : theme.dim('()')
+          node.input && node.input !== '0x' ? dim(`calldata=${truncate(node.input)}`) : dim('()')
         return `${left} :: ${calld} ${valueStr}${gasStr}${typeBadge}${failBadge}`
       }
     }
   }
 
   private renderMethod(node: RpcCallTrace, hasError: boolean): string {
-    const pre = formatPrecompilePretty(node.to, node.input, node.output)
+    const pre = this.decoder.formatPrecompilePretty(node.to, node.input, node.output)
     if (pre) {
-      const selectorSig = !pre.name
-        ? nameFromSelector(node.input, this.cache)
-        : undefined
+      const selectorSig = !pre.name ? nameFromSelector(node.input, this.cache) : undefined
 
       if (pre.name) {
-        const styled = hasError ? pc.bold(pc.red(pre.name)) : theme.fn(pre.name)
+        const styled = hasError ? pc.bold(pc.red(pre.name)) : fn(pre.name)
         return `${styled}(${pre.inputText ?? ''})`
       }
       if (selectorSig) {
-        const styled = hasError
-          ? pc.bold(pc.red(selectorSig))
-          : theme.fn(selectorSig)
+        const styled = hasError ? pc.bold(pc.red(selectorSig)) : fn(selectorSig)
         return styled
       }
       if (node.input && node.input !== '0x') {
-        return theme.dim(
-          `calldata=${truncate(node.input, defaultOpts.maxData)}`,
-        )
+        return dim(`calldata=${truncate(node.input)}`)
       }
-      return theme.dim('()')
+      return dim('()')
     }
-    const { fnName, prettyArgs } = this.decoder.decodeCallWithNames(
-      node.to,
-      node.input,
-    )
-    const selectorSig = !fnName
-      ? nameFromSelector(node.input, this.cache)
-      : undefined
+    const { fnName, prettyArgs } = this.decoder.decodeCallWithNames(node.to, node.input)
+    const selectorSig = !fnName ? nameFromSelector(node.input, this.cache) : undefined
 
     if (fnName) {
-      const styled = hasError ? pc.bold(pc.red(fnName)) : theme.fn(fnName)
+      const styled = hasError ? pc.bold(pc.red(fnName)) : fn(fnName)
 
       if (this.verbosity <= LogVerbosity.Medium) return `${styled}()`
       else return `${styled}(${prettyArgs ?? ''})`
     }
     if (selectorSig) {
-      const styled = hasError
-        ? pc.bold(pc.red(selectorSig))
-        : theme.fn(selectorSig)
+      const styled = hasError ? pc.bold(pc.red(selectorSig)) : fn(selectorSig)
       return styled
     }
     if (node.input && node.input !== '0x') {
-      return theme.dim(`calldata=${truncate(node.input, defaultOpts.maxData)}`)
+      return dim(`calldata=${truncate(node.input)}`)
     }
-    return theme.dim('()')
+    return dim('()')
   }
 
   private renderLog(
     addr: Address,
     topics: [signature: `0x${string}`, ...args: `0x${string}`[]],
     data: Hex,
-    o: Required<typeof defaultOpts>,
   ): string {
     const dec = this.decoder.safeDecodeEvent(topics, data)
     if (dec.name) {
       const argPairs = Object.entries(dec.args ?? {})
-        .map(([k, v]) => `${theme.eventArgVal(k)}: ${theme.argVal(String(v))}`)
+        .map(([k, v]) => `${eventArgVal(k)}: ${argVal(String(v))}`)
         .join(', ')
-      return `${theme.emit('emit')} ${theme.emit(dec.name)}(${argPairs})`
+      return `${emit('emit')} ${emit(dec.name)}(${argPairs})`
     }
-    return `${theme.emit('emit')} ${this.addrLabelStyled(addr)} ${theme.dim(
-      `topic0=${topics?.[0] ?? ''} data=${truncate(data, o.maxData)}`,
+    return `${emit('emit')} ${this.addrLabelStyled(addr)} ${dim(
+      `topic0=${topics?.[0] ?? ''} data=${truncate(data)}`,
     )}`
   }
 
-  private renderTail(
-    node: RpcCallTrace,
-    nextPrefix: string,
-    o: Required<typeof defaultOpts>,
-    hasError: boolean,
-  ) {
+  private renderTail(node: RpcCallTrace, nextPrefix: string, hasError: boolean) {
     const lines: string[] = []
     const tailPrefix = nextPrefix
 
@@ -454,38 +378,24 @@ export class TraceFormatter {
         this.decoder.decodeRevertPrettyFromFrame(node.output as Hex) ??
         node.revertReason ??
         node.error
-      lines.push(
-        `${tailPrefix}${theme.revLabel('[Revert]')} ${theme.revData(pretty)}`,
-      )
+      lines.push(`${tailPrefix}${revLabel('[Revert]')} ${revData(pretty)}`)
       return lines
     }
 
-    if (!o.showReturnData) return lines
-
-    // 1) PRECOMPILE fast-path
-    const pre = formatPrecompilePretty(node.to, node.input, node.output)
+    const pre = this.decoder.formatPrecompilePretty(node.to, node.input, node.output)
     if (pre) {
-      node.output && node.output !== '0x'
-        ? truncate(node.output, o.maxData)
-        : theme.dim('()')
-      lines.push(
-        `${tailPrefix}${theme.retLabel('[Return]')} ${stringify(pre.outputText)}`,
-      )
+      node.output && node.output !== '0x' ? truncate(node.output) : dim('()')
+      lines.push(`${tailPrefix}${retLabel('[Return]')} ${stringify(pre.outputText)}`)
       return lines
     }
 
     const { fnItem } = this.decoder.decodeCallWithNames(node.to, node.input)
     const decoded = this.decoder.decodeReturnPretty(fnItem, node.output)
     if (decoded && decoded.length > 0) {
-      lines.push(
-        `${tailPrefix}${theme.retLabel('[Return]')} ${theme.retData(decoded)}`,
-      )
+      lines.push(`${tailPrefix}${retLabel('[Return]')} ${retData(decoded)}`)
     } else {
-      const ret =
-        node.output && node.output !== '0x'
-          ? truncate(node.output, o.maxData)
-          : theme.dim('()')
-      lines.push(`${tailPrefix}${theme.retLabel('[Return]')} ${ret}`)
+      const ret = node.output && node.output !== '0x' ? truncate(node.output) : dim('()')
+      lines.push(`${tailPrefix}${retLabel('[Return]')} ${ret}`)
     }
     return lines
   }

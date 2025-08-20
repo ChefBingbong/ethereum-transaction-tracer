@@ -19,9 +19,6 @@ export const etherscanAbiSchema = z.object({
 
 export const openChainAbiSchema = z.object({
   result: z.object({
-    function: z.record(
-      z.string(),
-      z.array(z.object({ name: z.string() })).nullable(),
-    ),
+    function: z.record(z.string(), z.array(z.object({ name: z.string() })).nullable()),
   }),
 })

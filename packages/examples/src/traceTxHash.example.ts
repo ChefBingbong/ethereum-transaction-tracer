@@ -1,7 +1,5 @@
 import { LogVerbosity, TransactionTracer } from '@evm-transaction-trace/tracer'
 import { erc20Abi, type PublicClient } from 'viem'
-import { hyperBrickFactoryAbi } from './abi/HyperBrickFactory.abi'
-import { HyperBrickPairABI } from './abi/HyperBrickPair.abi'
 import { LBRouterAbi } from './abi/LBRouterabi'
 import { OBExecutorAbi } from './abi/obExecutorAbi'
 import { RouterAbi } from './abi/routerabi'
@@ -21,23 +19,23 @@ const tracer = new TransactionTracer(client, {
       [EXECUTOR]: OBExecutorAbi,
       [ERC20A]: erc20Abi,
     },
-    extraAbis: [
-      RouterAbi,
-      erc20Abi,
-      OBExecutorAbi,
-      LBRouterAbi,
-      HyperBrickPairABI,
-      hyperBrickFactoryAbi,
-    ],
+    // extraAbis: [
+    //   RouterAbi,
+    //   erc20Abi,
+    //   OBExecutorAbi,
+    //   LBRouterAbi,
+    //   HyperBrickPairABI,
+    //   hyperBrickFactoryAbi,
+    // ],
   },
-  verbosity: LogVerbosity.Highest,
+  verbosity: LogVerbosity.High,
 })
 
 await tracer.init()
 
 const [_error, trace] = await tracer.traceTransactionHash({
   tracer: 'callTracer',
-  txHash: '0xcc49bddc49cbaea56d5cda1d94a88596c871165ab3cbcc425b8953ed4d6ae3bc',
+  txHash: '0x5cddfc029b9f3eeb7bbe187cf6cbb9d3bbd64e6c93d4c52b52738e3fa325d633',
   tracerConfig: { withLog: true },
 })
 

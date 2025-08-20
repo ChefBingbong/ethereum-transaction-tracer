@@ -11,39 +11,23 @@ import {
 } from 'viem'
 
 function getStandardBalanceSlot(address: Address, slot: bigint): Hex {
-  return keccak256(
-    encodePacked(['bytes32', 'uint256'], [pad(address, { size: 32 }), slot]),
-  )
+  return keccak256(encodePacked(['bytes32', 'uint256'], [pad(address, { size: 32 }), slot]))
 }
 
-function getStandardAllowanceSlot(
-  owner: Address,
-  recipient: Address,
-  slot: bigint,
-): Hex {
+function getStandardAllowanceSlot(owner: Address, recipient: Address, slot: bigint): Hex {
   return keccak256(
     encodePacked(
       ['bytes32', 'bytes32'],
       [
         pad(recipient, { size: 32 }),
-        keccak256(
-          encodePacked(
-            ['bytes32', 'uint256'],
-            [pad(owner, { size: 32 }), slot],
-          ),
-        ),
+        keccak256(encodePacked(['bytes32', 'uint256'], [pad(owner, { size: 32 }), slot])),
       ],
     ),
   )
 }
 
 function getCustomSlotWithAddress(address: Address, baseSlot: Hex): Hex {
-  return keccak256(
-    encodePacked(
-      ['bytes32', 'bytes32'],
-      [pad(address, { size: 32 }), baseSlot],
-    ),
-  )
+  return keccak256(encodePacked(['bytes32', 'bytes32'], [pad(address, { size: 32 }), baseSlot]))
 }
 
 function getSlotForSoladyErc20Approval(owner: Address, recipient: Address) {
@@ -86,10 +70,7 @@ function getSlotForOZERC20Allowance(owner: Address, recipient: Address) {
   return getStandardAllowanceSlot(owner, recipient, 1n)
 }
 
-function getSlotForOZERC20AllowanceWithOwner(
-  owner: Address,
-  recipient: Address,
-) {
+function getSlotForOZERC20AllowanceWithOwner(owner: Address, recipient: Address) {
   return getStandardAllowanceSlot(owner, recipient, 2n)
 }
 
@@ -110,16 +91,13 @@ function getSlotForWHYPEAllowance(owner: Address, recipient: Address) {
 }
 
 function getSlotForOZUpERC20Balance(address: Address) {
-  const baseSlot: Hex =
-    '0x52c63247e1f47db19d5ce0460030c497f067ca4cebf71ba98eeadabe20bace00'
+  const baseSlot: Hex = '0x52c63247e1f47db19d5ce0460030c497f067ca4cebf71ba98eeadabe20bace00'
   return getCustomSlotWithAddress(address, baseSlot)
 }
 
 function getSlotForOZUpERC20Allowance(owner: Address, recipient: Address) {
   const baseSlot =
-    hexToBigInt(
-      '0x52c63247e1f47db19d5ce0460030c497f067ca4cebf71ba98eeadabe20bace00',
-    ) + 1n
+    hexToBigInt('0x52c63247e1f47db19d5ce0460030c497f067ca4cebf71ba98eeadabe20bace00') + 1n
   return getStandardAllowanceSlot(owner, recipient, baseSlot)
 }
 
@@ -155,11 +133,7 @@ export function getUnlimitedBalanceAndApprovalStateOverrides(
 
   const stateDiff: Record<Hex, Hex> = {
     [getSlotForWHYPEBalance(owner)]: balHex,
-    [getStandardAllowanceSlot(
-      owner,
-      approvalRecipient,
-      standardAllowanceSlotIndex,
-    )]: allHex,
+    [getStandardAllowanceSlot(owner, approvalRecipient, standardAllowanceSlotIndex)]: allHex,
 
     [getSlotForWHYPEAllowance(owner, approvalRecipient)]: allHex,
     [getSlotForSoladyErc20Approval(owner, approvalRecipient)]: allHex,
