@@ -28,11 +28,11 @@ export interface I4BytesEntry {
 }
 
 export type CacheJson = {
-  tokenDecimals?: [string, number][]
-  contractNames?: [string, string][]
-  fourByteDir?: [string, AbiFunction][]
+  tokenDecimals?: [Address, number][]
+  contractNames?: [Address, string][]
+  fourByteDir?: [Hex, AbiFunction][]
   contractAbi?: [string, Abi][]
-  eventsDir?: [string, AbiEvent][]
+  eventsDir?: [Hex, AbiEvent][]
   extraAbis?: Abi[]
   undefinedSignatures?: Address[]
   tempAddressCache?: Address[]

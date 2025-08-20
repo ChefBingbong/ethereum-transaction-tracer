@@ -3,6 +3,7 @@ import { type Address, type Hex, isAddressEqual, zeroAddress } from 'viem'
 import type { TracerCache } from '../cache'
 import { LogVerbosity, type RpcCallTrace, type RpcCallType } from '../callTracer'
 import type { Decoder } from '../decoder'
+import type { EventTopic } from '../decoder/types'
 import { nameFromSelector, stringify } from '../decoder/utils'
 import {
   addr,
@@ -116,13 +117,16 @@ export class PrittyPrinter {
       return dim('()')
     }
 
-    const { fnName, prettyArgs } = this.decoder.decodeCallWithNames(node.to, node.input)
-    const selectorSig = !fnName ? nameFromSelector(node.input, this.cache) : undefined
+    const [error, decodedCall] = this.decoder.decodeCallWithNames(node.to, node.input)
+    if (error) return dim('()')
+
+    const fnName = decodedCall.fnName
+    const selectorSig = nameFromSelector(node.input, this.cache)
 
     if (fnName) {
       const styled = hasError ? pc.bold(pc.red(fnName)) : fn(fnName)
       if (this.verbosity <= LogVerbosity.Medium) return `${styled}()`
-      else return `${styled}(${prettyArgs ?? ''})`
+      else return `${styled}(${decodedCall.prettyArgs ?? ''})`
     }
 
     if (selectorSig) return hasError ? pc.bold(pc.red(selectorSig)) : fn(selectorSig)
@@ -136,18 +140,20 @@ export class PrittyPrinter {
   public formatLog(
     lastLog: boolean,
     addr: Address,
-    topics: [signature: `0x${string}`, ...args: `0x${string}`[]],
+    topics: EventTopic,
     data: Hex,
     nextPrefix: string,
   ): string {
-    const dec = this.decoder.safeDecodeEvent(topics, data)
-    if (dec.name) {
-      const argPairs = Object.entries(dec.args ?? {})
-        .map(([k, v]) => `${eventArgVal(k)}: ${argVal(String(v))}`)
-        .join(', ')
-      return `${nextPrefix + (lastLog ? '└─ ' : '├─ ')}${emit('emit')} ${emit(dec.name)}(${argPairs})`
+    const logPrefix = `${nextPrefix + (lastLog ? '└─ ' : '├─ ')}${emit('emit')}`
+    const [error, dec] = this.decoder.safeDecodeEvent(topics, data)
+
+    if (!error) {
+      const argPairs = Object.entries(dec.args ?? {}).map(
+        ([k, v]) => `${eventArgVal(k)}: ${argVal(String(v))}`,
+      )
+      return `${logPrefix} ${emit(dec.name)}(${argPairs.join(', ')})`
     }
-    return `${nextPrefix + (lastLog ? '└─ ' : '├─ ')}${emit('emit')} ${this.addrLabelStyled(addr)} ${dim(
+    return `${logPrefix} ${this.addrLabelStyled(addr)} ${dim(
       `topic0=${topics?.[0] ?? ''} data=${truncate(data)}`,
     )}`
   }
@@ -158,25 +164,25 @@ export class PrittyPrinter {
     const returnLabel = `${nextPrefix}${retLabel('[Return]')}`
     const pre = this.decoder.formatPrecompilePretty(node.to, node.input, node.output)
 
-    if (pre) {
-      node.output && node.output !== '0x' ? truncate(node.output) : dim('()')
-      return `${returnLabel}} ${stringify(pre.outputText)}`
-    }
-    const { fnItem } = this.decoder.decodeCallWithNames(node.to, node.input)
-    const decoded = this.decoder.decodeReturnPretty(fnItem, node.output)
+    if (pre) return `${returnLabel}} ${stringify(pre.outputText)}`
+    const [callError, decodedCall] = this.decoder.decodeCallWithNames(node.to, node.input)
 
-    if (decoded && decoded.length > 0) return `${returnLabel}} ${retData(decoded)}`
+    if (!callError && decodedCall.fnItem) {
+      const [returnError, decodedReturn] = this.decoder.decodeReturnPretty(
+        decodedCall.fnItem,
+        node.output,
+      )
+      if (!returnError) return `${returnLabel}} ${retData(decodedReturn)}`
+    }
     return `${returnLabel}} ${node.output && node.output !== '0x' ? truncate(node.output) : dim('()')}`
   }
 
   public formatRevert(node: RpcCallTrace, nextPrefix: string) {
-    const tailPrefix = nextPrefix
+    const revertPrefix = `${nextPrefix}${revLabel('[Revert]')}`
+    const [error, prettyRevert] = this.decoder.decodeRevertPrettyFromFrame(node.output as Hex)
 
-    const pretty =
-      this.decoder.decodeRevertPrettyFromFrame(node.output as Hex) ??
-      node.revertReason ??
-      node.error
-    return `${tailPrefix}${revLabel('[Revert]')} ${revData(pretty)}`
+    if (error) return `${revertPrefix} ${revData(node.revertReason ?? node.error)}`
+    return `${revertPrefix} ${revData(prettyRevert)}`
   }
 
   public addrLabelStyled(_addr: Address | undefined, color?: (s: string) => string) {
