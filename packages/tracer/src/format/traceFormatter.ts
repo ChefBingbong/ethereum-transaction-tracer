@@ -1,13 +1,13 @@
 import { LoggerProvider, safeTry } from '@evm-transaction-trace/core'
 import pc from 'picocolors'
-import type { Hex } from 'viem'
+import type { Address, Hex } from 'viem'
 import type { TracerCache } from '../cache/index'
 import { LogVerbosity, type RpcCallTrace } from '../callTracer'
 import type { Decoder } from '../decoder'
 import { PrittyPrinter } from './prettyPrinter'
 import type { GasTally, LineSink, PrettyOpts } from './types'
 
-const hexToBig = (h?: Hex) => (h ? BigInt(h) : 0n)
+export const hexToBig = (h?: Hex) => (h ? BigInt(h) : 0n)
 
 export class TraceFormatter {
   private readonly logger: LoggerProvider
@@ -27,26 +27,68 @@ export class TraceFormatter {
   }
 
   public async formatTraceColored(root: RpcCallTrace, _opts?: PrettyOpts): Promise<void> {
-    await this.processInnerCallsLive(root, '', true, 0, false)
+    await this.processInnerCallsLive(root, '', true, 0)
     await this.cache.save()
   }
 
   public async formatGasTraceColored(root: RpcCallTrace) {
-    const tally: GasTally = {
-      totalGas: 0n,
-      frames: 0,
-      succeeded: 0,
-      failed: 0,
+    const summary = {
+      topLevelTotal: 0n,
+      topLevelFrames: 0,
+      ok: 0,
+      fail: 0,
+      abortedAt: undefined as string | undefined,
     }
-    this.verbosity = LogVerbosity.Medium
-    await this.processInnerCallsLive(root, '', true, 0, true, tally)
+
+    await this.processInnerGasCalls(root, '', true, 0, summary)
 
     this.writeLine('')
     this.writeLine(pc.bold('— Gas summary —'))
-    this.writeLine(`frames: ${tally.frames}   ok: ${tally.succeeded}   fail: ${tally.failed}`)
-    this.writeLine(`total used: ${pc.bold(Number(hexToBig(root.gasUsed) - tally.totalGas))}`)
+    this.writeLine(`frames: ${summary.topLevelFrames}   ok: ${summary.ok}   fail: ${summary.fail}`)
+    this.writeLine(`total used : ${pc.bold(Number(summary.topLevelTotal))}`)
+    if (summary.abortedAt) this.writeLine(`${pc.red('reverted at')}: ${pc.red(summary.abortedAt)}`)
 
     await this.cache.save()
+  }
+
+  private async processInnerGasCalls(
+    node: RpcCallTrace,
+    prefix: string,
+    isLast: boolean,
+    depth: number,
+    summary: GasTally,
+  ) {
+    const branch = depth === 0 ? '' : prefix + (isLast ? '└─ ' : '├─ ')
+    const nextPrefix = prefix + (isLast ? '   ' : '│  ')
+
+    await this.cache.indexTraceAbis(node.to, node.input).catch(() => {})
+    const hasError = Boolean(node.error)
+
+    const usedHere = hexToBig(node.gasUsed)
+    if (depth === 1) {
+      summary.topLevelTotal += usedHere
+      summary.topLevelFrames += 1
+      hasError ? summary.fail++ : summary.ok++
+    }
+
+    this.writeLine(branch + this.formatTraceGasCall(node, hasError, depth))
+
+    if (hasError) {
+      const labelOnly = this.printer.formatGasCall(node, hasError)
+      summary.abortedAt = labelOnly
+      return true
+    }
+
+    const children = node.calls ?? []
+    for (let i = 0; i < children.length; i++) {
+      await this.processInnerGasCalls(
+        children[i],
+        nextPrefix,
+        i === children.length - 1,
+        depth + 1,
+        summary,
+      )
+    }
   }
 
   private async processInnerCallsLive(
@@ -54,26 +96,15 @@ export class TraceFormatter {
     prefix: string,
     isLast: boolean,
     depth: number,
-    isGasCall = false,
-    tally?: GasTally,
   ): Promise<void> {
-    const branch = isGasCall || depth === 0 ? '' : prefix + (isLast ? '└─ ' : '├─ ')
-    const nextPrefix = isGasCall ? '' : prefix + (isLast ? '   ' : '│  ')
+    const branch = depth === 0 ? '' : prefix + (isLast ? '└─ ' : '├─ ')
+    const nextPrefix = prefix + (isLast ? '   ' : '│  ')
 
     const [err] = await safeTry(this.cache.indexTraceAbis(node.to, node.input))
     if (err) this.logger.debug(err.message)
 
     const hasError = Boolean(node.error)
-    const used = hexToBig(node.gasUsed)
-
-    if (tally) {
-      tally.totalGas += used
-      tally.frames += 1
-      if (hasError) tally.failed += 1
-      else tally.succeeded += 1
-    }
-
-    this.writeLine(branch + this.formatTraceCall(node, hasError, isGasCall).trimEnd())
+    this.writeLine(branch + this.formatTraceCall(node, hasError).trimEnd())
 
     if (node.logs?.length && this.verbosity > LogVerbosity.High) {
       for (let i = 0; i < node.logs.length; i++) {
@@ -90,52 +121,81 @@ export class TraceFormatter {
           children[i],
           nextPrefix,
           i === children.length - 1,
-          isGasCall ? 0 : depth + 1,
-          isGasCall,
-          tally,
+          depth + 1,
         )
       }
     }
-    if (node.output && node.output !== '0x') {
-      this.writeLine(this.formatTraceReturn(node, hasError, nextPrefix, isGasCall).trimEnd())
+    this.writeLine(this.formatTraceReturn(node, hasError, nextPrefix).trimEnd())
+  }
+
+  private formatTraceReturn(node: RpcCallTrace, hasError: boolean, nextPrefix: string) {
+    if (hasError) return this.printer.formatRevert(node, nextPrefix)
+    return this.printer.formatReturn(node, nextPrefix)
+  }
+
+  private formatTraceCall(node: RpcCallTrace, hasError: boolean): string {
+    switch (node.type) {
+      case 'CALL': {
+        return this.printer.printCall(node, hasError)
+      }
+      case 'STATICCALL': {
+        return this.printer.printCall(node, hasError)
+      }
+      case 'CALLCODE': {
+        return this.printer.printDelegateCall(node, hasError)
+      }
+      case 'DELEGATECALL': {
+        return this.printer.printDelegateCall(node, hasError)
+      }
+      case 'CREATE': {
+        return this.printer.printCreateCall(node, hasError)
+      }
+      case 'CREATE2': {
+        return this.printer.printCreateCall(node, hasError)
+      }
+      case 'SELFDESTRUCT': {
+        return this.printer.printSeltDestructCall(node, hasError)
+      }
+      default: {
+        return this.printer.printDefault(node, hasError)
+      }
     }
   }
 
-  private formatTraceReturn(
-    node: RpcCallTrace,
-    hasError: boolean,
-    nextPrefix: string,
-    isGasCall = false,
-  ) {
-    if (hasError) return this.printer.formatRevert(node, nextPrefix)
-    return this.printer.formatReturn(node, nextPrefix, isGasCall)
-  }
-
-  private formatTraceCall(node: RpcCallTrace, hasError: boolean, isGasCall = false): string {
+  private formatTraceGasCall(node: RpcCallTrace, hasError: boolean, depth: number): string {
+    const paint = hasError ? pc.red : undefined
     switch (node.type) {
-      case 'CALL': {
-        return this.printer.printCall(node, hasError, isGasCall)
-      }
-      case 'STATICCALL': {
-        return this.printer.printCall(node, hasError, isGasCall)
-      }
+      case 'DELEGATECALL':
       case 'CALLCODE': {
-        return this.printer.printDelegateCall(node, hasError, isGasCall)
+        const left =
+          this.printer.addrLabelStyled(node.from as Address, paint) +
+          ' → ' +
+          this.printer.addrLabelStyled(node.to, paint)
+        const rightLabel = this.printer.formatGasCall(node, hasError)
+        return this.printer.printGasCall(node, hasError, rightLabel, left, depth)
       }
-      case 'DELEGATECALL': {
-        return this.printer.printDelegateCall(node, hasError, isGasCall)
-      }
-      case 'CREATE': {
-        return this.printer.printCreateCall(node, hasError, isGasCall)
-      }
+
+      case 'CREATE':
       case 'CREATE2': {
-        return this.printer.printCreateCall(node, hasError, isGasCall)
+        const created = node.to
+          ? this.printer.addrLabelStyled(node.to, paint)
+          : this.printer.addrLabelStyled(undefined, paint)
+        const initLen = node.input ? (node.input.length - 2) / 2 : 0
+
+        const rightLabel = this.printer.formatGasCreateCall(initLen, hasError)
+        return this.printer.printGasCall(node, hasError, rightLabel, created, depth)
       }
+
       case 'SELFDESTRUCT': {
-        return this.printer.printSeltDestructCall(node, hasError, isGasCall)
+        const target = this.printer.addrLabelStyled(node.to, paint)
+        const rightLabel = this.printer.formatGasSelfdestructCall(hasError)
+        return this.printer.printGasCall(node, hasError, rightLabel, target, depth)
       }
+
       default: {
-        return this.printer.printDefault(node, hasError, isGasCall)
+        const left = this.printer.addrLabelStyled(node.to, paint)
+        const rightLabel = this.printer.formatGasCall(node, hasError)
+        return this.printer.printGasCall(node, hasError, rightLabel, left, depth)
       }
     }
   }

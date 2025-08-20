@@ -8,6 +8,7 @@ import {
   getAbiItem,
 } from 'viem'
 import type { TracerCache } from '../cache'
+import type { RpcCallTrace } from '../callTracer'
 import { type EventTopic, PANIC_MAP } from './types'
 import {
   formatArgsInline,
@@ -20,7 +21,6 @@ import {
   stringify,
   toAddr,
   trunc,
-  tryDecodeErrorString,
   tryDecodePanic,
   tryDecodePretty,
 } from './utils'
@@ -83,26 +83,33 @@ export class Decoder {
     return safeResult({ name: decodedLog.eventName, args: decodedLog.args })
   }
 
-  decodeRevertPrettyFromFrame(data: Hex) {
+  decodeRevertPrettyFromFrame(data: RpcCallTrace) {
+    if (!data.output) return safeResult(data.revertReason ?? data.error)
     for (const abi of this.cache.extraAbis) {
-      const [error, dec] = safeSyncTry(decodeErrorResult({ abi, data }))
-      if (error || !dec.args) continue
+      const [error, dec] = safeSyncTry(decodeErrorResult({ abi, data: data.output }))
+      if (error) continue
 
-      if (dec.errorName === 'Error' && Array.isArray(dec.args)) {
+      if (dec.errorName === 'Error' && dec.args && Array.isArray(dec.args)) {
         return safeResult(`Error(${JSON.stringify(dec.args[0])})`)
       }
-      if (dec.errorName === 'Panic' && Array.isArray(dec.args)) {
+      if (dec.errorName === 'Panic' && dec.args && Array.isArray(dec.args)) {
         const code = Number(dec.args[0])
         const msg = PANIC_MAP[code] ?? 'panic'
         return safeResult(`Panic(0x${code.toString(16)}: ${msg})`)
       }
-      const argsTxt = Array.isArray(dec.args)
-        ? dec.args.map(formatArgsInline).join(', ')
-        : formatArgsInline(dec.args)
+      const argsTxt =
+        dec.args && Array.isArray(dec.args)
+          ? dec.args.map(formatArgsInline).join(', ')
+          : formatArgsInline(dec.args)
 
       return safeResult(`${dec.errorName}(${argsTxt})`)
     }
-    return safeResult(tryDecodeErrorString(data) ?? tryDecodePanic(data) ?? null)
+    const panicError = tryDecodePanic(data.output)
+    if (panicError) return safeResult(panicError)
+
+    const errorStr = tryDecodePanic(data.output)
+    if (errorStr) return safeResult(errorStr)
+    return safeResult(null)
   }
 
   formatPrecompilePretty(address: Address, input: Hex, ret?: Hex): PrecompilePretty | null {

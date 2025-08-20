@@ -23,10 +23,10 @@ export type PrettyOpts = {
 }
 
 export type GasTally = {
-  totalGas: bigint
-  frames: number
-  succeeded: number
-  failed: number
+  topLevelTotal: bigint
+  topLevelFrames: number
+  ok: number
+  fail: number
   abortedAt?: string
 }
 export type LineSink = (line: string) => void

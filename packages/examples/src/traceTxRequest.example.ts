@@ -13,8 +13,7 @@ import {
   publicActions,
 } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
-import { hyperBrickFactoryAbi } from './abi/HyperBrickFactory.abi'
-import { HyperBrickPairABI } from './abi/HyperBrickPair.abi'
+import { LBPairAbi } from './abi/LBPair'
 import { LBRouterAbi } from './abi/LBRouterabi'
 import { OBExecutorAbi } from './abi/obExecutorAbi'
 import { RouterAbi } from './abi/routerabi'
@@ -50,14 +49,7 @@ const tracer = new TransactionTracer(client, {
       [EXECUTOR]: OBExecutorAbi,
       [ERC20A]: erc20Abi,
     },
-    extraAbis: [
-      RouterAbi,
-      erc20Abi,
-      OBExecutorAbi,
-      LBRouterAbi,
-      HyperBrickPairABI,
-      hyperBrickFactoryAbi,
-    ],
+    extraAbis: [LBPairAbi],
   },
   verbosity: LogVerbosity.Highest,
 })
