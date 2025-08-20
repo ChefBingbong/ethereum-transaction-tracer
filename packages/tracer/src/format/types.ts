@@ -21,3 +21,12 @@ export type PrettyOpts = {
     includeLogs?: boolean
   }
 }
+
+export type GasTally = {
+  totalGas: bigint
+  frames: number
+  succeeded: number
+  failed: number
+  abortedAt?: string
+}
+export type LineSink = (line: string) => void

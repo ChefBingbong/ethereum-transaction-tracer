@@ -26,12 +26,7 @@ export class PrittyPrinter {
     private verbosity: LogVerbosity,
   ) {}
 
-  public printCall = (
-    node: RpcCallTrace,
-    hasError: boolean,
-    nextPrefix: string,
-    isGasCall = false,
-  ) => {
+  public printCall = (node: RpcCallTrace, hasError: boolean, isGasCall = false) => {
     const typeBadge = isGasCall ? '' : ` ${this.badgeFor(node.type)}`
     const failBadge = isGasCall ? '' : hasError ? ` ${pc.red('❌')}` : ''
 
@@ -41,16 +36,10 @@ export class PrittyPrinter {
     const paint = hasError ? pc.red : undefined
     const left = this.addrLabelStyled(node.to, paint)
     const method = this.formatContractCall(node, hasError)
-    const returnLabel = this.formatReturn(node, nextPrefix, hasError, isGasCall)
-    return `${left} :: ${method} ${valueStr}${gasStr}${typeBadge}${failBadge} \n${returnLabel}`
+    return `${left} :: ${method} ${valueStr}${gasStr}${typeBadge}${failBadge}`
   }
 
-  public printDelegateCall = (
-    node: RpcCallTrace,
-    hasError: boolean,
-    nextPrefix: string,
-    isGasCall = false,
-  ) => {
+  public printDelegateCall = (node: RpcCallTrace, hasError: boolean, isGasCall = false) => {
     const typeBadge = isGasCall ? '' : ` ${this.badgeFor(node.type)}`
     const failBadge = isGasCall ? '' : hasError ? ` ${pc.red('❌')}` : ''
     const valueStr = isGasCall ? '' : dim(`value=${formatValueEth(node.value)} `)
@@ -64,16 +53,10 @@ export class PrittyPrinter {
       this.addrLabelStyled(node.to, paint)
 
     const method = this.formatContractCall(node, hasError)
-    const returnLabel = this.formatReturn(node, nextPrefix, hasError, isGasCall)
-    return `${left} :: ${method} ${valueStr}${gasStr}${typeBadge}${failBadge} \n${returnLabel}`
+    return `${left} :: ${method} ${valueStr}${gasStr}${typeBadge}${failBadge}`
   }
 
-  public printCreateCall = (
-    node: RpcCallTrace,
-    hasError: boolean,
-    nextPrefix: string,
-    isGasCall = false,
-  ) => {
+  public printCreateCall = (node: RpcCallTrace, hasError: boolean, isGasCall = false) => {
     const typeBadge = isGasCall ? '' : ` ${this.badgeFor(node.type)}`
     const failBadge = isGasCall ? '' : hasError ? ` ${pc.red('❌')}` : ''
     const valueStr = isGasCall ? '' : dim(`value=${formatValueEth(node.value)} `)
@@ -87,16 +70,10 @@ export class PrittyPrinter {
 
     const initLen = node.input ? (node.input.length - 2) / 2 : 0
     const method = hasError ? pc.bold(pc.red('create')) : fn('create')
-    const returnLabel = this.formatReturn(node, nextPrefix, hasError, isGasCall)
-    return `${created} :: ${method}(init_code_len=${initLen}) ${valueStr}${gasStr}${typeBadge}${failBadge} \n${returnLabel}`
+    return `${created} :: ${method}(init_code_len=${initLen}) ${valueStr}${gasStr}${typeBadge}${failBadge}`
   }
 
-  public printSeltDestructCall = (
-    node: RpcCallTrace,
-    hasError: boolean,
-    nextPrefix: string,
-    isGasCall = false,
-  ) => {
+  public printSeltDestructCall = (node: RpcCallTrace, hasError: boolean, isGasCall = false) => {
     const typeBadge = isGasCall ? '' : ` ${this.badgeFor(node.type)}`
     const failBadge = isGasCall ? '' : hasError ? ` ${pc.red('❌')}` : ''
     const valueStr = isGasCall ? '' : dim(`value=${formatValueEth(node.value)} `)
@@ -106,31 +83,22 @@ export class PrittyPrinter {
 
     const target = this.addrLabelStyled(node.to, paint)
     const method = hasError ? pc.bold(pc.red('selfdestruct')) : fn('selfdestruct')
-    const returnLabel = this.formatReturn(node, nextPrefix, hasError, isGasCall)
-    return `${target} :: ${method} ${valueStr}${gasStr}${typeBadge}${failBadge} \n${returnLabel}`
+    return `${target} :: ${method} ${valueStr}${gasStr}${typeBadge}${failBadge}`
   }
 
-  public printDefault = (
-    node: RpcCallTrace,
-    hasError: boolean,
-    nextPrefix: string,
-    isGasCall = false,
-  ) => {
+  public printDefault = (node: RpcCallTrace, hasError: boolean, isGasCall = false) => {
     const typeBadge = isGasCall ? '' : ` ${this.badgeFor(node.type)}`
     const failBadge = isGasCall ? '' : hasError ? ` ${pc.red('❌')}` : ''
     const valueStr = isGasCall ? '' : dim(`value=${formatValueEth(node.value)} `)
     const gasStr = dim(`gas=${formatGas(node.gas, true)} used=${formatGas(node.gasUsed, true)}`)
 
     const paint = hasError ? pc.red : undefined
-
-    const returnLabel = this.formatReturn(node, nextPrefix, hasError, isGasCall)
-
     const left = this.addrLabelStyled(node.to, paint)
     const calld =
       !isGasCall && node.input && node.input !== '0x'
         ? dim(`calldata=${truncate(node.input)}`)
         : dim('()')
-    return `${left} :: ${calld} ${valueStr}${gasStr}${typeBadge}${failBadge} \n${returnLabel}`
+    return `${left} :: ${calld} ${valueStr}${gasStr}${typeBadge}${failBadge}`
   }
 
   public formatContractCall(node: RpcCallTrace, hasError: boolean, isGasCall = false): string {
@@ -184,36 +152,31 @@ export class PrittyPrinter {
     )}`
   }
 
-  public formatReturn(
-    node: RpcCallTrace,
-    nextPrefix: string,
-    hasError: boolean,
-    isGasCall = false,
-  ) {
+  public formatReturn(node: RpcCallTrace, nextPrefix: string, isGasCall = false) {
     if (isGasCall) return ''
-    const tailPrefix = nextPrefix
 
-    if (hasError) {
-      const pretty =
-        this.decoder.decodeRevertPrettyFromFrame(node.output as Hex) ??
-        node.revertReason ??
-        node.error
-      return `${tailPrefix}${revLabel('[Revert]')} ${revData(pretty)}`
-    }
-
+    const returnLabel = `${nextPrefix}${retLabel('[Return]')}`
     const pre = this.decoder.formatPrecompilePretty(node.to, node.input, node.output)
+
     if (pre) {
       node.output && node.output !== '0x' ? truncate(node.output) : dim('()')
-      return `${tailPrefix}${retLabel('[Return]')} ${stringify(pre.outputText)}`
+      return `${returnLabel}} ${stringify(pre.outputText)}`
     }
-
     const { fnItem } = this.decoder.decodeCallWithNames(node.to, node.input)
     const decoded = this.decoder.decodeReturnPretty(fnItem, node.output)
-    if (decoded && decoded.length > 0) {
-      return `${tailPrefix}${retLabel('[Return]')} ${retData(decoded)}`
-    }
-    const ret = node.output && node.output !== '0x' ? truncate(node.output) : dim('()')
-    return `${tailPrefix}${retLabel('[Return]')} ${ret}`
+
+    if (decoded && decoded.length > 0) return `${returnLabel}} ${retData(decoded)}`
+    return `${returnLabel}} ${node.output && node.output !== '0x' ? truncate(node.output) : dim('()')}`
+  }
+
+  public formatRevert(node: RpcCallTrace, nextPrefix: string) {
+    const tailPrefix = nextPrefix
+
+    const pretty =
+      this.decoder.decodeRevertPrettyFromFrame(node.output as Hex) ??
+      node.revertReason ??
+      node.error
+    return `${tailPrefix}${revLabel('[Revert]')} ${revData(pretty)}`
   }
 
   public addrLabelStyled(_addr: Address | undefined, color?: (s: string) => string) {

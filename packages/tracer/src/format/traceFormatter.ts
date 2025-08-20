@@ -5,39 +5,25 @@ import type { TracerCache } from '../cache/index'
 import { LogVerbosity, type RpcCallTrace } from '../callTracer'
 import type { Decoder } from '../decoder'
 import { PrittyPrinter } from './prettyPrinter'
-import type { PrettyOpts } from './types'
+import type { GasTally, LineSink, PrettyOpts } from './types'
 
 const hexToBig = (h?: Hex) => (h ? BigInt(h) : 0n)
 
-type GasTally = {
-  totalGas: bigint
-  frames: number
-  succeeded: number
-  failed: number
-  abortedAt?: string // pretty label of the frame that reverted
-}
-type LineSink = (line: string) => void
-
 export class TraceFormatter {
   private readonly logger: LoggerProvider
-  private readonly sink: LineSink
   private readonly printer: PrittyPrinter
+  private readonly sink: LineSink
 
   constructor(
     private readonly cache: TracerCache,
     private readonly decoder: Decoder,
-    level: boolean,
+    private readonly level: boolean,
     private verbosity: LogVerbosity,
-    _opts?: { sink?: LineSink },
   ) {
-    this.printer = new PrittyPrinter(this.decoder, this.cache, verbosity)
-    this.logger = new LoggerProvider(level)
-    this.logger.init()
     this.sink = (line) => console.log(line)
-  }
-
-  private writeLine(line = '') {
-    this.sink(line)
+    this.printer = new PrittyPrinter(this.decoder, this.cache, verbosity)
+    this.logger = new LoggerProvider(this.level)
+    this.logger.init()
   }
 
   public async formatTraceColored(root: RpcCallTrace, _opts?: PrettyOpts): Promise<void> {
@@ -87,8 +73,7 @@ export class TraceFormatter {
       else tally.succeeded += 1
     }
 
-    const header = this.formatTraceCall(node, hasError, nextPrefix, isGasCall)
-    this.writeLine(branch + header.trimEnd())
+    this.writeLine(branch + this.formatTraceCall(node, hasError, isGasCall).trimEnd())
 
     if (node.logs?.length && this.verbosity > LogVerbosity.High) {
       for (let i = 0; i < node.logs.length; i++) {
@@ -111,29 +96,49 @@ export class TraceFormatter {
         )
       }
     }
+    this.writeLine(this.formatTraceReturn(node, hasError, nextPrefix, isGasCall).trimEnd())
   }
 
-  private formatTraceCall(
+  private formatTraceReturn(
     node: RpcCallTrace,
     hasError: boolean,
     nextPrefix: string,
     isGasCall = false,
-  ): string {
+  ) {
+    if (hasError) return this.printer.formatRevert(node, nextPrefix)
+    return this.printer.formatReturn(node, nextPrefix, isGasCall)
+  }
+
+  private formatTraceCall(node: RpcCallTrace, hasError: boolean, isGasCall = false): string {
     switch (node.type) {
-      case 'CALL':
-      case 'STATICCALL':
-        return this.printer.printCall(node, hasError, nextPrefix, isGasCall)
-      case 'DELEGATECALL':
-      case 'CALLCODE':
-        return this.printer.printDelegateCall(node, hasError, nextPrefix, isGasCall)
-      case 'CREATE':
-      case 'CREATE2':
-        return this.printer.printCreateCall(node, hasError, nextPrefix, isGasCall)
-      case 'SELFDESTRUCT':
-        return this.printer.printSeltDestructCall(node, hasError, nextPrefix, isGasCall)
+      case 'CALL': {
+        return this.printer.printCall(node, hasError, isGasCall)
+      }
+      case 'STATICCALL': {
+        return this.printer.printCall(node, hasError, isGasCall)
+      }
+      case 'CALLCODE': {
+        return this.printer.printDelegateCall(node, hasError, isGasCall)
+      }
+      case 'DELEGATECALL': {
+        return this.printer.printDelegateCall(node, hasError, isGasCall)
+      }
+      case 'CREATE': {
+        return this.printer.printCreateCall(node, hasError, isGasCall)
+      }
+      case 'CREATE2': {
+        return this.printer.printCreateCall(node, hasError, isGasCall)
+      }
+      case 'SELFDESTRUCT': {
+        return this.printer.printSeltDestructCall(node, hasError, isGasCall)
+      }
       default: {
-        return this.printer.printDefault(node, hasError, nextPrefix, isGasCall)
+        return this.printer.printDefault(node, hasError, isGasCall)
       }
     }
+  }
+
+  private writeLine(line = '') {
+    this.sink(line)
   }
 }
