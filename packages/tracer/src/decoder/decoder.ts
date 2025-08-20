@@ -278,7 +278,6 @@ export class Decoder {
           return { name: 'alt_bn128_pairing', inputText, outputText }
         }
 
-        // 0x09: blake2f (EIP-152)
         case toAddr(9): {
           const data = input.startsWith('0x') ? input.slice(2) : input
           const rounds = Number(`0x${data.slice(0, 8)}`)
