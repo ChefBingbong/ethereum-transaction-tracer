@@ -22,6 +22,10 @@ export async function safeTry<T>(promise: Promise<T>): SafePromise<T> {
   return _.try(() => promise)()
 }
 
+export function safeSyncTry<T>(callBack: T) {
+  return _.try(() => callBack)()
+}
+
 export const safeTimeoutPromiseAll = async <T>(
   promises: Promise<T>[],
   ms: number,

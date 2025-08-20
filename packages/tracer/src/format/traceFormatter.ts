@@ -96,7 +96,9 @@ export class TraceFormatter {
         )
       }
     }
-    this.writeLine(this.formatTraceReturn(node, hasError, nextPrefix, isGasCall).trimEnd())
+    if (node.output && node.output !== '0x') {
+      this.writeLine(this.formatTraceReturn(node, hasError, nextPrefix, isGasCall).trimEnd())
+    }
   }
 
   private formatTraceReturn(

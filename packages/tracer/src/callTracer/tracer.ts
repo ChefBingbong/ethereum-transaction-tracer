@@ -1,4 +1,3 @@
-import { createWriteStream } from 'node:fs'
 import { safeError, safeResult, safeTry } from '@evm-transaction-trace/core'
 import {
   BaseError,
@@ -42,15 +41,11 @@ export class TransactionTracer {
     }
     this.cache = new TracerCache(this.chainId, args.cachePath, args.cacheOptions)
     this.decoder = new Decoder(this.cache, true)
-    const stream = createWriteStream('./trace.log', { flags: 'w' })
     this.formatter = new TraceFormatter(
       this.cache,
       this.decoder,
       args.logDebug ?? false,
       args.verbosity ?? LogVerbosity.Highest,
-      {
-        sink: (line) => stream.write(`${line}\n`),
-      },
     )
   }
 

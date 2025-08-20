@@ -1,6 +1,6 @@
 import { type Address, decodeAbiParameters, type Hex, hexToBigInt } from 'viem'
 import type { TracerCache } from '../cache'
-import { PANIC_MAP } from './decoder'
+import { PANIC_MAP } from './types'
 
 type KV = Record<string, string>
 export type PrecompilePretty = {
@@ -127,29 +127,17 @@ export const stringify = (v: unknown): string => {
   return String(v)
 }
 
-export function tryDecodeErrorString(data?: Hex): string | null {
-  if (!data || data === '0x') return null
-  // Error(string) selector
-  if (data.slice(0, 10).toLowerCase() !== '0x08c379a0') return null
-  try {
-    const [reason] = decodeAbiParameters([{ type: 'string' }], `0x${data.slice(10)}` as Hex)
-    return `Error(${JSON.stringify(reason)})`
-  } catch {
-    return null
-  }
+export function tryDecodeErrorString(data: Hex) {
+  if (data.slice(0, 10) !== '0x08c379a0') return null
+  const [reason] = decodeAbiParameters([{ type: 'string' }], `0x${data.slice(10)}`)
+  return `Error(${JSON.stringify(reason)})`
 }
 
-export function tryDecodePanic(data?: Hex): string | null {
-  if (!data || data === '0x') return null
-  if (data.slice(0, 10).toLowerCase() !== '0x4e487b71') return null
-  try {
-    const [codeBn] = decodeAbiParameters([{ type: 'uint256' }], `0x${data.slice(10)}` as Hex)
-    const code = Number(codeBn)
-    const msg = PANIC_MAP[code] ?? 'panic'
-    return `Panic(0x${code.toString(16)}: ${msg})`
-  } catch {
-    return null
-  }
+export function tryDecodePanic(data: Hex) {
+  if (data.slice(0, 10) !== '0x4e487b71') return null
+  const [codeBn] = decodeAbiParameters([{ type: 'uint256' }], `0x${data.slice(10)}`)
+  const msg = PANIC_MAP[Number(codeBn)] ?? 'panic'
+  return `Panic(0x${codeBn.toString(16)}: ${msg})`
 }
 
 export function formatArgsInline(v: unknown): string {

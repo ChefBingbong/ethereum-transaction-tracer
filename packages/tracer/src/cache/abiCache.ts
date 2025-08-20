@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { safeResult, safeTimeoutPromiseAll, safeTry } from '@evm-transaction-trace/core'
+import { AddressMap, safeResult, safeTimeoutPromiseAll, safeTry } from '@evm-transaction-trace/core'
 import { sleep } from 'bun'
 import {
   type Abi,
@@ -10,7 +10,6 @@ import {
   keccak256,
   toBytes,
   toFunctionSelector,
-  zeroAddress,
 } from 'viem'
 import type { RpcCallTrace } from '../callTracer'
 import { getAbiFromEtherscan } from './abiSources'
@@ -19,11 +18,11 @@ import type { CacheJson, CacheOptions } from './types'
 export const toL = (a?: string) => (a ? a.toLowerCase() : a) as string
 
 export class TracerCache {
-  public tokenDecimals = new Map<string, number>()
-  public contractNames = new Map<string, string>()
-  public fourByteDir = new Map<string, AbiFunction>()
-  public contractAbi = new Map<string, Abi>()
-  public eventsDir = new Map<string, AbiEvent>()
+  public tokenDecimals = new AddressMap<number>()
+  public contractNames = new AddressMap<string>()
+  public fourByteDir = new AddressMap<AbiFunction>()
+  public contractAbi = new AddressMap<Abi>()
+  public eventsDir = new AddressMap<AbiEvent>()
   public extraAbis: Abi[] = []
   public undefinedSignatures: Address[] = []
   public chainId: number
@@ -48,6 +47,15 @@ export class TracerCache {
 
   setCachePath(cachePath: string) {
     this.cachePath = cachePath
+  }
+
+  public abiItemFromSelector(input: Hex) {
+    const selector = input.slice(0, 10) as Hex
+    return this.fourByteDir.get(selector)
+  }
+
+  public abiEventFromTopic(topic0: Hex) {
+    return this.eventsDir.get(topic0)
   }
 
   async load(): Promise<void> {
@@ -86,7 +94,6 @@ export class TracerCache {
       tempAddressCache: Array.from(this.tempAddressCache.values()),
     }
 
-    console.log(this.fourByteDir.has('0xd2ac1c8e'))
     await Bun.write(filePath, JSON.stringify(payload, null, 2), {
       createPath: true,
     })
@@ -111,24 +118,19 @@ export class TracerCache {
   public indexAbi(abi: Abi) {
     for (const item of abi) {
       if (item.type === 'function') {
-        const sel = toFunctionSelector(item as AbiFunction).toLowerCase()
+        const sel = toFunctionSelector(item as AbiFunction)
         if (!this.fourByteDir.has(sel)) {
           this.fourByteDir.set(sel, item)
         }
       } else if (item.type === 'event') {
-        const t0 = this.topic0Of(item as AbiEvent).toLowerCase()
+        const t0 = this.topic0Of(item as AbiEvent)
         if (!this.eventsDir.has(t0)) this.eventsDir.set(t0, item)
       }
     }
   }
 
-  public indexTraceAbis = async (address: Address | undefined, input?: string) => {
-    if (!address || address === zeroAddress) return
-
-    if (input) {
-      const selector = input.slice(0, 10).toLowerCase() as Hex
-      if (this.fourByteDir.has(selector)) return
-    }
+  public indexTraceAbis = async (address: Address, input: Hex) => {
+    if (this.abiItemFromSelector(input)) return
 
     const [error, abi] = await getAbiFromEtherscan(
       address,
