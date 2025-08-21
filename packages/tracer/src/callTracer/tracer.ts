@@ -7,11 +7,12 @@ import {
   type TransactionRequest,
 } from 'viem'
 import { extract, getTransactionError, parseAccount, recoverAuthorizationAddress } from 'viem/utils'
-import { type CacheOptions, TracerCache } from '../cache'
+import { TracerCache } from '../cache'
 import { Decoder } from '../decoder'
-import { TraceFormatter } from '../format'
+import { TracePrettyPrinter } from '../format'
 import {
   LogVerbosity,
+  type TraaceOptions,
   type TraceCallParameters,
   type TraceCallRpcSchema,
   type TraceTxParameters,
@@ -23,28 +24,24 @@ export class TransactionTracer {
   public decoder: Decoder
   public chainId?: number
   private client: PublicClient
-  private formatter: TraceFormatter
+  private printer: TracePrettyPrinter
 
-  constructor(
-    client: PublicClient,
-    args: {
-      cachePath: string
-      cacheOptions?: CacheOptions
-      logDebug?: boolean
-      verbosity?: LogVerbosity
-    },
-  ) {
+  constructor(client: PublicClient, args: TraaceOptions) {
     this.client = client
-    this.chainId = this.client.chain?.id
+    this.chainId = client.chain?.id
+
     if (!this.chainId) {
       throw new Error('[Tracer]: Unable to detect chainId from client')
     }
+
     this.cache = new TracerCache(this.chainId, args.cachePath, args.cacheOptions)
     this.decoder = new Decoder(this.cache, true)
-    this.formatter = new TraceFormatter(
+
+    this.printer = new TracePrettyPrinter(
       this.cache,
       this.decoder,
       args.logDebug ?? false,
+      (line) => console.log(line),
       args.verbosity ?? LogVerbosity.Highest,
     )
   }
@@ -228,7 +225,7 @@ export class TransactionTracer {
       )
     }
 
-    await this.formatter.formatTraceColored(trace, {
+    const [formatError, _] = await this.printer.formatTraceColored(trace, {
       showReturnData: true,
       showLogs: true,
       progress: {
@@ -236,7 +233,7 @@ export class TransactionTracer {
         includeLogs: true,
       },
     })
-    return safeResult('formatResult')
+    return formatError ? safeError(formatError) : safeResult(_)
   }
 
   public traceTransactionHash = async ({
@@ -259,7 +256,7 @@ export class TransactionTracer {
       )
     }
 
-    const formatResult = await this.formatter.formatTraceColored(trace, {
+    const [formatError, _] = await this.printer.formatTraceColored(trace, {
       showReturnData: true,
       showLogs: true,
       progress: {
@@ -268,11 +265,7 @@ export class TransactionTracer {
       },
     })
 
-    // if (formatError) {
-    //   return safeError(formatError)
-    // }
-
-    return safeResult(formatResult)
+    return formatError ? safeError(formatError) : safeResult(_)
   }
 
   public traceGasCall = async ({
@@ -296,7 +289,8 @@ export class TransactionTracer {
       )
     }
 
-    await this.formatter.formatGasTraceColored(trace)
+    const [formatError, _] = await this.printer.formatGasTraceColored(trace)
+    return formatError ? safeError(formatError) : safeResult(_)
   }
 
   public traceGasFromTransactionHash = async ({
@@ -314,6 +308,7 @@ export class TransactionTracer {
       )
     }
 
-    await this.formatter.formatGasTraceColored(trace)
+    const [formatError, _] = await this.printer.formatGasTraceColored(trace)
+    return formatError ? safeError(formatError) : safeResult(_)
   }
 }

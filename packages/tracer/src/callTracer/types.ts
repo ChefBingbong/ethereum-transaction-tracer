@@ -7,6 +7,14 @@ import type {
   PrepareTransactionRequestParameters,
   RpcTransactionRequest,
 } from 'viem'
+import type { CacheOptions } from '../cache'
+
+export type TraaceOptions = {
+  cachePath: string
+  cacheOptions?: CacheOptions
+  logDebug?: boolean
+  verbosity?: LogVerbosity
+}
 
 export enum LogVerbosity {
   Low = 0,

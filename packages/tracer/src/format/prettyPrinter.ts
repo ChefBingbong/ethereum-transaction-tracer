@@ -21,7 +21,7 @@ import {
 import { hexToBig } from './traceFormatter'
 import { formatGas, formatValueEth, SUMMARY_DEPTH, sumInner, truncate } from './utils'
 
-export class PrittyPrinter {
+export class TraceFormatter {
   constructor(
     private readonly decoder: Decoder,
     private readonly cache: TracerCache,
@@ -159,11 +159,12 @@ export class PrittyPrinter {
 
   public formatReturn(node: RpcCallTrace, nextPrefix: string) {
     const returnLabel = `${nextPrefix}${retLabel('[Return]')}`
+    if (!node.output || node.output === '0x') return `${returnLabel}} ${dim('()')}`
+
     const pre = this.decoder.formatPrecompilePretty(node.to, node.input, node.output)
-
     if (pre) return `${returnLabel}} ${stringify(pre.outputText)}`
-    const [callError, decodedCall] = this.decoder.decodeCallWithNames(node.to, node.input)
 
+    const [callError, decodedCall] = this.decoder.decodeCallWithNames(node.to, node.input)
     if (!callError && decodedCall.fnItem) {
       const [returnError, decodedReturn] = this.decoder.decodeReturnPretty(
         decodedCall.fnItem,
@@ -171,7 +172,7 @@ export class PrittyPrinter {
       )
       if (!returnError) return `${returnLabel}} ${retData(decodedReturn)}`
     }
-    return `${returnLabel}} ${node.output && node.output !== '0x' ? truncate(node.output) : dim('()')}`
+    return `${returnLabel}} ${truncate(node.output)}`
   }
 
   public formatRevert(node: RpcCallTrace, nextPrefix: string) {

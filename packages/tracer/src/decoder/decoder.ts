@@ -9,7 +9,7 @@ import {
 } from 'viem'
 import type { TracerCache } from '../cache'
 import type { RpcCallTrace } from '../callTracer'
-import { type EventTopic, PANIC_MAP } from './types'
+import type { EventTopic } from './types'
 import {
   formatArgsInline,
   hexLenBytes,
@@ -21,7 +21,6 @@ import {
   stringify,
   toAddr,
   trunc,
-  tryDecodePanic,
   tryDecodePretty,
 } from './utils'
 
@@ -89,14 +88,6 @@ export class Decoder {
       const [error, dec] = safeSyncTry(decodeErrorResult({ abi, data: data.output }))
       if (error) continue
 
-      if (dec.errorName === 'Error' && dec.args && Array.isArray(dec.args)) {
-        return safeResult(`Error(${JSON.stringify(dec.args[0])})`)
-      }
-      if (dec.errorName === 'Panic' && dec.args && Array.isArray(dec.args)) {
-        const code = Number(dec.args[0])
-        const msg = PANIC_MAP[code] ?? 'panic'
-        return safeResult(`Panic(0x${code.toString(16)}: ${msg})`)
-      }
       const argsTxt =
         dec.args && Array.isArray(dec.args)
           ? dec.args.map(formatArgsInline).join(', ')
@@ -104,11 +95,6 @@ export class Decoder {
 
       return safeResult(`${dec.errorName}(${argsTxt})`)
     }
-    const panicError = tryDecodePanic(data.output)
-    if (panicError) return safeResult(panicError)
-
-    const errorStr = tryDecodePanic(data.output)
-    if (errorStr) return safeResult(errorStr)
     return safeResult(null)
   }
 
