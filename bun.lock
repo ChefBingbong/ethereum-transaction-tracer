@@ -18,21 +18,7 @@
       "name": "@evm-transaction-trace/typescript-config",
       "version": "0.1.0",
     },
-    "packages/core": {
-      "name": "@evm-transaction-trace/core",
-      "dependencies": {
-        "pino": "9.6.0",
-        "pino-pretty": "^13.1.1",
-        "radash": "^12.1.1",
-        "viem": "^2.34.0",
-        "zod": "^4.0.17",
-      },
-      "devDependencies": {
-        "@evm-transaction-trace/typescript-config": "workspace:*",
-        "@types/bun": "latest",
-      },
-    },
-    "packages/examples": {
+    "docs/examples": {
       "name": "@evm-transaction-trace/examples",
       "dependencies": {
         "@evm-transaction-trace/tracer": "workspace:*",
@@ -46,6 +32,20 @@
       "peerDependencies": {
         "@evm-transaction-trace/typescript-config": "workspace:*",
         "typescript": "^5",
+      },
+    },
+    "packages/core": {
+      "name": "@evm-transaction-trace/core",
+      "dependencies": {
+        "pino": "9.6.0",
+        "pino-pretty": "^13.1.1",
+        "radash": "^12.1.1",
+        "viem": "^2.34.0",
+        "zod": "^4.0.17",
+      },
+      "devDependencies": {
+        "@evm-transaction-trace/typescript-config": "workspace:*",
+        "@types/bun": "latest",
       },
     },
     "packages/tracer": {
@@ -140,7 +140,7 @@
 
     "@evm-transaction-trace/core": ["@evm-transaction-trace/core@workspace:packages/core"],
 
-    "@evm-transaction-trace/examples": ["@evm-transaction-trace/examples@workspace:packages/examples"],
+    "@evm-transaction-trace/examples": ["@evm-transaction-trace/examples@workspace:docs/examples"],
 
     "@evm-transaction-trace/tracer": ["@evm-transaction-trace/tracer@workspace:packages/tracer"],
 

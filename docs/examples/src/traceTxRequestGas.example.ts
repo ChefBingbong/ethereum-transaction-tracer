@@ -1,6 +1,8 @@
-import { TransactionTracer } from '@evm-transaction-trace/tracer'
+import {
+  getUnlimitedBalanceAndApprovalStateOverrides,
+  TransactionTracer,
+} from '@evm-transaction-trace/tracer'
 import { type Address, erc20Abi, type PublicClient } from 'viem'
-import { getUnlimitedBalanceAndApprovalStateOverrides } from '../../tracer/src/token-slot-override'
 import { hyperBrickFactoryAbi } from './abi/HyperBrickFactory.abi'
 import { HyperBrickPairABI } from './abi/HyperBrickPair.abi'
 import { LBRouterAbi } from './abi/LBRouterabi'
