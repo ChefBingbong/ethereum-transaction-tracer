@@ -1,10 +1,19 @@
+import {
+  formatGas,
+  formatValueEth,
+  hexToBig,
+  nameFromSelector,
+  SUMMARY_DEPTH,
+  stringify,
+  sumInner,
+  truncate,
+} from '@evm-transaction-trace/core'
 import pc from 'picocolors'
 import { type Address, type Hex, isAddressEqual, zeroAddress } from 'viem'
 import type { TracerCache } from '../cache'
 import { LogVerbosity, type RpcCallTrace, type RpcCallType } from '../callTracer'
 import type { Decoder } from '../decoder'
 import type { EventTopic } from '../decoder/types'
-import { nameFromSelector, stringify } from '../decoder/utils'
 import {
   addr,
   argVal,
@@ -18,8 +27,6 @@ import {
   revLabel,
   typeBadge,
 } from './theme'
-import { hexToBig } from './traceFormatter'
-import { formatGas, formatValueEth, SUMMARY_DEPTH, sumInner, truncate } from './utils'
 
 export class TraceFormatter {
   constructor(
