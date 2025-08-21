@@ -17,7 +17,7 @@ import {
   type TraceCallRpcSchema,
   type TraceTxParameters,
   type TraceTxRpcSchema,
-} from './types'
+} from '../types'
 
 export class TransactionTracer {
   public cache: TracerCache

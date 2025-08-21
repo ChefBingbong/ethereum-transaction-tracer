@@ -1,4 +1,5 @@
 import {
+  type EventTopic,
   formatArgsInline,
   hexLenBytes,
   hs,
@@ -24,8 +25,7 @@ import {
   getAbiItem,
 } from 'viem'
 import type { TracerCache } from '../cache'
-import type { RpcCallTrace } from '../callTracer'
-import type { EventTopic } from './types'
+import type { RpcCallTrace } from '../types'
 
 export class Decoder {
   constructor(
