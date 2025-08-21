@@ -1,4 +1,20 @@
-import { safeError, safeErrorStr, safeResult, safeSyncTry } from '@evm-transaction-trace/core'
+import {
+  formatArgsInline,
+  hexLenBytes,
+  hs,
+  kvList,
+  type PrecompilePretty,
+  parseModExpInput,
+  parsePairingInput,
+  safeError,
+  safeErrorStr,
+  safeResult,
+  safeSyncTry,
+  stringify,
+  toAddr,
+  trunc,
+  tryDecodePretty,
+} from '@evm-transaction-trace/core'
 import type { AbiFunction, Address, Hex } from 'viem'
 import {
   decodeErrorResult,
@@ -10,19 +26,6 @@ import {
 import type { TracerCache } from '../cache'
 import type { RpcCallTrace } from '../callTracer'
 import type { EventTopic } from './types'
-import {
-  formatArgsInline,
-  hexLenBytes,
-  hs,
-  kvList,
-  type PrecompilePretty,
-  parseModExpInput,
-  parsePairingInput,
-  stringify,
-  toAddr,
-  trunc,
-  tryDecodePretty,
-} from './utils'
 
 export class Decoder {
   constructor(

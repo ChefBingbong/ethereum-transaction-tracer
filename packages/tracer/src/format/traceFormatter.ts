@@ -1,13 +1,17 @@
-import { LoggerProvider, safeError, safeResult, safeTry } from '@evm-transaction-trace/core'
+import {
+  hexToBig,
+  LoggerProvider,
+  safeError,
+  safeResult,
+  safeTry,
+} from '@evm-transaction-trace/core'
 import pc from 'picocolors'
-import type { Address, Hex } from 'viem'
+import type { Address } from 'viem'
 import type { TracerCache } from '../cache/index'
 import { LogVerbosity, type RpcCallTrace } from '../callTracer'
 import type { Decoder } from '../decoder'
 import { TraceFormatter } from './prettyPrinter'
 import type { GasTally, LineSink, PrettyOpts } from './types'
-
-export const hexToBig = (h?: Hex) => (h ? BigInt(h) : 0n)
 
 export class TracePrettyPrinter {
   private readonly logger: LoggerProvider
