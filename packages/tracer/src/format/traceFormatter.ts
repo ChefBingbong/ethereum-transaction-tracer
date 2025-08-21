@@ -8,10 +8,10 @@ import {
 import pc from 'picocolors'
 import type { Address } from 'viem'
 import type { TracerCache } from '../cache/index'
-import { LogVerbosity, type RpcCallTrace } from '../callTracer'
 import type { Decoder } from '../decoder'
+import type { GasTally, LineSink, PrettyOpts } from '../types'
+import { LogVerbosity, type RpcCallTrace } from '../types'
 import { TraceFormatter } from './prettyPrinter'
-import type { GasTally, LineSink, PrettyOpts } from './types'
 
 export class TracePrettyPrinter {
   private readonly logger: LoggerProvider

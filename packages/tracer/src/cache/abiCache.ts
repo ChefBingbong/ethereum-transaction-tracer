@@ -11,9 +11,8 @@ import {
   toBytes,
   toFunctionSelector,
 } from 'viem'
-import type { RpcCallTrace } from '../callTracer'
+import type { CacheJson, CacheOptions, RpcCallTrace } from '../types'
 import { getAbiFromEtherscan } from './abiSources'
-import type { CacheJson, CacheOptions } from './types'
 
 export const toL = (a?: string) => (a ? a.toLowerCase() : a) as string
 

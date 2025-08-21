@@ -7,7 +7,7 @@ import type {
   PrepareTransactionRequestParameters,
   RpcTransactionRequest,
 } from 'viem'
-import type { CacheOptions } from '../cache'
+import type { CacheOptions } from './types.cache'
 
 export type TraaceOptions = {
   cachePath: string
@@ -75,8 +75,8 @@ export type TraceCallRpcSchema = {
 export type TraceTxRpcSchema = {
   Method: 'debug_traceTransaction'
   Parameters: [
-    /* tx hash */ Hex,
-    /* opts    */ {
+    Hex,
+    {
       tracer: 'callTracer' | 'prestateTracer'
       tracerConfig?: { onlyTopCall?: boolean; withLog?: boolean }
     },

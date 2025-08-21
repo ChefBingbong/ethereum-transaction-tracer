@@ -1,3 +1,4 @@
+import type { EventTopic } from '@evm-transaction-trace/core'
 import {
   formatGas,
   formatValueEth,
@@ -11,9 +12,8 @@ import {
 import pc from 'picocolors'
 import { type Address, type Hex, isAddressEqual, zeroAddress } from 'viem'
 import type { TracerCache } from '../cache'
-import { LogVerbosity, type RpcCallTrace, type RpcCallType } from '../callTracer'
 import type { Decoder } from '../decoder'
-import type { EventTopic } from '../decoder/types'
+import { LogVerbosity, type RpcCallTrace, type RpcCallType } from '../types'
 import {
   addr,
   argVal,
