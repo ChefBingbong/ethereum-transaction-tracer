@@ -184,9 +184,9 @@ export class TraceFormatter {
 
   public formatRevert(node: RpcCallTrace, nextPrefix: string) {
     const revertPrefix = `${nextPrefix}${revLabel('[Revert]')}`
-    const [error, prettyRevert] = this.decoder.decodeRevertPrettyFromFrame(node)
+    const prettyRevert = this.decoder.decodeRevertPrettyFromFrame(node.output)
 
-    if (error) return `${revertPrefix} ${revData(node.revertReason ?? node.error)}`
+    if (!prettyRevert) return `${revertPrefix} ${revData(node.revertReason ?? node.error)}`
     return `${revertPrefix} ${revData(prettyRevert)}`
   }
 

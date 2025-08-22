@@ -4,6 +4,7 @@ import {
   hexLenBytes,
   hs,
   kvList,
+  PANIC_MAP,
   type PrecompilePretty,
   parseModExpInput,
   parsePairingInput,
@@ -14,9 +15,11 @@ import {
   stringify,
   toAddr,
   trunc,
+  tryDecodeErrorString,
+  tryDecodePanic,
   tryDecodePretty,
 } from '@evm-transaction-trace/core'
-import type { AbiFunction, Address, Hex } from 'viem'
+import type { Abi, AbiFunction, Address, Hex } from 'viem'
 import {
   decodeErrorResult,
   decodeEventLog,
@@ -25,7 +28,6 @@ import {
   getAbiItem,
 } from 'viem'
 import type { TracerCache } from '../cache'
-import type { RpcCallTrace } from '../types'
 
 export class Decoder {
   constructor(
@@ -84,21 +86,36 @@ export class Decoder {
     if (error) return safeError(error)
     return safeResult({ name: decodedLog.eventName, args: decodedLog.args })
   }
+  decodeRevertPrettyFromFrame(data: Hex | undefined) {
+    if (!data || data === '0x') return null
+    // this.cache.indexTraceAbis(addr)
+    const abis: Abi[] = []
+    const extra = this.cache.extraAbis
+    if (extra?.length) abis.push(...extra, ...this.cache.contractAbi.values().toArray())
 
-  decodeRevertPrettyFromFrame(data: RpcCallTrace) {
-    if (!data.output) return safeResult(data.revertReason ?? data.error)
-    for (const abi of this.cache.extraAbis) {
-      const [error, dec] = safeSyncTry(decodeErrorResult({ abi, data: data.output }))
-      if (error) continue
-
-      const argsTxt =
-        dec.args && Array.isArray(dec.args)
+    for (const abi of abis) {
+      try {
+        const dec = decodeErrorResult({ abi, data })
+        // Standard Error(string)
+        if (dec.errorName === 'Error' && Array.isArray(dec.args) && dec.args.length === 1) {
+          return `Error(${JSON.stringify(dec.args[0])})`
+        }
+        // Standard Panic(uint256)
+        if (dec.errorName === 'Panic' && Array.isArray(dec.args) && dec.args.length === 1) {
+          const code = Number(dec.args[0])
+          const msg = PANIC_MAP[code] ?? 'panic'
+          return `Panic(0x${code.toString(16)}: ${msg})`
+        }
+        const argsTxt = Array.isArray(dec.args)
           ? dec.args.map(formatArgsInline).join(', ')
           : formatArgsInline(dec.args)
-
-      return safeResult(`${dec.errorName}(${argsTxt})`)
+        return `${dec.errorName}(${argsTxt})`
+      } catch {
+        // try next abi
+      }
     }
-    return safeResult(null)
+
+    return tryDecodeErrorString(data) ?? tryDecodePanic(data) ?? null
   }
 
   formatPrecompilePretty(address: Address, input: Hex, ret?: Hex): PrecompilePretty | null {
