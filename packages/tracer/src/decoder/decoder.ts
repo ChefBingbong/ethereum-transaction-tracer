@@ -36,15 +36,19 @@ export class Decoder {
   ) {}
 
   public decodeReturnPretty = (fnItem: AbiFunction, output: Hex) => {
-    const [error, data] = safeSyncTry(
-      decodeFunctionResult({
-        abi: [fnItem],
-        functionName: fnItem.name,
-        data: output,
-      }),
-    )
-    if (error) return safeError(error)
-    return safeResult(stringify(data))
+    try {
+      const [error, data] = safeSyncTry(
+        decodeFunctionResult({
+          abi: [fnItem],
+          functionName: fnItem.name,
+          data: output,
+        }),
+      )
+      if (error) return safeError(error)
+      return safeResult(stringify(data))
+    } catch (error) {
+      return safeError(error)
+    }
   }
 
   public decodeCallWithNames = (_address: Address, input: Hex) => {
@@ -86,9 +90,10 @@ export class Decoder {
     if (error) return safeError(error)
     return safeResult({ name: decodedLog.eventName, args: decodedLog.args })
   }
+
   decodeRevertPrettyFromFrame(data: Hex | undefined) {
     if (!data || data === '0x') return null
-    // this.cache.indexTraceAbis(addr)
+
     const abis: Abi[] = []
     const extra = this.cache.extraAbis
     if (extra?.length) abis.push(...extra, ...this.cache.contractAbi.values().toArray())
@@ -96,11 +101,9 @@ export class Decoder {
     for (const abi of abis) {
       try {
         const dec = decodeErrorResult({ abi, data })
-        // Standard Error(string)
         if (dec.errorName === 'Error' && Array.isArray(dec.args) && dec.args.length === 1) {
           return `Error(${JSON.stringify(dec.args[0])})`
         }
-        // Standard Panic(uint256)
         if (dec.errorName === 'Panic' && Array.isArray(dec.args) && dec.args.length === 1) {
           const code = Number(dec.args[0])
           const msg = PANIC_MAP[code] ?? 'panic'
@@ -114,6 +117,9 @@ export class Decoder {
         // try next abi
       }
     }
+
+    const error = this.cache.errorDir.get(data.slice(0, 10) as Hex)
+    if (error) return `${error}`
 
     return tryDecodeErrorString(data) ?? tryDecodePanic(data) ?? null
   }

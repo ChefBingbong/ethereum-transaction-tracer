@@ -106,8 +106,12 @@ export class TracePrettyPrinter {
 
     const [err] = await safeTry(this.cache.indexTraceAbis(node.to, node.input))
     if (err) this.logger.debug(err.message)
-
     const hasError = Boolean(node.error)
+
+    if (hasError) {
+      const [err] = await safeTry(this.cache.indexTraceError(node.output))
+      if (err) this.logger.debug(err.message)
+    }
     this.writeLine(branch + this.formatTraceCall(node, hasError).trimEnd())
 
     if (node.logs?.length && this.verbosity > LogVerbosity.High) {

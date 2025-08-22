@@ -45,7 +45,7 @@ export class TraceFormatter {
     const paint = hasError ? pc.red : undefined
     const left = this.addrLabelStyled(node.to, paint)
     const method = this.formatContractCall(node, hasError)
-    return `${left} :: ${method} ${valueStr}${gasStr}${typeBadge}${failBadge}`
+    return `${left}::${method} ${valueStr}${gasStr}${typeBadge}${failBadge}`
   }
 
   public printDelegateCall = (node: RpcCallTrace, hasError: boolean) => {
@@ -56,13 +56,10 @@ export class TraceFormatter {
 
     const paint = hasError ? pc.red : undefined
 
-    const left =
-      this.addrLabelStyled(node.from as Address, paint) +
-      ' → ' +
-      this.addrLabelStyled(node.to, paint)
+    const left = `${this.addrLabelStyled(node.from as Address, paint)} → ${this.addrLabelStyled(node.to, paint)}`
 
     const method = this.formatContractCall(node, hasError)
-    return `${left} :: ${method} ${valueStr}${gasStr}${typeBadge}${failBadge}`
+    return `${left}::${method} ${valueStr}${gasStr}${typeBadge}${failBadge}`
   }
 
   public printCreateCall = (node: RpcCallTrace, hasError: boolean) => {
@@ -79,7 +76,7 @@ export class TraceFormatter {
 
     const initLen = node.input ? (node.input.length - 2) / 2 : 0
     const method = hasError ? pc.bold(pc.red('create')) : fn('create')
-    return `${created} :: ${method}(init_code_len=${initLen}) ${valueStr}${gasStr}${typeBadge}${failBadge}`
+    return `${created}::${method}(init_code_len=${initLen}) ${valueStr}${gasStr}${typeBadge}${failBadge}`
   }
 
   public printSeltDestructCall = (node: RpcCallTrace, hasError: boolean) => {
@@ -92,7 +89,7 @@ export class TraceFormatter {
 
     const target = this.addrLabelStyled(node.to, paint)
     const method = hasError ? pc.bold(pc.red('selfdestruct')) : fn('selfdestruct')
-    return `${target} :: ${method} ${valueStr}${gasStr}${typeBadge}${failBadge}`
+    return `${target}::${method} ${valueStr}${gasStr}${typeBadge}${failBadge}`
   }
 
   public printDefault = (node: RpcCallTrace, hasError: boolean) => {
@@ -105,7 +102,7 @@ export class TraceFormatter {
     const left = this.addrLabelStyled(node.to, paint)
     const calld =
       node.input && node.input !== '0x' ? dim(`calldata=${truncate(node.input)}`) : dim('()')
-    return `${left} :: ${calld} ${valueStr}${gasStr}${typeBadge}${failBadge}`
+    return `${left}::${calld} ${valueStr}${gasStr}${typeBadge}${failBadge}`
   }
 
   public formatContractCall(node: RpcCallTrace, hasError: boolean): string {
@@ -169,24 +166,28 @@ export class TraceFormatter {
     if (!node.output || node.output === '0x') return `${returnLabel}} ${dim('()')}`
 
     const pre = this.decoder.formatPrecompilePretty(node.to, node.input, node.output)
-    if (pre) return `${returnLabel}} ${stringify(pre.outputText)}`
+    if (pre) return `${returnLabel} ${stringify(pre.outputText)}`
 
     const [callError, decodedCall] = this.decoder.decodeCallWithNames(node.to, node.input)
-    if (!callError && decodedCall.fnItem) {
+    if (callError) return `${returnLabel} ${truncate(node.output)}`
+
+    if (decodedCall.fnItem) {
       const [returnError, decodedReturn] = this.decoder.decodeReturnPretty(
         decodedCall.fnItem,
         node.output,
       )
-      if (!returnError) return `${returnLabel}} ${retData(decodedReturn)}`
+      if (returnError) return `${returnLabel} ${truncate(node.output)}`
+      return `${returnLabel} ${retData(decodedReturn)}`
     }
-    return `${returnLabel}} ${truncate(node.output)}`
+    return `${returnLabel} ${truncate(node.output)}`
   }
 
   public formatRevert(node: RpcCallTrace, nextPrefix: string) {
     const revertPrefix = `${nextPrefix}${revLabel('[Revert]')}`
     const prettyRevert = this.decoder.decodeRevertPrettyFromFrame(node.output)
 
-    if (!prettyRevert) return `${revertPrefix} ${revData(node.revertReason ?? node.error)}`
+    if (!prettyRevert)
+      return `${revertPrefix} ${revData(node.revertReason ?? node.error)} ${node.output.slice(0, 10)}`
     return `${revertPrefix} ${revData(prettyRevert)}`
   }
 
@@ -211,7 +212,9 @@ export class TraceFormatter {
     }
 
     const [err, dec] = this.decoder.decodeCallWithNames(node.to, node.input)
-    if (!err && dec.fnName) {
+    if (err) return node.input && node.input !== '0x' ? dim('') : dim('()')
+
+    if (dec.fnName) {
       const styled = hasError ? pc.bold(pc.red(dec.fnName)) : retData(dec.fnName)
       return `${styled}()` // terse
     }

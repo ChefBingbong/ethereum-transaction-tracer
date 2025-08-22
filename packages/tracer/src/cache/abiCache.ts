@@ -8,11 +8,12 @@ import {
   type Address,
   type Hex,
   keccak256,
+  stringToHex,
   toBytes,
   toFunctionSelector,
 } from 'viem'
-import type { CacheJson, CacheOptions, RpcCallTrace } from '../types'
-import { getAbiFromEtherscan } from './abiSources'
+import type { AbiError, CacheJson, CacheOptions, RpcCallTrace } from '../types'
+import { getAbiFromEtherscan, getAbiFunctionFromOpenChain } from './abiSources'
 
 export const toL = (a?: string) => (a ? a.toLowerCase() : a) as string
 
@@ -20,6 +21,7 @@ export class TracerCache {
   public tokenDecimals = new AddressMap<number>()
   public contractNames = new AddressMap<string>()
   public fourByteDir = new AddressMap<AbiFunction>()
+  public errorDir = new AddressMap<AbiError | string>()
   public contractAbi = new AddressMap<Abi>()
   public eventsDir = new AddressMap<AbiEvent>()
   public extraAbis: Abi[] = []
@@ -79,6 +81,9 @@ export class TracerCache {
     json.eventsDir?.forEach(([key, v]) => {
       this.eventsDir.set(key, v)
     })
+    json.errorDir?.forEach(([key, v]) => {
+      this.errorDir.set(key, v)
+    })
     this.tempAddressCache = new Set(json.tempAddressCache)
   }
 
@@ -90,6 +95,7 @@ export class TracerCache {
       contractNames: Array.from(this.contractNames.entries()),
       fourByteDir: Array.from(this.fourByteDir.entries()),
       eventsDir: Array.from(this.eventsDir.entries()),
+      errorDir: Array.from(this.errorDir.entries()),
       tempAddressCache: Array.from(this.tempAddressCache.values()),
     }
 
@@ -114,16 +120,29 @@ export class TracerCache {
     return keccak256(toBytes(sig))
   }
 
+  formatAbiItemSignature(item: { name: string; inputs?: { type: string }[] }) {
+    return `${item.name}(${(item.inputs ?? []).map((i) => i.type).join(',')})`
+  }
+
+  toErrorSelector(err: any): Hex {
+    const sig = this.formatAbiItemSignature(err)
+    const hash = keccak256(stringToHex(sig))
+    return hash.slice(0, 10) as Hex
+  }
+
   public indexAbi(abi: Abi) {
     for (const item of abi) {
       if (item.type === 'function') {
-        const sel = toFunctionSelector(item as AbiFunction)
+        const sel = toFunctionSelector(item)
         if (!this.fourByteDir.has(sel)) {
           this.fourByteDir.set(sel, item)
         }
       } else if (item.type === 'event') {
-        const t0 = this.topic0Of(item as AbiEvent)
+        const t0 = this.topic0Of(item)
         if (!this.eventsDir.has(t0)) this.eventsDir.set(t0, item)
+      } else if (item.type === 'error') {
+        const errorSel = this.toErrorSelector(item)
+        if (!this.errorDir.has(errorSel)) this.errorDir.set(errorSel, item as AbiError)
       }
     }
   }
@@ -140,6 +159,17 @@ export class TracerCache {
     if (!error) {
       this.indexAbi(abi)
       await sleep(1000)
+    }
+  }
+
+  public indexTraceError = async (input: Hex) => {
+    const errSel = input.slice(0, 10) as Hex
+    if (this.errorDir.has(errSel)) return
+
+    const [error, abi] = await getAbiFunctionFromOpenChain(errSel, false)
+
+    if (!error) {
+      this.errorDir.set(errSel, abi)
     }
   }
 

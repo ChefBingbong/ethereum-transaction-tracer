@@ -26,7 +26,7 @@ export async function getAbiFromEtherscan(address: Address, chainId: number, api
   return safeResult(abi)
 }
 
-export async function getAbiFunctionFromOpenChain(signature: Hex) {
+export async function getAbiFunctionFromOpenChain(signature: Hex, isFunc = true) {
   const [error, response] = await reliableFetchJson(
     openChainAbiSchema,
     new Request(
@@ -41,5 +41,6 @@ export async function getAbiFunctionFromOpenChain(signature: Hex) {
   if (!entry?.[0].name) {
     return safeErrorStr('[OpenChain]: invalid response')
   }
-  return safeResult(`function ${entry[0].name}`)
+  if (isFunc) return safeResult(`function ${entry[0].name}`)
+  return safeResult(`${entry[0].name}`)
 }
