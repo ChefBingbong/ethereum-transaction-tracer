@@ -13,7 +13,7 @@ import type { GasTally, LineSink, PrettyOpts } from '../types'
 import { LogVerbosity, type RpcCallTrace } from '../types'
 import { TraceFormatter } from './prettyPrinter'
 
-export class TracePrettyPrinter {
+export class TracePrettyPrinter2 {
   private readonly logger: LoggerProvider
   private readonly formatter: TraceFormatter
 
@@ -30,11 +30,7 @@ export class TracePrettyPrinter {
   }
 
   public async formatTraceColored(root: RpcCallTrace, _opts?: PrettyOpts) {
-    const calls = this.getUnknownAbisFromCall(root)
-    await this.cache.indexCallAbis(calls.values().toArray())
-
     const [error] = await safeTry(() => this.processInnerCallsLive(root, true, 0))
-    console.log(error)
     if (error) return safeError(error)
 
     await this.cache.save()
@@ -56,40 +52,6 @@ export class TracePrettyPrinter {
     return safeResult(null)
   }
 
-  private async processInnerCallsLive(
-    node: RpcCallTrace,
-    isLast: boolean,
-    depth: number,
-    prefix = '',
-  ): Promise<void> {
-    const branch = depth === 0 ? '' : prefix + (isLast ? '└─ ' : '├─ ')
-    const nextPrefix = prefix + (isLast ? '   ' : '│  ')
-    const hasError = Boolean(node.error)
-
-    this.writeLine(branch + this.formatTraceCall(node, hasError).trimEnd())
-
-    if (node.logs?.length && this.verbosity > LogVerbosity.Medium) {
-      for (let i = 0; i < node.logs.length; i++) {
-        const lg = node.logs[i]
-        const lastLog = i === node.logs.length - 1 && (node.calls?.length ?? 0) === 0
-        this.writeLine(
-          this.formatter.formatLog(lastLog, lg.address, lg.topics, lg.data, nextPrefix),
-        )
-      }
-    }
-
-    const children = node.calls ?? []
-    for (let i = 0; i < children.length; i++) {
-      await this.processInnerCallsLive(
-        children[i],
-        i === children.length - 1,
-        depth + 1,
-        nextPrefix,
-      )
-    }
-    this.writeLine(this.formatTraceReturn(node, hasError, nextPrefix).trimEnd())
-  }
-
   private async processInnerGasCalls(
     node: RpcCallTrace,
     isLast: boolean,
@@ -99,6 +61,10 @@ export class TracePrettyPrinter {
   ) {
     const branch = depth === 0 ? '' : prefix + (isLast ? '└─ ' : '├─ ')
     const nextPrefix = prefix + (isLast ? '   ' : '│  ')
+
+    const [err] = await safeTry(() => this.cache.indexTraceAbis(node.to, node.input))
+    if (err) this.logger.debug(err.message)
+
     const hasError = Boolean(node.error)
     const usedHere = hexToBig(node.gasUsed)
 
@@ -127,6 +93,45 @@ export class TracePrettyPrinter {
     }
 
     this.formatGasTraceSummary(summary, hasError, depth)
+  }
+
+  private async processInnerCallsLive(
+    node: RpcCallTrace,
+    isLast: boolean,
+    depth: number,
+    prefix = '',
+  ): Promise<void> {
+    const branch = depth === 0 ? '' : prefix + (isLast ? '└─ ' : '├─ ')
+    const nextPrefix = prefix + (isLast ? '   ' : '│  ')
+
+    const [err] = await safeTry(() => this.cache.indexTraceAbis(node.to, node.input))
+    if (err) this.logger.debug(err.message)
+
+    const hasError = Boolean(node.error)
+    this.writeLine(branch + this.formatTraceCall(node, hasError).trimEnd())
+
+    if (node.logs?.length && this.verbosity > LogVerbosity.High) {
+      for (let i = 0; i < node.logs.length; i++) {
+        const lg = node.logs[i]
+        const lastLog = i === node.logs.length - 1 && (node.calls?.length ?? 0) === 0
+        this.writeLine(
+          this.formatter.formatLog(lastLog, lg.address, lg.topics, lg.data, nextPrefix),
+        )
+      }
+    }
+
+    if (this.verbosity > LogVerbosity.Low) {
+      const children = node.calls ?? []
+      for (let i = 0; i < children.length; i++) {
+        await this.processInnerCallsLive(
+          children[i],
+          i === children.length - 1,
+          depth + 1,
+          nextPrefix,
+        )
+      }
+    }
+    this.writeLine(this.formatTraceReturn(node, hasError, nextPrefix).trimEnd())
   }
 
   private formatTraceReturn(node: RpcCallTrace, hasError: boolean, nextPrefix: string) {
@@ -209,25 +214,6 @@ export class TracePrettyPrinter {
     this.writeLine(`total used : ${pc.bold(Number(topLevelTotal))}`)
 
     if (hasError) this.writeLine(`${pc.red('reverted at')}: ${pc.red(abortedAt)}`)
-  }
-
-  private getUnknownAbisFromCall = (root: RpcCallTrace) => {
-    const calls: Set<Address> = new Set()
-    this.aggregateCallInputs(root, 0, calls)
-    return calls
-  }
-  private aggregateCallInputs(node: RpcCallTrace, depth: number, calls: Set<Address>) {
-    const inputSelector = this.cache.abiItemFromSelector(node.input)
-    const outputSelector = this.cache.abiItemFromSelector(node?.output ?? '')
-
-    if (!inputSelector) calls.add(node.to)
-    if (node.error && !outputSelector) calls.add(node.to)
-    if (!this.cache.contractNames.has(node.to)) calls.add(node.to)
-
-    const children = node.calls ?? []
-    for (let i = 0; i < children.length; i++) {
-      this.aggregateCallInputs(children[i], depth + 1, calls)
-    }
   }
 
   private writeLine(line = '') {

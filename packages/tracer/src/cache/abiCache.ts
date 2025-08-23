@@ -66,7 +66,7 @@ export class TracerCache {
     const fileExists = await file.exists()
     if (!fileExists) return
 
-    const [error, json] = await safeTry<CacheJson>(file.json())
+    const [error, json] = await safeTry<CacheJson>(() => file.json())
     if (error) return
 
     json.tokenDecimals?.forEach(([key, v]) => {

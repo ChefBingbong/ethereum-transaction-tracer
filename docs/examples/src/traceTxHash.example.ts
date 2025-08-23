@@ -40,3 +40,15 @@ const [_error, trace] = await tracer.traceTransactionHash({
 })
 
 console.log(trace)
+
+// const [_e, _rr] = await safeTry(() =>
+//   Promise.resolve(
+//     decodeFunctionResult({
+//       abi: erc20Abi as Abi,
+//       functionName: 'fnItem.name',
+//       data: '0x223',
+//     }),
+//   ),
+// )
+
+// console.log(_e)
