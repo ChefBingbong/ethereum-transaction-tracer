@@ -5,7 +5,7 @@ import {
   safeResult,
 } from '@evm-transaction-trace/utils'
 import type { Abi, Address, Hex } from 'viem'
-import { ETHERSCAN_BASE_URL, OPENCHAIN_BASE_URL } from './constants'
+import { ETHERSCAN_BASE_URL, OPENCHAIN_BASE_URL } from '../constants'
 import { etherscanAbiSchema, openChainAbiSchema } from './schemas'
 
 export async function getAbiFromEtherscan(address: Address, chainId: number, apiKey?: string) {
