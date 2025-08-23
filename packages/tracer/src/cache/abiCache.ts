@@ -1,5 +1,10 @@
 import { join } from 'node:path'
-import { AddressMap, safeResult, safeTimeoutPromiseAll, safeTry } from '@evm-transaction-trace/core'
+import {
+  AddressMap,
+  safeResult,
+  safeTimeoutPromiseAll,
+  safeTry,
+} from '@evm-transaction-trace/utils'
 import { sleep } from 'bun'
 import {
   type Abi,

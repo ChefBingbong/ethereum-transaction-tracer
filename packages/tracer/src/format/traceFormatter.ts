@@ -4,7 +4,7 @@ import {
   safeError,
   safeResult,
   safeTry,
-} from '@evm-transaction-trace/core'
+} from '@evm-transaction-trace/utils'
 import pc from 'picocolors'
 import type { Address } from 'viem'
 import type { TracerCache } from '../cache/index'

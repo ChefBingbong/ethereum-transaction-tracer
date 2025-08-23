@@ -1,4 +1,9 @@
-import { reliableFetchJson, safeError, safeErrorStr, safeResult } from '@evm-transaction-trace/core'
+import {
+  reliableFetchJson,
+  safeError,
+  safeErrorStr,
+  safeResult,
+} from '@evm-transaction-trace/utils'
 import type { Abi, Address, Hex } from 'viem'
 import { ETHERSCAN_BASE_URL, OPENCHAIN_BASE_URL } from './constants'
 import { etherscanAbiSchema, openChainAbiSchema } from './schemas'
