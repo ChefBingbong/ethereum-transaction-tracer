@@ -1,0 +1,23 @@
+{
+  "name": "@evm-transaction-trace/utils",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "check": "tsc --pretty --noEmit",
+    "clean": "rm -rf .turbo && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@evm-transaction-trace/typescript-config": "workspace:*"
+  },
+  "dependencies": {
+    "pino": "9.6.0",
+    "pino-pretty": "^13.1.1",
+    "radash": "^12.1.1",
+    "viem": "^2.34.0",
+    "zod": "^4.0.17"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
