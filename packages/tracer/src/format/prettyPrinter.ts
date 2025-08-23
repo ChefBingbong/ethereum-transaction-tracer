@@ -275,12 +275,12 @@ export class TraceFormatter {
   badgeFor = (t: RpcCallType) => typeBadge(`[${t.toLowerCase()}]`)
 
   getValueString = (node: RpcCallTrace) => {
-    if (this.verbosity > LogVerbosity.High) return ''
+    if (this.verbosity < LogVerbosity.High) return ''
     return dark(`${yellowLight('value=')}${formatEther(hexToBigInt(node.value ?? '0x00'))} ETH`)
   }
 
   getGasString = (node: RpcCallTrace) => {
-    if (this.verbosity > LogVerbosity.High) return ''
+    if (this.verbosity < LogVerbosity.High) return ''
     return dark(
       `(${yellowLight('gas=')}${formatGwei(hexToBigint(node.gas))} ${yellowLight('used=')}${formatGwei(hexToBigint(node.gasUsed))}) Gwei`,
     )
