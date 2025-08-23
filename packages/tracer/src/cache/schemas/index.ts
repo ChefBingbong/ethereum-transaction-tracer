@@ -14,7 +14,24 @@ export const fourByteSchema = z.object({
 
 export const etherscanAbiSchema = z.object({
   status: z.string(),
-  result: z.string(),
+  result: z.array(
+    z.object({
+      SourceCode: z.string(),
+      ABI: z.string(),
+      ContractName: z.string(),
+      CompilerVersion: z.string(),
+      OptimizationUsed: z.string(),
+      Runs: z.string(),
+      ConstructorArguments: z.string(),
+      EVMVersion: z.string(),
+      Library: z.string(),
+      LicenseType: z.string(),
+      Proxy: z.string(),
+      Implementation: z.string(),
+      SwarmSource: z.string(),
+      SimilarMatch: z.string(),
+    }),
+  ),
 })
 
 export const openChainAbiSchema = z.object({

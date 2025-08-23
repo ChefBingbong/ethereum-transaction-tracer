@@ -130,7 +130,14 @@ export class TracerCache {
     return hash.slice(0, 10) as Hex
   }
 
-  public indexAbi(abi: Abi) {
+  public indexAbiWithInfo({ name, address, abi }: { name: string; abi: Abi; address: Address }) {
+    if (!this.contractNames.has(address)) {
+      this.contractNames.set(address, name)
+    }
+    this.indexAbi(abi)
+  }
+
+  private indexAbi(abi: Abi) {
     for (const item of abi) {
       if (item.type === 'function') {
         const sel = toFunctionSelector(item)
@@ -157,8 +164,25 @@ export class TracerCache {
     )
 
     if (!error) {
-      this.indexAbi(abi)
+      this.indexAbiWithInfo(abi)
       await sleep(1000)
+    }
+  }
+
+  public indexCallAbis = async (addresses: Address[]) => {
+    const results = await Promise.all(
+      addresses.map(async (a) => {
+        await sleep(500)
+        const [error, result] = await getAbiFromEtherscan(
+          a,
+          this.chainId,
+          this.input?.etherscanApiKey,
+        )
+        return error ? undefined : result
+      }),
+    )
+    for (const abi of results) {
+      if (abi) this.indexAbiWithInfo(abi)
     }
   }
 
