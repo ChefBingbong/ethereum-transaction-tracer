@@ -1,5 +1,5 @@
 {
-  "name": "@evm-transaction-trace/core",
+  "name": "@evm-transaction-trace/utils",
   "module": "src/index.ts",
   "type": "module",
   "scripts": {

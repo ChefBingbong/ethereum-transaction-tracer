@@ -10,7 +10,7 @@ import {
   stringify,
   trunc,
   tryDecodePretty,
-} from '@evm-transaction-trace/core'
+} from '@evm-transaction-trace/utils'
 import type { AbiFunction, Address, Hex } from 'viem'
 import {
   decodeErrorResult,
