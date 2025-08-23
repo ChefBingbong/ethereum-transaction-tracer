@@ -28,7 +28,7 @@ const tracer = new TransactionTracer(client, {
     //   hyperBrickFactoryAbi,
     // ],
   },
-  verbosity: LogVerbosity.Highest,
+  verbosity: LogVerbosity.High,
 })
 
 await tracer.init()
