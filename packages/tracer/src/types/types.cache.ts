@@ -1,4 +1,4 @@
-import type { Abi, AbiEvent, AbiFunction, Address, Hex } from 'viem'
+import type { Abi, AbiEvent, AbiFunction, AbiParameter, Address, Hex } from 'viem'
 
 export type AbiSource = {
   name: string
@@ -33,6 +33,8 @@ export type CacheJson = {
   fourByteDir?: [Hex, AbiFunction][]
   contractAbi?: [string, Abi][]
   eventsDir?: [Hex, AbiEvent][]
+  errorDir?: [Hex, AbiError | string][]
+
   extraAbis?: Abi[]
   undefinedSignatures?: Address[]
   tempAddressCache?: Address[]
@@ -58,4 +60,10 @@ export type SelectorIndex = Record<FourByteSelector, SignatureEntry[]>
 export type DecodeResult = {
   event: SelectorIndex
   function: SelectorIndex
+}
+
+export type AbiError = {
+  type: 'error'
+  inputs: readonly AbiParameter[]
+  name: string
 }

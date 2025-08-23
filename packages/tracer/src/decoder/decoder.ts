@@ -4,6 +4,7 @@ import {
   hexLenBytes,
   hs,
   kvList,
+  PANIC_MAP,
   type PrecompilePretty,
   parseModExpInput,
   parsePairingInput,
@@ -14,9 +15,11 @@ import {
   stringify,
   toAddr,
   trunc,
+  tryDecodeErrorString,
+  tryDecodePanic,
   tryDecodePretty,
 } from '@evm-transaction-trace/core'
-import type { AbiFunction, Address, Hex } from 'viem'
+import type { Abi, AbiFunction, Address, Hex } from 'viem'
 import {
   decodeErrorResult,
   decodeEventLog,
@@ -25,7 +28,6 @@ import {
   getAbiItem,
 } from 'viem'
 import type { TracerCache } from '../cache'
-import type { RpcCallTrace } from '../types'
 
 export class Decoder {
   constructor(
@@ -34,15 +36,19 @@ export class Decoder {
   ) {}
 
   public decodeReturnPretty = (fnItem: AbiFunction, output: Hex) => {
-    const [error, data] = safeSyncTry(
-      decodeFunctionResult({
-        abi: [fnItem],
-        functionName: fnItem.name,
-        data: output,
-      }),
-    )
-    if (error) return safeError(error)
-    return safeResult(stringify(data))
+    try {
+      const [error, data] = safeSyncTry(
+        decodeFunctionResult({
+          abi: [fnItem],
+          functionName: fnItem.name,
+          data: output,
+        }),
+      )
+      if (error) return safeError(error)
+      return safeResult(stringify(data))
+    } catch (error) {
+      return safeError(error)
+    }
   }
 
   public decodeCallWithNames = (_address: Address, input: Hex) => {
@@ -85,20 +91,49 @@ export class Decoder {
     return safeResult({ name: decodedLog.eventName, args: decodedLog.args })
   }
 
-  decodeRevertPrettyFromFrame(data: RpcCallTrace) {
-    if (!data.output) return safeResult(data.revertReason ?? data.error)
-    for (const abi of this.cache.extraAbis) {
-      const [error, dec] = safeSyncTry(decodeErrorResult({ abi, data: data.output }))
-      if (error) continue
+  decodeRevertPrettyFromFrame(data: Hex | undefined) {
+    if (!data || data === '0x') return null
 
-      const argsTxt =
-        dec.args && Array.isArray(dec.args)
+    const abis: Abi[] = []
+    const extra = this.cache.extraAbis
+    if (extra?.length) abis.push(...extra, ...this.cache.contractAbi.values().toArray())
+
+    for (const abi of abis) {
+      try {
+        const dec = decodeErrorResult({ abi, data })
+        if (dec.errorName === 'Error' && Array.isArray(dec.args) && dec.args.length === 1) {
+          return `Error(${JSON.stringify(dec.args[0])})`
+        }
+        if (dec.errorName === 'Panic' && Array.isArray(dec.args) && dec.args.length === 1) {
+          const code = Number(dec.args[0])
+          const msg = PANIC_MAP[code] ?? 'panic'
+          return `Panic(0x${code.toString(16)}: ${msg})`
+        }
+        const argsTxt = Array.isArray(dec.args)
           ? dec.args.map(formatArgsInline).join(', ')
           : formatArgsInline(dec.args)
-
-      return safeResult(`${dec.errorName}(${argsTxt})`)
+        return `${dec.errorName}(${argsTxt})`
+      } catch {
+        // try next abi
+      }
     }
-    return safeResult(null)
+
+    const errorSel = data.slice(0, 10)
+    const error = this.cache.errorDir.get(errorSel)
+    if (error) {
+      try {
+        const dec = decodeErrorResult({ abi: [error], data })
+
+        const argsTxt = Array.isArray(dec.args)
+          ? dec.args.map(formatArgsInline).join(', ')
+          : formatArgsInline(dec.args)
+        return `${dec.errorName}(${argsTxt})`
+      } catch {
+        // try next abi
+      }
+    }
+
+    return tryDecodeErrorString(data) ?? tryDecodePanic(data) ?? null
   }
 
   formatPrecompilePretty(address: Address, input: Hex, ret?: Hex): PrecompilePretty | null {
