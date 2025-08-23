@@ -13,4 +13,5 @@ export const retData = pc.green
 export const revLabel = (s: string) => pc.red(s)
 export const revData = pc.red
 export const dim = pc.white
-export const dark = pc.gray
+export const dark = pc.dim
+export const yellowLight = pc.dim

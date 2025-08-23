@@ -34,6 +34,7 @@ export class TracePrettyPrinter {
     await this.cache.indexCallAbis(calls.values().toArray())
 
     const [error] = await safeTry(this.processInnerCallsLive(root, true, 0))
+    console.log(error)
     if (error) return safeError(error)
 
     await this.cache.save()
@@ -67,7 +68,7 @@ export class TracePrettyPrinter {
 
     this.writeLine(branch + this.formatTraceCall(node, hasError).trimEnd())
 
-    if (node.logs?.length && this.verbosity > LogVerbosity.High) {
+    if (node.logs?.length && this.verbosity > LogVerbosity.Medium) {
       for (let i = 0; i < node.logs.length; i++) {
         const lg = node.logs[i]
         const lastLog = i === node.logs.length - 1 && (node.calls?.length ?? 0) === 0
@@ -77,16 +78,14 @@ export class TracePrettyPrinter {
       }
     }
 
-    if (this.verbosity > LogVerbosity.Low) {
-      const children = node.calls ?? []
-      for (let i = 0; i < children.length; i++) {
-        await this.processInnerCallsLive(
-          children[i],
-          i === children.length - 1,
-          depth + 1,
-          nextPrefix,
-        )
-      }
+    const children = node.calls ?? []
+    for (let i = 0; i < children.length; i++) {
+      await this.processInnerCallsLive(
+        children[i],
+        i === children.length - 1,
+        depth + 1,
+        nextPrefix,
+      )
     }
     this.writeLine(this.formatTraceReturn(node, hasError, nextPrefix).trimEnd())
   }
