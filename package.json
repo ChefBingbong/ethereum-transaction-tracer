@@ -1,11 +1,9 @@
 {
   "name": "evm-transaction-trace",
-  "module": "index.ts",
-  "type": "module",
   "workspaces": [
-    "docs/*",
     "config/*",
-    "packages/*"
+    "packages/*",
+    "examples/*"
   ],
   "repository": {
     "type": "git",
@@ -19,7 +17,8 @@
     "lint": "biome check .",
     "lint:fix": "biome check . --write",
     "format": "biome format . --write",
-    "test": "turbo run test --parallel"
+    "test": "turbo run test --parallel",
+    "prepare": "lefthook install"
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.6",

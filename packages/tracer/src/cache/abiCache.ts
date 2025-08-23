@@ -26,9 +26,9 @@ export class TracerCache {
   private cachePath: string | undefined
 
   private readonly chainId: number
-  private readonly input?: CacheOptions
+  private readonly input: CacheOptions
 
-  constructor(chainId: number, cachePath: string, input?: CacheOptions) {
+  constructor(chainId: number, cachePath: string, input: CacheOptions) {
     this.input = input
     this.chainId = chainId
     this.setCachePath(cachePath)
@@ -128,6 +128,7 @@ export class TracerCache {
   }
 
   public prefetchUnknownAbis = async (addresses: Address[]) => {
+    if (!this.input?.etherscanApiKey) return
     for (let i = 0; i < addresses.length; i += ETHERSCAN_RATE_LIMIT) {
       const results = await Promise.all(
         addresses.slice(i, i + ETHERSCAN_RATE_LIMIT).map(async (a) => {

@@ -1,20 +1,17 @@
 {
-  "name": "@evm-transaction-trace/examples",
-  "module": "index.ts",
+  "name": "@evm-transaction-trace/txhash",
   "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/ChefBingbong/ethereum-transaction-tracer.git",
-    "directory": "packages/examples"
+    "directory": "packages/examples/traceTxHash"
   },
   "scripts": {
     "check": "tsc --pretty --noEmit",
     "clean": "rm -rf .turbo && rm -rf node_modules",
     "test": "vitest run",
-    "trace:request": "bun run ./src/traceTxRequest.example.ts",
-    "trace:txhash": "bun run ./src/traceTxHash.example.ts",
-    "trace:request-gas": "bun run ./src/traceTxRequestGas.example.ts",
-    "trace:txhash-gas": "bun run ./src/traceTxHashGas.example.ts",
+    "trace:tx": "bun run ./src/traceTxHash.example.ts",
+    "trace:tx-gas": "bun run ./src/traceTxHashGas.example.ts",
     "test:watch": "vitest run",
     "prepare": "lefthook install"
   },
