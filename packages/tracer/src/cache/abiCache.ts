@@ -17,6 +17,7 @@ import {
   toBytes,
   toFunctionSelector,
 } from 'viem'
+import { ETHERSCAN_RATE_LIMIT } from '../constants'
 import type { AbiError, CacheJson, CacheOptions, RpcCallTrace } from '../types'
 import { getAbiFromEtherscan, getAbiFunctionFromOpenChain } from './abiSources'
 
@@ -175,19 +176,24 @@ export class TracerCache {
   }
 
   public indexCallAbis = async (addresses: Address[]) => {
-    const results = await Promise.all(
-      addresses.map(async (a) => {
-        await sleep(500)
-        const [error, result] = await getAbiFromEtherscan(
-          a,
-          this.chainId,
-          this.input?.etherscanApiKey,
-        )
-        return error ? undefined : result
-      }),
-    )
-    for (const abi of results) {
-      if (abi) this.indexAbiWithInfo(abi)
+    for (let i = 0; i < addresses.length; i += ETHERSCAN_RATE_LIMIT) {
+      const results = await Promise.all(
+        addresses.slice(i, i + ETHERSCAN_RATE_LIMIT).map(async (a) => {
+          const [error, result] = await getAbiFromEtherscan(
+            a,
+            this.chainId,
+            this.input?.etherscanApiKey,
+          )
+          return error ? undefined : result
+        }),
+      )
+      for (const abi of results) {
+        if (abi) this.indexAbiWithInfo(abi)
+      }
+
+      if (i + ETHERSCAN_RATE_LIMIT < addresses.length) {
+        await sleep(1000)
+      }
     }
   }
 
