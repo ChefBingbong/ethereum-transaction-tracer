@@ -48,7 +48,7 @@ const tracer = new TransactionTracer(client, {
     },
     extraAbis: [RouterAbi, LBPairAbi],
   },
-  verbosity: LogVerbosity.Highest,
+  verbosity: LogVerbosity.Medium,
 })
 
 await tracer.init()

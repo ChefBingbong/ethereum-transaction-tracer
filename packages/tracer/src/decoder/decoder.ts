@@ -28,6 +28,7 @@ import {
   getAbiItem,
 } from 'viem'
 import type { TracerCache } from '../cache'
+import { dark } from '../format'
 
 export class Decoder {
   constructor(
@@ -65,7 +66,7 @@ export class Decoder {
 
     const item = getAbiItem({ abi: [selector], name: data.functionName })
     const prettyArgs = Array.isArray(data.args)
-      ? data.args.map(stringify).join(', ')
+      ? data.args.map((arg, i) => stringify(`${dark(item.inputs[i].name)}: ${arg}`)).join(', ')
       : stringify(data.args)
 
     return safeResult({

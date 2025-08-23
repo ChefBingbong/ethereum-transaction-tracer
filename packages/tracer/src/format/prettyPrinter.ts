@@ -1,8 +1,7 @@
 import type { EventTopic } from '@evm-transaction-trace/core'
 import {
-  formatGas,
-  formatValueEth,
   hexToBig,
+  hexToBigint,
   nameFromSelector,
   SUMMARY_DEPTH,
   stringify,
@@ -10,7 +9,15 @@ import {
   truncate,
 } from '@evm-transaction-trace/core'
 import pc from 'picocolors'
-import { type Address, type Hex, isAddressEqual, zeroAddress } from 'viem'
+import {
+  type Address,
+  formatEther,
+  formatGwei,
+  type Hex,
+  hexToBigInt,
+  isAddressEqual,
+  zeroAddress,
+} from 'viem'
 import type { TracerCache } from '../cache'
 import type { Decoder } from '../decoder'
 import { LogVerbosity, type RpcCallTrace, type RpcCallType } from '../types'
@@ -27,6 +34,7 @@ import {
   revData,
   revLabel,
   typeBadge,
+  yellowLight,
 } from './theme'
 
 export class TraceFormatter {
@@ -39,35 +47,34 @@ export class TraceFormatter {
   public printCall = (node: RpcCallTrace, hasError: boolean) => {
     const typeBadge = ` ${this.badgeFor(node.type)}`
     const failBadge = hasError ? ` ${pc.red('❌')}` : ''
-
-    const valueStr = dim(`value=${formatValueEth(node.value)} `)
-    const gasStr = dim(`gas=${formatGas(node.gas, true)} used=${formatGas(node.gasUsed, true)}`)
+    const valueStr = this.getValueString(node)
+    const gasStr = this.getGasString(node)
 
     const paint = hasError ? pc.red : undefined
     const left = this.addrLabelStyled(node.to, paint)
     const method = this.formatContractCall(node, hasError)
-    return `${left}::${method} ${valueStr}${gasStr}${typeBadge}${failBadge}`
+    return `${left}::${method} ${typeBadge} ${valueStr}${gasStr}${failBadge}`
   }
 
   public printDelegateCall = (node: RpcCallTrace, hasError: boolean) => {
     const typeBadge = ` ${this.badgeFor(node.type)}`
     const failBadge = hasError ? ` ${pc.red('❌')}` : ''
-    const valueStr = dim(`value=${formatValueEth(node.value)} `)
-    const gasStr = dim(`gas=${formatGas(node.gas, true)} used=${formatGas(node.gasUsed, true)}`)
+    const valueStr = this.getValueString(node)
+    const gasStr = this.getGasString(node)
 
     const paint = hasError ? pc.red : undefined
 
     const left = `${this.addrLabelStyled(node.from as Address, paint)} → ${this.addrLabelStyled(node.to, paint)}`
 
     const method = this.formatContractCall(node, hasError)
-    return `${left}::${method} ${valueStr}${gasStr}${typeBadge}${failBadge}`
+    return `${left}::${method} ${typeBadge} ${valueStr}${gasStr}${failBadge}`
   }
 
   public printCreateCall = (node: RpcCallTrace, hasError: boolean) => {
     const typeBadge = ` ${this.badgeFor(node.type)}`
     const failBadge = hasError ? ` ${pc.red('❌')}` : ''
-    const valueStr = dim(`value=${formatValueEth(node.value)} `)
-    const gasStr = dim(`gas=${formatGas(node.gas, true)} used=${formatGas(node.gasUsed, true)}`)
+    const valueStr = this.getValueString(node)
+    const gasStr = this.getGasString(node)
 
     const paint = hasError ? pc.red : undefined
 
@@ -77,33 +84,33 @@ export class TraceFormatter {
 
     const initLen = node.input ? (node.input.length - 2) / 2 : 0
     const method = hasError ? pc.bold(pc.red('create')) : fn('create')
-    return `${created}::${method}(init_code_len=${initLen}) ${valueStr}${gasStr}${typeBadge}${failBadge}`
+    return `${created}::${method}(init_code_len=${initLen}) ${typeBadge} ${valueStr}${gasStr}${failBadge}`
   }
 
   public printSeltDestructCall = (node: RpcCallTrace, hasError: boolean) => {
     const typeBadge = ` ${this.badgeFor(node.type)}`
     const failBadge = hasError ? ` ${pc.red('❌')}` : ''
-    const valueStr = dim(`value=${formatValueEth(node.value)} `)
-    const gasStr = dim(`gas=${formatGas(node.gas, true)} used=${formatGas(node.gasUsed, true)}`)
+    const valueStr = this.getValueString(node)
+    const gasStr = this.getGasString(node)
 
     const paint = hasError ? pc.red : undefined
 
     const target = this.addrLabelStyled(node.to, paint)
     const method = hasError ? pc.bold(pc.red('selfdestruct')) : fn('selfdestruct')
-    return `${target}::${method} ${valueStr}${gasStr}${typeBadge}${failBadge}`
+    return `${target}::${method} ${typeBadge} ${valueStr}${gasStr}${failBadge}`
   }
 
   public printDefault = (node: RpcCallTrace, hasError: boolean) => {
     const typeBadge = ` ${this.badgeFor(node.type)}`
     const failBadge = hasError ? ` ${pc.red('❌')}` : ''
-    const valueStr = dim(`value=${formatValueEth(node.value)} `)
-    const gasStr = dim(`gas=${formatGas(node.gas, true)} used=${formatGas(node.gasUsed, true)}`)
+    const valueStr = this.getValueString(node)
+    const gasStr = this.getGasString(node)
 
     const paint = hasError ? pc.red : undefined
     const left = this.addrLabelStyled(node.to, paint)
     const calld =
       node.input && node.input !== '0x' ? dim(`calldata=${truncate(node.input)}`) : dim('()')
-    return `${left}::${calld} ${valueStr}${gasStr}${typeBadge}${failBadge}`
+    return `${left}::${calld} ${typeBadge} ${valueStr}${gasStr}${failBadge}`
   }
 
   public formatContractCall(node: RpcCallTrace, hasError: boolean): string {
@@ -129,7 +136,7 @@ export class TraceFormatter {
 
     if (fnName) {
       const styled = hasError ? pc.bold(pc.red(fnName)) : fn(fnName)
-      if (this.verbosity <= LogVerbosity.Medium) return `${styled}()`
+      if (this.verbosity < LogVerbosity.Medium) return `${styled}()`
       else return `${styled}(${decodedCall.prettyArgs ?? ''})`
     }
 
@@ -266,4 +273,16 @@ export class TraceFormatter {
   }
 
   badgeFor = (t: RpcCallType) => typeBadge(`[${t.toLowerCase()}]`)
+
+  getValueString = (node: RpcCallTrace) => {
+    if (this.verbosity > LogVerbosity.High) return ''
+    return dark(`${yellowLight('value=')}${formatEther(hexToBigInt(node.value ?? '0x00'))} ETH`)
+  }
+
+  getGasString = (node: RpcCallTrace) => {
+    if (this.verbosity > LogVerbosity.High) return ''
+    return dark(
+      `(${yellowLight('gas=')}${formatGwei(hexToBigint(node.gas))} ${yellowLight('used=')}${formatGwei(hexToBigint(node.gasUsed))}) Gwei`,
+    )
+  }
 }
