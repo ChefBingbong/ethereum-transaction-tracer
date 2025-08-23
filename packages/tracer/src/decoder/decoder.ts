@@ -1,4 +1,5 @@
 import {
+  defaultRevert,
   type EventTopic,
   formatArgsInline,
   hexLenBytes,
@@ -20,7 +21,6 @@ import {
   getAbiItem,
 } from 'viem'
 import type { TracerCache } from '../cache'
-import { dark } from '../format'
 import type { RpcCallTrace } from '../types'
 
 export class Decoder {
@@ -54,13 +54,9 @@ export class Decoder {
     if (error) return safeError(error)
 
     const item = getAbiItem({ abi: [selector], name: data.functionName })
-    const prettyArgs = Array.isArray(data.args)
-      ? data.args.map((arg, i) => stringify(`${dark(item.inputs[i].name)}: ${arg}`)).join(', ')
-      : stringify(data.args)
-
     return safeResult({
       fnName: data.functionName,
-      prettyArgs,
+      prettyArgs: data.args ?? [],
       fnItem: item,
     })
   }
@@ -81,18 +77,16 @@ export class Decoder {
   }
 
   decodeRevertPrettyFromFrame(node: RpcCallTrace) {
-    if (!node.output) return safeResult(`${node.revertReason ?? node.error}`)
+    if (!node.output) return safeResult(defaultRevert(node))
     const errorSel = node.output.slice(0, 10) as Hex
 
     const abiItem = this.cache.errorDir.get(errorSel)
-    if (!abiItem)
-      return safeResult(`${node.revertReason ?? node.error} ${node.output.slice(0, 10)}`)
+    if (!abiItem) return safeResult(defaultRevert(node))
 
     const [error, decodedError] = safeSyncTry(() =>
       decodeErrorResult({ abi: [abiItem], data: node.output }),
     )
-    if (error) return safeResult(`${node.revertReason ?? node.error} ${node.output.slice(0, 10)}`)
-
+    if (error) return safeResult(defaultRevert(node))
     return safeResult(
       `${decodedError.errorName}(${decodedError.args ? decodedError.args.map(formatArgsInline).join(', ') : ''})`,
     )
@@ -122,6 +116,7 @@ export class Decoder {
     const inputText =
       tryDecodePretty(['bytes32 hash', 'uint256 v', 'uint256 r', 'uint256 s'], node.input) ??
       `bytes: ${trunc(node.input)}`
+
     const outputText =
       tryDecodePretty(['address signer']) ??
       (node.output ? `signer: ${trunc(node.output)}` : undefined)

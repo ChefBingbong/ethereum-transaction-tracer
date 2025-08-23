@@ -3,10 +3,8 @@ import {
   hexToBig,
   hexToBigint,
   isPrecompileSource,
-  nameFromSelector,
   SUMMARY_DEPTH,
   stringify,
-  sumInner,
   truncate,
 } from '@evm-transaction-trace/utils'
 import pc from 'picocolors'
@@ -37,6 +35,21 @@ import {
   typeBadge,
   yellowLight,
 } from './theme'
+
+function sumInner(node: RpcCallTrace) {
+  let total = 0n
+  let count = 0
+  const kids = node.calls ?? []
+  for (const c of kids) {
+    const used = hexToBig(c.gasUsed)
+    total += used
+    count += 1
+    const sub = sumInner(c)
+    total += sub.total
+    count += sub.count
+  }
+  return { total, count }
+}
 
 export class TraceFormatter {
   constructor(
@@ -164,13 +177,11 @@ export class TraceFormatter {
     return `${revertPrefix} ${revData(revertData)}`
   }
 
-  public printGasCall(
-    node: RpcCallTrace,
-    hasError: boolean,
-    rightLabel: string,
-    left: string,
-    depth: number,
-  ): string {
+  public printGasCall(node: RpcCallTrace, hasError: boolean, depth: number): string {
+    const paint = hasError ? pc.red : undefined
+    const left = this.addrLabelStyled(node.to, paint)
+    const rightLabel = this.formatGasCall(node, hasError)
+
     const label = depth === 1 ? `${left}\n• ${rightLabel}` : `• ${rightLabel}`
     if (depth >= 1 && depth <= SUMMARY_DEPTH && node?.calls && node.calls.length > 0) {
       const { total, count } = sumInner(node)
@@ -196,19 +207,21 @@ export class TraceFormatter {
     if (error) return dim('()')
 
     const fnName = decodedCall.fnName
-    const selectorSig = nameFromSelector(node.input, this.cache)
+    const selectorSig = this.nameFromSelector(node.input)
 
     if (fnName) {
       const styled = hasError ? pc.bold(pc.red(fnName)) : fn(fnName)
       if (this.verbosity < LogVerbosity.Medium) return `${styled}()`
-      else return `${styled}(${decodedCall.prettyArgs ?? ''})`
+
+      const args = decodedCall.prettyArgs
+        .map((arg, i) => stringify(`${dark(decodedCall.fnItem.inputs[i].name)}: ${stringify(arg)}`))
+        .join(', ')
+
+      return `${styled}(${args ?? ''})`
     }
 
     if (selectorSig) return hasError ? pc.bold(pc.red(selectorSig)) : fn(selectorSig)
-
-    if (node.input && node.input !== '0x') {
-      return dim(`calldata=${truncate(node.input)}`)
-    }
+    if (node.input && node.input !== '0x') return dim(`calldata=${truncate(node.input)}`)
     return dim('()')
   }
 
@@ -218,24 +231,15 @@ export class TraceFormatter {
 
     if (dec.fnName) {
       const styled = hasError ? pc.bold(pc.red(dec.fnName)) : retData(dec.fnName)
-      return `${styled}()` // terse
+      return `${styled}()`
     }
 
-    const selectorSig = nameFromSelector(node.input, this.cache)
+    const selectorSig = this.nameFromSelector(node.input)
     if (selectorSig) {
       return hasError ? pc.bold(pc.red(selectorSig)) : fn(selectorSig)
     }
 
     return node.input && node.input !== '0x' ? dim('') : dim('()')
-  }
-
-  public formatGasCreateCall(initLen: number, hasError: boolean): string {
-    const createFn = hasError ? pc.bold(pc.red('create')) : fn('create')
-    return `${createFn}(init_code_len=${initLen})`
-  }
-
-  public formatGasSelfdestructCall(hasError: boolean): string {
-    return hasError ? pc.bold(pc.red('selfdestruct')) : fn('selfdestruct')
   }
 
   badgeFor = (t: RpcCallType) => typeBadge(`[${t.toLowerCase()}]`)
@@ -260,5 +264,13 @@ export class TraceFormatter {
     return paint(
       isAddressEqual(address, zeroAddress) ? 'Precompile.DataCopy' : pc.bold(defaultLabel),
     )
+  }
+
+  private nameFromSelector(input: Hex | undefined) {
+    if (!input || input.length < 10) return undefined
+    const fn = this.cache.abiItemFromSelector(input)
+    if (!fn) return undefined
+    const sig = `${fn.name}(${(fn.inputs ?? []).map((i) => i.type).join(',')})`
+    return sig
   }
 }

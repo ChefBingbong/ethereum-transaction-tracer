@@ -6,7 +6,6 @@ import {
   safeTry,
 } from '@evm-transaction-trace/utils'
 import pc from 'picocolors'
-import type { Address } from 'viem'
 import type { TracerCache } from '../cache/index'
 import type { Decoder } from '../decoder'
 import type { GasTally, LineSink, PrettyOpts } from '../types'
@@ -16,23 +15,21 @@ import { TraceFormatter } from './prettyPrinter'
 export class TracePrettyPrinter {
   private readonly logger: LoggerProvider
   private readonly formatter: TraceFormatter
+  private readonly sink: LineSink
 
   constructor(
     private readonly cache: TracerCache,
     private readonly decoder: Decoder,
     private readonly level: boolean,
-    private readonly sink: LineSink,
     private verbosity: LogVerbosity,
   ) {
+    this.sink = (line) => console.log(line)
     this.formatter = new TraceFormatter(this.decoder, this.cache, verbosity)
     this.logger = new LoggerProvider(this.level)
     this.logger.init()
   }
 
   public async formatTraceColored(root: RpcCallTrace, _opts?: PrettyOpts) {
-    const calls = this.getUnknownAbisFromCall(root)
-    await this.cache.indexCallAbis(calls.values().toArray())
-
     const [error] = await safeTry(() => this.processInnerCallsLive(root, true, 0))
     if (error) return safeError(error)
 
@@ -161,41 +158,7 @@ export class TracePrettyPrinter {
   }
 
   private formatTraceGasCall(node: RpcCallTrace, hasError: boolean, depth: number): string {
-    const paint = hasError ? pc.red : undefined
-    switch (node.type) {
-      case 'DELEGATECALL':
-      case 'CALLCODE': {
-        const left =
-          this.formatter.addrLabelStyled(node.from as Address, paint) +
-          ' → ' +
-          this.formatter.addrLabelStyled(node.to, paint)
-        const rightLabel = this.formatter.formatGasCall(node, hasError)
-        return this.formatter.printGasCall(node, hasError, rightLabel, left, depth)
-      }
-
-      case 'CREATE':
-      case 'CREATE2': {
-        const created = node.to
-          ? this.formatter.addrLabelStyled(node.to, paint)
-          : this.formatter.addrLabelStyled(undefined, paint)
-        const initLen = node.input ? (node.input.length - 2) / 2 : 0
-
-        const rightLabel = this.formatter.formatGasCreateCall(initLen, hasError)
-        return this.formatter.printGasCall(node, hasError, rightLabel, created, depth)
-      }
-
-      case 'SELFDESTRUCT': {
-        const target = this.formatter.addrLabelStyled(node.to, paint)
-        const rightLabel = this.formatter.formatGasSelfdestructCall(hasError)
-        return this.formatter.printGasCall(node, hasError, rightLabel, target, depth)
-      }
-
-      default: {
-        const left = this.formatter.addrLabelStyled(node.to, paint)
-        const rightLabel = this.formatter.formatGasCall(node, hasError)
-        return this.formatter.printGasCall(node, hasError, rightLabel, left, depth)
-      }
-    }
+    return this.formatter.printGasCall(node, hasError, depth)
   }
 
   private formatGasTraceSummary = (suymmary: GasTally, hasError: boolean, depth: number) => {
@@ -206,25 +169,6 @@ export class TracePrettyPrinter {
     this.writeLine(`total used : ${pc.bold(Number(topLevelTotal))}`)
 
     if (hasError) this.writeLine(`${pc.red('reverted at')}: ${pc.red(abortedAt)}`)
-  }
-
-  private getUnknownAbisFromCall = (root: RpcCallTrace) => {
-    const calls: Set<Address> = new Set()
-    this.aggregateCallInputs(root, 0, calls)
-    return calls
-  }
-  private aggregateCallInputs(node: RpcCallTrace, depth: number, calls: Set<Address>) {
-    const inputSelector = this.cache.abiItemFromSelector(node.input)
-    const outputSelector = this.cache.abiItemFromSelector(node?.output ?? '')
-
-    if (!inputSelector) calls.add(node.to)
-    if (node.error && !outputSelector) calls.add(node.to)
-    if (!this.cache.contractNames.has(node.to)) calls.add(node.to)
-
-    const children = node.calls ?? []
-    for (let i = 0; i < children.length; i++) {
-      this.aggregateCallInputs(children[i], depth + 1, calls)
-    }
   }
 
   private writeLine(line = '') {

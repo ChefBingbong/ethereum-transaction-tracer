@@ -18,7 +18,7 @@ import { LBRouterAbi } from './abi/LBRouterabi'
 import { OBExecutorAbi } from './abi/obExecutorAbi'
 import { RouterAbi } from './abi/routerabi'
 import { getPublicClient, hyperEvm } from './client'
-import { ETHERSCAN_API_KEY, RPC_URL } from './config'
+import { ETHERSCAN_API_KEY } from './config'
 import { ERC20A, EXECUTOR, LBRouter, ROUTER } from './constants'
 
 export const getWalletClient = (rpcUrl: string, privateKey: Hex) => {
@@ -31,7 +31,7 @@ export const getWalletClient = (rpcUrl: string, privateKey: Hex) => {
   }).extend(publicActions)
 }
 
-const client = getPublicClient(RPC_URL) as PublicClient
+const client = getPublicClient('https://rpc.berachain.com') as PublicClient
 
 export const TOKEN = '0xFCBD14DC51f0A4d49d5E53C2E0950e0bC26d0Dce'
 const _SENDER: Address = '0xc91E7af2E874A2e04183908AdD8b5c3bDb515CFC'
@@ -41,10 +41,25 @@ const tracer = new TransactionTracer(client, {
   cacheOptions: {
     etherscanApiKey: ETHERSCAN_API_KEY,
     byAddress: {
-      [ROUTER]: RouterAbi,
-      [LBRouter]: LBRouterAbi,
-      [EXECUTOR]: OBExecutorAbi,
-      [ERC20A]: erc20Abi,
+      [ROUTER]: {
+        name: 'OBRouter',
+        abi: RouterAbi,
+      },
+      [LBRouter]: {
+        name: 'LBRouter',
+        abi: LBRouterAbi,
+      },
+      [EXECUTOR]: {
+        name: 'OBExecutor',
+        abi: OBExecutorAbi,
+      },
+      [ERC20A]: {
+        name: 'ERC20',
+        abi: erc20Abi,
+      },
+    },
+    contractNames: {
+      [ROUTER]: 'OBRouter',
     },
     extraAbis: [RouterAbi, LBPairAbi],
   },

@@ -20,30 +20,6 @@ export const truncate = (h?: Hex, n = 64) =>
 
 export const SUMMARY_DEPTH = 3
 
-export function sumInner(node: any) {
-  let total = 0n
-  let count = 0
-  const kids = node.calls ?? []
-  for (const c of kids) {
-    const used = hexToBig(c.gasUsed)
-    total += used
-    count += 1
-    const sub = sumInner(c)
-    total += sub.total
-    count += sub.count
-  }
-  return { total, count }
-}
-
-export function nameFromSelector(input: Hex | undefined, cache: any): string | undefined {
-  if (!input || input.length < 10) return undefined
-  const sel = input.slice(0, 10) as Hex
-  const fn = cache.fourByteDir.get(sel)
-  if (!fn) return undefined
-  const sig = `${fn.name}(${(fn.inputs ?? []).map((i: any) => i.type).join(',')})`
-  return sig
-}
-
 export const stringify = (v: unknown): string => {
   if (typeof v === 'bigint') return v.toString()
   if (typeof v === 'string') return v
