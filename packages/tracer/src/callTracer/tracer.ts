@@ -58,7 +58,7 @@ export class TransactionTracer {
     const account_ = args.account ?? this.client.account
     const account = account_ ? parseAccount(account_) : null
 
-    const [error, txRequest] = await safeTry(
+    const [error, txRequest] = await safeTry(() =>
       this.client.prepareTransactionRequest({
         ...args,
         stateOverride,
@@ -130,7 +130,7 @@ export class TransactionTracer {
       stateOverride,
     } as TransactionRequest)
 
-    const [traceError, trace] = await safeTry(
+    const [traceError, trace] = await safeTry(() =>
       this.client.request<TraceCallRpcSchema>(
         {
           method: 'debug_traceCall',
@@ -172,7 +172,7 @@ export class TransactionTracer {
     tracer = 'callTracer',
     tracerConfig,
   }: TraceTxParameters) => {
-    const [error, trace] = await safeTry(
+    const [error, trace] = await safeTry(() =>
       this.client.request<TraceTxRpcSchema>(
         {
           method: 'debug_traceTransaction',

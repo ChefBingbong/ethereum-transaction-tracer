@@ -18,12 +18,12 @@ export function safeError<E extends Error>(err: E): SafeError<E> {
   return [err, undefined]
 }
 
-export async function safeTry<T>(promise: Promise<T>): SafePromise<T> {
-  return _.try(() => promise)()
+export async function safeTry<T>(promise: () => Promise<T>): SafePromise<T> {
+  return _.try(promise)()
 }
 
-export function safeSyncTry<T>(callBack: T) {
-  return _.try(() => callBack)()
+export function safeSyncTry<T>(callBack: () => T) {
+  return _.try(callBack)()
 }
 
 export const safeTimeoutPromiseAll = async <T>(
