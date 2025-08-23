@@ -118,8 +118,20 @@ export class Decoder {
       }
     }
 
-    const error = this.cache.errorDir.get(data.slice(0, 10) as Hex)
-    if (error) return `${error}`
+    const errorSel = data.slice(0, 10)
+    const error = this.cache.errorDir.get(errorSel)
+    if (error) {
+      try {
+        const dec = decodeErrorResult({ abi: [error], data })
+
+        const argsTxt = Array.isArray(dec.args)
+          ? dec.args.map(formatArgsInline).join(', ')
+          : formatArgsInline(dec.args)
+        return `${dec.errorName}(${argsTxt})`
+      } catch {
+        // try next abi
+      }
+    }
 
     return tryDecodeErrorString(data) ?? tryDecodePanic(data) ?? null
   }

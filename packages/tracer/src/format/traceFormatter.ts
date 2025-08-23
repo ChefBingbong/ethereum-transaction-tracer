@@ -52,6 +52,21 @@ export class TracePrettyPrinter {
     return safeResult(null)
   }
 
+  private async prefetchAllAbis(node: RpcCallTrace, depth: number) {
+    const [err] = await safeTry(this.cache.indexTraceAbis(node.to, node.input))
+    if (err) this.logger.debug(err.message)
+
+    if (node.error) {
+      const [err] = await safeTry(this.cache.indexTraceAbis(node.to, node.output))
+      if (err) this.logger.debug(err.message)
+    }
+
+    const children = node.calls ?? []
+    for (let i = 0; i < children.length; i++) {
+      await this.prefetchAllAbis(children[i], depth + 1)
+    }
+  }
+
   private async processInnerGasCalls(
     node: RpcCallTrace,
     isLast: boolean,
@@ -109,7 +124,7 @@ export class TracePrettyPrinter {
     const hasError = Boolean(node.error)
 
     if (hasError) {
-      const [err] = await safeTry(this.cache.indexTraceError(node.output))
+      const [err] = await safeTry(this.cache.indexTraceAbis(node.to, node.output))
       if (err) this.logger.debug(err.message)
     }
     this.writeLine(branch + this.formatTraceCall(node, hasError).trimEnd())
