@@ -1,10 +1,10 @@
 import {
   getUnlimitedBalanceAndApprovalStateOverrides,
+  LogVerbosity,
   TransactionTracer,
 } from '@evm-transaction-trace/tracer'
 import { type Address, erc20Abi, type PublicClient } from 'viem'
-import { hyperBrickFactoryAbi } from './abi/HyperBrickFactory.abi'
-import { HyperBrickPairABI } from './abi/HyperBrickPair.abi'
+import { LBPairAbi } from './abi/LBPair'
 import { LBRouterAbi } from './abi/LBRouterabi'
 import { OBExecutorAbi } from './abi/obExecutorAbi'
 import { RouterAbi } from './abi/routerabi'
@@ -21,20 +21,29 @@ const tracer = new TransactionTracer(client, {
   cacheOptions: {
     etherscanApiKey: ETHERSCAN_API_KEY,
     byAddress: {
-      [ROUTER]: RouterAbi,
-      [LBRouter]: LBRouterAbi,
-      [EXECUTOR]: OBExecutorAbi,
-      [ERC20A]: erc20Abi,
+      [ROUTER]: {
+        name: 'OBRouter',
+        abi: RouterAbi,
+      },
+      [LBRouter]: {
+        name: 'LBRouter',
+        abi: LBRouterAbi,
+      },
+      [EXECUTOR]: {
+        name: 'OBExecutor',
+        abi: OBExecutorAbi,
+      },
+      [ERC20A]: {
+        name: 'ERC20',
+        abi: erc20Abi,
+      },
     },
-    extraAbis: [
-      RouterAbi,
-      erc20Abi,
-      OBExecutorAbi,
-      LBRouterAbi,
-      HyperBrickPairABI,
-      hyperBrickFactoryAbi,
-    ],
+    contractNames: {
+      [ROUTER]: 'OBRouter',
+    },
+    extraAbis: [RouterAbi, LBPairAbi],
   },
+  verbosity: LogVerbosity.Medium,
 })
 
 await tracer.init()
