@@ -1,7 +1,6 @@
 import {
   hexToBig,
   LoggerProvider,
-  PRECOMPILE_ADDRESS,
   safeError,
   safeResult,
   safeTry,
@@ -35,7 +34,6 @@ export class TracePrettyPrinter {
     await this.cache.indexCallAbis(calls.values().toArray())
 
     const [error] = await safeTry(() => this.processInnerCallsLive(root, true, 0))
-    console.log(error)
     if (error) return safeError(error)
 
     await this.cache.save()
@@ -130,103 +128,10 @@ export class TracePrettyPrinter {
 
   private formatTraceReturn(node: RpcCallTrace, hasError: boolean, nextPrefix: string) {
     if (hasError) return this.formatter.printRevert(node, nextPrefix)
-
-    switch (node.to) {
-      case PRECOMPILE_ADDRESS.Ecrecover: {
-        const precompile = this.formatter.formatPrecompileEcRecover(node)
-        return this.formatter.printPrecompileReturn(precompile, nextPrefix)
-      }
-      case PRECOMPILE_ADDRESS.Sha256: {
-        const precompile = this.formatter.formatPrecompileSha256(node)
-        return this.formatter.printPrecompileReturn(precompile, nextPrefix)
-      }
-      case PRECOMPILE_ADDRESS.Ripemd160: {
-        const precompile = this.formatter.formatPrecompileRipemd160(node)
-        return this.formatter.printPrecompileReturn(precompile, nextPrefix)
-      }
-      case PRECOMPILE_ADDRESS.Identity: {
-        const precompile = this.formatter.formatPrecompileIdentity(node)
-        return this.formatter.printPrecompileReturn(precompile, nextPrefix)
-      }
-      case PRECOMPILE_ADDRESS.ModExp: {
-        const precompile = this.formatter.formatPrecompileModExp(node)
-        return this.formatter.printPrecompileReturn(precompile, nextPrefix)
-      }
-      case PRECOMPILE_ADDRESS.Bn128Add: {
-        const precompile = this.formatter.formatPrecompileBn128Add(node)
-        return this.formatter.printPrecompileReturn(precompile, nextPrefix)
-      }
-      case PRECOMPILE_ADDRESS.Bn128Mul: {
-        const precompile = this.formatter.formatPrecompileBn128Mul(node)
-        return this.formatter.printPrecompileReturn(precompile, nextPrefix)
-      }
-      case PRECOMPILE_ADDRESS.Bn128Pairing: {
-        const precompile = this.formatter.formatPrecompileBn128Pairing(node)
-        return this.formatter.printPrecompileReturn(precompile, nextPrefix)
-      }
-      case PRECOMPILE_ADDRESS.Blake2f: {
-        const precompile = this.formatter.formatPrecompileBlake2f(node)
-        return this.formatter.printPrecompileReturn(precompile, nextPrefix)
-      }
-      case PRECOMPILE_ADDRESS.KzgPointEvaluation: {
-        const precompile = this.formatter.formatPrecompileKzgPointEvaluation(node)
-        return this.formatter.printPrecompileReturn(precompile, nextPrefix)
-      }
-      default: {
-        return this.formatter.printReturn(node, nextPrefix)
-      }
-    }
+    return this.formatter.printReturn(node, nextPrefix)
   }
 
   private formatTraceCall(node: RpcCallTrace, hasError: boolean): string {
-    switch (node.to) {
-      case PRECOMPILE_ADDRESS.Ecrecover: {
-        const precompile = this.formatter.formatPrecompileEcRecover(node)
-        return this.formatter.printPrecompileCall(node, precompile, hasError)
-      }
-      case PRECOMPILE_ADDRESS.Sha256: {
-        const precompile = this.formatter.formatPrecompileSha256(node)
-        return this.formatter.printPrecompileCall(node, precompile, hasError)
-      }
-      case PRECOMPILE_ADDRESS.Ripemd160: {
-        const precompile = this.formatter.formatPrecompileRipemd160(node)
-        return this.formatter.printPrecompileCall(node, precompile, hasError)
-      }
-      case PRECOMPILE_ADDRESS.Identity: {
-        const precompile = this.formatter.formatPrecompileIdentity(node)
-        return this.formatter.printPrecompileCall(node, precompile, hasError)
-      }
-      case PRECOMPILE_ADDRESS.ModExp: {
-        const precompile = this.formatter.formatPrecompileModExp(node)
-        return this.formatter.printPrecompileCall(node, precompile, hasError)
-      }
-      case PRECOMPILE_ADDRESS.Bn128Add: {
-        const precompile = this.formatter.formatPrecompileBn128Add(node)
-        return this.formatter.printPrecompileCall(node, precompile, hasError)
-      }
-      case PRECOMPILE_ADDRESS.Bn128Mul: {
-        const precompile = this.formatter.formatPrecompileBn128Mul(node)
-        return this.formatter.printPrecompileCall(node, precompile, hasError)
-      }
-      case PRECOMPILE_ADDRESS.Bn128Pairing: {
-        const precompile = this.formatter.formatPrecompileBn128Pairing(node)
-        return this.formatter.printPrecompileCall(node, precompile, hasError)
-      }
-      case PRECOMPILE_ADDRESS.Blake2f: {
-        const precompile = this.formatter.formatPrecompileBlake2f(node)
-        return this.formatter.printPrecompileCall(node, precompile, hasError)
-      }
-      case PRECOMPILE_ADDRESS.KzgPointEvaluation: {
-        const precompile = this.formatter.formatPrecompileKzgPointEvaluation(node)
-        return this.formatter.printPrecompileCall(node, precompile, hasError)
-      }
-      default: {
-        return this.formatDefaultCall(node, hasError)
-      }
-    }
-  }
-
-  private formatDefaultCall(node: RpcCallTrace, hasError: boolean) {
     switch (node.type) {
       case 'CALL': {
         return this.formatter.printCall(node, hasError)
