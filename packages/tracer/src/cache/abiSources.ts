@@ -12,18 +12,21 @@ export async function getAbiFromEtherscan(address: Address, chainId: number, api
       `${ETHERSCAN_BASE_URL}/v2/api/?${new URLSearchParams({
         chainId: chainId.toString(),
         module: 'contract',
-        action: 'getabi',
+        action: 'getsourcecode',
         address,
         apiKey,
       })}`,
     ),
   )
   if (error) return safeError(error)
-  if (response.status !== '1') {
+  if (response.status !== '1' || response.result[0].ABI === 'Contract source code not verified') {
     return safeErrorStr('[Etherscan]: invalid response')
   }
-  const abi: Abi = JSON.parse(response.result)
-  return safeResult(abi)
+  return safeResult({
+    address,
+    name: response.result[0].ContractName,
+    abi: JSON.parse(response.result[0].ABI) as Abi,
+  })
 }
 
 export async function getAbiFunctionFromOpenChain(signature: Hex, isFunc = true) {

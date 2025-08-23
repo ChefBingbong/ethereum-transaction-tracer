@@ -17,6 +17,7 @@ import { LogVerbosity, type RpcCallTrace, type RpcCallType } from '../types'
 import {
   addr,
   argVal,
+  dark,
   dim,
   emit,
   eventArgVal,
@@ -191,10 +192,15 @@ export class TraceFormatter {
     return `${revertPrefix} ${revData(prettyRevert)}`
   }
 
-  public addrLabelStyled(_addr: Address | undefined, color?: (s: string) => string) {
+  public addrLabelStyled(address: Address | undefined, color?: (s: string) => string) {
     const paint = color ?? addr
-    if (!_addr) return paint('<unknown>')
-    return paint(isAddressEqual(_addr, zeroAddress) ? 'Precompile.DataCopy' : _addr.toLowerCase())
+    if (!address) return paint('<unknown>')
+
+    const name = this.cache.contractNames.get(address)
+    const defaultLabel = name ? `${name}${dark('()')}` : address.toLowerCase()
+    return paint(
+      isAddressEqual(address, zeroAddress) ? 'Precompile.DataCopy' : pc.bold(defaultLabel),
+    )
   }
 
   public formatGasCall(node: RpcCallTrace, hasError: boolean): string {
