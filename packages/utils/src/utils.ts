@@ -27,3 +27,8 @@ export function hexLenBytes(hex?: Hex): number {
   const h = hex.startsWith('0x') ? hex.slice(2) : hex
   return Math.ceil(h.length / 2)
 }
+
+export const defaultRevert = (node: any) => {
+  const selector = node.output ? node.output.slice(0, 10) : undefined
+  return `${node.revertReason ?? node.error} ${selector}`
+}

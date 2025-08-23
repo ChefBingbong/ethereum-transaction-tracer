@@ -41,7 +41,6 @@ export class TransactionTracer {
       this.cache,
       this.decoder,
       args.logDebug ?? false,
-      (line) => console.log(line),
       args.verbosity ?? LogVerbosity.Highest,
     )
   }
@@ -160,11 +159,12 @@ export class TransactionTracer {
         }),
       )
     }
+    const calls = this.cache.getUnknownAbisFromCall(trace)
+    const [fetchError, _] = await safeTry(() => {
+      return this.cache.prefetchUnknownAbis(calls)
+    })
 
-    const [fetchError, _] = await this.cache.prefetchTraceAbis(trace)
-    if (fetchError) return safeError(fetchError)
-
-    return safeResult(trace)
+    return fetchError ? safeError(fetchError) : safeResult(trace)
   }
 
   private callTraceTxHash = async ({
@@ -197,10 +197,12 @@ export class TransactionTracer {
       )
     }
 
-    const [fetchError, _] = await this.cache.prefetchTraceAbis(trace)
-    if (fetchError) return safeError(fetchError)
+    const calls = this.cache.getUnknownAbisFromCall(trace)
+    const [fetchError, _] = await safeTry(() => {
+      return this.cache.prefetchUnknownAbis(calls)
+    })
 
-    return safeResult(trace)
+    return fetchError ? safeError(fetchError) : safeResult(trace)
   }
 
   public traceCall = async ({

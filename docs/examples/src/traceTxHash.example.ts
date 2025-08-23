@@ -13,12 +13,12 @@ const tracer = new TransactionTracer(client, {
   cachePath: `./tx-cache-dir`,
   cacheOptions: {
     etherscanApiKey: ETHERSCAN_API_KEY,
-    byAddress: {
-      [ROUTER]: RouterAbi,
-      [LBRouter]: LBRouterAbi,
-      [EXECUTOR]: OBExecutorAbi,
-      [ERC20A]: erc20Abi,
-    },
+    // byAddress: {
+    //   [ROUTER]: RouterAbi,
+    //   [LBRouter]: LBRouterAbi,
+    //   [EXECUTOR]: OBExecutorAbi,
+    //   [ERC20A]: erc20Abi,
+    // },
     // extraAbis: [
     //   RouterAbi,
     //   erc20Abi,
@@ -35,7 +35,7 @@ await tracer.init()
 
 const [_error, trace] = await tracer.traceTransactionHash({
   tracer: 'callTracer',
-  txHash: '0xc92a4482cc00aefbd1063226f392240bd9ae8d79d187c03fadd25bfa2c8cf99c',
+  txHash: '0xca7c76095ba8babf071ea1795f99c3306513d3dfc2aad24dab890f84d0b9e184',
   tracerConfig: { withLog: true },
 })
 
