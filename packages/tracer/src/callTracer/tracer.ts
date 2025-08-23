@@ -159,6 +159,7 @@ export class TransactionTracer {
         }),
       )
     }
+
     const calls = this.cache.getUnknownAbisFromCall(trace)
     const [fetchError, _] = await safeTry(() => {
       return this.cache.prefetchUnknownAbis(calls)
