@@ -5,11 +5,10 @@
   "license": "ISC",
   "sideEffects": false,
   "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
   "typings": "./dist/types/index.d.ts",
   "files": [
-    "*",
+    "src",
     "dist",
     "README.md",
     "LICENSE"
@@ -24,8 +23,8 @@
     "clean": "rm -rf .turbo node_modules dist",
     "build": "bun run clean && bun run build:cjs && bun run build:esm && bun run build:types",
     "build:cjs": "tsc -p tsconfig.json --module commonjs --moduleResolution node --rootDir ./src --outDir ./dist/cjs --removeComments --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > ./dist/cjs/package.json",
-    "build:esm": "tsc -p tsconfig.json --module esnext --moduleResolution node --rootDir ./src --outDir ./dist/esm && printf '{\"type\": \"module\",\"sideEffects\":false}' > ./dist/esm/package.json",
-    "build:types": "tsc -p tsconfig.json --emitDeclarationOnly --declaration --declarationMap --rootDir ./src --declarationDir ./dist/types",
+    "build:esm": "tsc -p tsconfig.json --module esnext --moduleResolution node --rootDir ./src --outDir ./dist/esm --sourceMap true && printf '{\"type\":\"module\",\"sideEffects\":false}' > ./dist/esm/package.json",
+    "build:types": "tsc -p tsconfig.json --emitDeclarationOnly --declaration --declarationMap false --rootDir ./src --declarationDir ./dist/types",
     "prepublishOnly": "bun run build",
     "prepack": "bun ../../.github/replace-workspace-protocol.ts"
   },
@@ -47,12 +46,14 @@
     ".": {
       "types": "./dist/types/index.d.ts",
       "import": "./dist/esm/index.js",
-      "default": "./dist/cjs/index.js"
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/esm/index.js"
     },
     "./data-structures": {
       "types": "./dist/types/data-structures/index.d.ts",
       "import": "./dist/esm/data-structures/index.js",
-      "default": "./dist/cjs/data-structures/index.js"
+      "require": "./dist/cjs/data-structures/index.js",
+      "default": "./dist/esm/data-structures/index.js"
     },
     "./package.json": "./package.json"
   },
