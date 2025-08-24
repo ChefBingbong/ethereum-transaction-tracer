@@ -13,5 +13,5 @@ export function getEnvVarsWithBase<T extends z.ZodRawShape>(additional: T) {
 export const { CHAIN_ID, RPC_URL, ETHERSCAN_API_KEY } = getEnvVarsWithBase({
   RPC_URL: z.string().url(),
   CHAIN_ID: z.coerce.number(),
-  ETHERSCAN_API_KEY: z.string(),
+  ETHERSCAN_API_KEY: z.string().optional(),
 })

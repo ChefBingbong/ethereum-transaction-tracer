@@ -1,5 +1,5 @@
 import { createPublicClient, http } from 'viem'
-import { berachain } from 'viem/chains'
+import { mainnet } from 'viem/chains'
 
 export const getPublicClient = (rpcUrl: string) =>
   createPublicClient({
@@ -7,5 +7,5 @@ export const getPublicClient = (rpcUrl: string) =>
       multicall: true,
     },
     transport: http(rpcUrl),
-    chain: berachain,
+    chain: mainnet,
   })
