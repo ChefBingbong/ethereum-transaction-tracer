@@ -23,6 +23,11 @@
       "dependsOn": ["^build"],
       "outputs": [],
       "env": []
+    },
+    "release": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "env": []
     }
   }
 }

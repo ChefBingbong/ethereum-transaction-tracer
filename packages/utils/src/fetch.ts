@@ -3,7 +3,7 @@ import * as _ from 'radash'
 import type z from 'zod'
 import type { RetryConfigParams, SafePromise } from './types'
 
-const DEFAULT_FETCH_TIMEOUT = 5000
+const DEFAULT_FETCH_TIMEOUT = 7000
 /**
  * Generic Wrapper around native fetch API that retries up to 3 times
  */

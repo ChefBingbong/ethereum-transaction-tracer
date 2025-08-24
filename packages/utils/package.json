@@ -1,10 +1,11 @@
 {
   "name": "@evm-transaction-trace/utils",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "module": "src/index.ts",
   "type": "module",
   "license": "ISC",
   "scripts": {
+    "release": "bun check && changeset publish",
     "check": "tsc --pretty --noEmit",
     "clean": "rm -rf .turbo && rm -rf node_modules"
   },

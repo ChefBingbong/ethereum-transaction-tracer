@@ -1,5 +1,6 @@
 {
   "name": "@evm-transaction-trace/txrequest",
+  "private": true,
   "type": "module",
   "repository": {
     "type": "git",
