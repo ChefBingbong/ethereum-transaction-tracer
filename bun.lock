@@ -16,13 +16,13 @@
       },
     },
     "config/typescript": {
-      "name": "@evm-transaction-trace/typescript-config",
-      "version": "0.1.0",
+      "name": "@evm-tt/typescript-config",
+      "version": "0.0.0",
     },
     "examples/traceRequest": {
-      "name": "@evm-transaction-trace/txrequest",
+      "name": "@evm-tt/txrequest",
       "dependencies": {
-        "@evm-transaction-trace/tracer": "^2.5.0",
+        "@evm-tt/tracer": "workspace:*",
         "pino-pretty": "^13.1.1",
         "viem": "^2.33.3",
         "zod": "^4.0.17",
@@ -31,14 +31,14 @@
         "@types/bun": "latest",
       },
       "peerDependencies": {
-        "@evm-transaction-trace/typescript-config": "workspace:*",
+        "@evm-tt/typescript-config": "workspace:*",
         "typescript": "^5",
       },
     },
     "examples/traceTxHash": {
-      "name": "@evm-transaction-trace/txhash",
+      "name": "@evm-tt/txhash",
       "dependencies": {
-        "@evm-transaction-trace/tracer": "^2.5.0",
+        "@evm-tt/tracer": "workspace:*",
         "pino-pretty": "^13.1.1",
         "viem": "^2.33.3",
         "zod": "^4.0.17",
@@ -47,22 +47,22 @@
         "@types/bun": "latest",
       },
       "peerDependencies": {
-        "@evm-transaction-trace/typescript-config": "workspace:*",
+        "@evm-tt/typescript-config": "workspace:*",
         "typescript": "^5",
       },
     },
     "packages/tracer": {
-      "name": "@evm-transaction-trace/tracer",
-      "version": "2.5.0",
+      "name": "@evm-tt/tracer",
+      "version": "0.0.0",
       "dependencies": {
-        "@evm-transaction-trace/utils": "workspace:*",
+        "@evm-tt/utils": "workspace:*",
         "fs-extra": "^11.3.1",
         "picocolors": "^1.1.1",
         "viem": "^2.33.3",
         "zod": "^4.0.17",
       },
       "devDependencies": {
-        "@evm-transaction-trace/typescript-config": "workspace:*",
+        "@evm-tt/typescript-config": "workspace:*",
         "@types/bun": "latest",
         "@types/fs-extra": "^11.0.4",
       },
@@ -71,8 +71,8 @@
       },
     },
     "packages/utils": {
-      "name": "@evm-transaction-trace/utils",
-      "version": "2.4.0",
+      "name": "@evm-tt/utils",
+      "version": "0.0.0",
       "dependencies": {
         "pino": "9.6.0",
         "pino-pretty": "^13.1.1",
@@ -81,7 +81,7 @@
         "zod": "^4.0.17",
       },
       "devDependencies": {
-        "@evm-transaction-trace/typescript-config": "workspace:*",
+        "@evm-tt/typescript-config": "workspace:*",
         "@types/bun": "latest",
       },
     },
@@ -195,15 +195,15 @@
 
     "@esbuild/win32-x64": ["@esbuild/win32-x64@0.25.9", "", { "os": "win32", "cpu": "x64" }, "sha512-PPOl1mi6lpLNQxnGoyAfschAodRFYXJ+9fs6WHXz7CSWKbOqiMZsubC+BQsVKuul+3vKLuwTHsS2c2y9EoKwxQ=="],
 
-    "@evm-transaction-trace/tracer": ["@evm-transaction-trace/tracer@workspace:packages/tracer"],
+    "@evm-tt/tracer": ["@evm-tt/tracer@workspace:packages/tracer"],
 
-    "@evm-transaction-trace/txhash": ["@evm-transaction-trace/txhash@workspace:examples/traceTxHash"],
+    "@evm-tt/txhash": ["@evm-tt/txhash@workspace:examples/traceTxHash"],
 
-    "@evm-transaction-trace/txrequest": ["@evm-transaction-trace/txrequest@workspace:examples/traceRequest"],
+    "@evm-tt/txrequest": ["@evm-tt/txrequest@workspace:examples/traceRequest"],
 
-    "@evm-transaction-trace/typescript-config": ["@evm-transaction-trace/typescript-config@workspace:config/typescript"],
+    "@evm-tt/typescript-config": ["@evm-tt/typescript-config@workspace:config/typescript"],
 
-    "@evm-transaction-trace/utils": ["@evm-transaction-trace/utils@workspace:packages/utils"],
+    "@evm-tt/utils": ["@evm-tt/utils@workspace:packages/utils"],
 
     "@inquirer/external-editor": ["@inquirer/external-editor@1.0.1", "", { "dependencies": { "chardet": "^2.1.0", "iconv-lite": "^0.6.3" }, "peerDependencies": { "@types/node": ">=18" }, "optionalPeers": ["@types/node"] }, "sha512-Oau4yL24d2B5IL4ma4UpbQigkVhzPDXLoqy1ggK4gnHg/stmkffJE4oOXHXF3uz0UEpywG68KcyXsyYpA1Re/Q=="],
 

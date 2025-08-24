@@ -1,4 +1,4 @@
-# @evm-transaction-trace/utils
+# @evm-tt/utils
 
 ## 2.6.0
 

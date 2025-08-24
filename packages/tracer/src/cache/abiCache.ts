@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { AddressMap, safeSyncTry } from '@evm-transaction-trace/utils'
+import { AddressMap, safeSyncTry } from '@evm-tt/utils'
 import fs from 'fs-extra'
 import {
   type Abi,

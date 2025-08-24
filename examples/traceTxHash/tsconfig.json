@@ -1,3 +1,3 @@
 {
-  "extends": "@evm-transaction-trace/typescript-config/base.json"
+  "extends": "@evm-tt/typescript-config/base.json"
 }

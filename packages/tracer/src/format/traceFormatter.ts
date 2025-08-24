@@ -1,10 +1,4 @@
-import {
-  hexToBig,
-  LoggerProvider,
-  safeError,
-  safeResult,
-  safeTry,
-} from '@evm-transaction-trace/utils'
+import { hexToBig, LoggerProvider, safeError, safeResult, safeTry } from '@evm-tt/utils'
 import pc from 'picocolors'
 import type { TracerCache } from '../cache/index'
 import type { Decoder } from '../decoder'

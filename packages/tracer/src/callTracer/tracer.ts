@@ -1,4 +1,4 @@
-import { safeError, safeResult, safeTry } from '@evm-transaction-trace/utils'
+import { safeError, safeResult, safeTry } from '@evm-tt/utils'
 import {
   BaseError,
   formatTransactionRequest,

@@ -1,4 +1,4 @@
-# @evm-transaction-trace/examples
+# @evm-tt/examples
 
 To install dependencies:
 

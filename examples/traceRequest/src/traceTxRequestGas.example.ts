@@ -2,7 +2,7 @@ import {
   getUnlimitedBalanceAndApprovalStateOverrides,
   LogVerbosity,
   TransactionTracer,
-} from '@evm-transaction-trace/tracer'
+} from '@evm-tt/tracer'
 import { erc20Abi, type PublicClient } from 'viem'
 import { getPublicClient } from './client'
 import { ETHERSCAN_API_KEY, RPC_URL } from './config'
