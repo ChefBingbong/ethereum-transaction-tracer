@@ -19,12 +19,6 @@ jobs:
       - name: Install (bun/pnpm/etc)
         uses: ./.github/actions/install
 
-      - name: Setup Node (for npm publish & auth)
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          registry-url: 'https://registry.npmjs.org'
-
       - name: Create Release PR or Publish
         id: changesets
         uses: changesets/action@v1
