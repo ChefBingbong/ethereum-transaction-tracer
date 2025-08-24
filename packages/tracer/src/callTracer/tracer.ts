@@ -54,7 +54,7 @@ export class TransactionTracer {
     stateOverride,
     ...args
   }: TraceCallParameters) => {
-    const account_ = args.account ?? this.client.account
+    const account_ = args.account ?? (this.client.account as any)
     const account = account_ ? parseAccount(account_) : null
 
     const [error, txRequest] = await safeTry(() =>

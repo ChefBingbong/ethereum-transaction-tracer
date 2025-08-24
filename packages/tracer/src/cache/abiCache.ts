@@ -26,9 +26,9 @@ export class TracerCache {
   private cachePath: string | undefined
 
   private readonly chainId: number
-  private readonly input: CacheOptions
+  private readonly input?: CacheOptions
 
-  constructor(chainId: number, cachePath: string, input: CacheOptions) {
+  constructor(chainId: number, cachePath: string, input?: CacheOptions) {
     this.input = input
     this.chainId = chainId
     this.setCachePath(cachePath)
