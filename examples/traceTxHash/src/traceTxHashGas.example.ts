@@ -1,4 +1,4 @@
-import { LogVerbosity, TransactionTracer } from '@evm-transaction-trace/tracer'
+import { LogVerbosity, TransactionTracer } from '@evm-tt/tracer'
 import { erc20Abi, type PublicClient } from 'viem'
 import { getPublicClient } from './client'
 import { ETHERSCAN_API_KEY, RPC_URL } from './config'

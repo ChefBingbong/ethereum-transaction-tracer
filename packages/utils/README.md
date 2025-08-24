@@ -1,4 +1,4 @@
-# @evm-transaction-trace/utils
+# @evm-tt/utils
 
 To install dependencies:
 

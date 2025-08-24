@@ -1,4 +1,4 @@
-import type { EventTopic } from '@evm-transaction-trace/utils'
+import type { EventTopic } from '@evm-tt/utils'
 import {
   hexToBig,
   hexToBigint,
@@ -6,7 +6,7 @@ import {
   SUMMARY_DEPTH,
   stringify,
   truncate,
-} from '@evm-transaction-trace/utils'
+} from '@evm-tt/utils'
 import pc from 'picocolors'
 import {
   type Address,

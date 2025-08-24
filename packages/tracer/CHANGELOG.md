@@ -1,4 +1,4 @@
-# @evm-transaction-trace/tracer
+# @evm-tt/tracer
 
 ## 2.7.0
 
@@ -9,7 +9,7 @@
 ### Patch Changes
 
 - Updated dependencies [9d43d74]
-  - @evm-transaction-trace/utils@2.6.0
+  - @evm-tt/utils@2.6.0
 
 ## 2.6.0
 
@@ -20,7 +20,7 @@
 ### Patch Changes
 
 - Updated dependencies [d9511aa]
-  - @evm-transaction-trace/utils@2.5.0
+  - @evm-tt/utils@2.5.0
 
 ## 2.5.0
 
@@ -31,7 +31,7 @@
 ### Patch Changes
 
 - Updated dependencies [e6a03a4]
-  - @evm-transaction-trace/utils@2.4.0
+  - @evm-tt/utils@2.4.0
 
 ## 2.4.0
 
@@ -42,7 +42,7 @@
 ### Patch Changes
 
 - Updated dependencies [e26492d]
-  - @evm-transaction-trace/utils@2.3.0
+  - @evm-tt/utils@2.3.0
 
 ## 2.3.0
 
@@ -53,7 +53,7 @@
 ### Patch Changes
 
 - Updated dependencies [1d2479a]
-  - @evm-transaction-trace/utils@2.2.0
+  - @evm-tt/utils@2.2.0
 
 ## 2.2.0
 
@@ -64,7 +64,7 @@
 ### Patch Changes
 
 - Updated dependencies [a05f9ab]
-  - @evm-transaction-trace/utils@2.1.0
+  - @evm-tt/utils@2.1.0
 
 ## 2.1.0
 
@@ -81,7 +81,7 @@
 ### Patch Changes
 
 - Updated dependencies [9115df3]
-  - @evm-transaction-trace/utils@2.0.0
+  - @evm-tt/utils@2.0.0
 
 ## 1.0.0
 

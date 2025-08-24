@@ -1,10 +1,10 @@
-# evm-transaction-trace
+# evm-tt
 
 This package visualises the trace of EVM Based transactions in Javascript and Node based enviornments. Tools like Foundry and Tenderly are are great for doing this already, but they come with limits. This package. lets developers trace transactions on any chain aswell as simulations from transaction calldata. The integration of async abi lookups, allow this package to be highly tailored to the developers needs giving much more readab;le traces than is provided by foundry or tenderly.
 
 installation
 ```bash
-bun add evm-transaction-trace
+bun add evm-tt
 ```
 
 Usage
