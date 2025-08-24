@@ -1,9 +1,7 @@
 name: Publish
 on:
-  workflow_run:
-    workflows: [CI]
+  push:
     branches: [main]
-    types: [completed]
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -13,17 +11,15 @@ permissions:
 
 jobs:
   publish:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-
     steps:
-      - name: Clone repository
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install (bun/pnpm/etc)
         uses: ./.github/actions/install
 
-      - name: Create Release Pull Request or Publish
+      - name: Create Release PR or Publish
         id: changesets
         uses: changesets/action@v1
         with:
