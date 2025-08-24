@@ -2,9 +2,13 @@
   "name": "@evm-transaction-trace/utils",
   "module": "src/index.ts",
   "type": "module",
+  "version": "0.0.1",
   "scripts": {
     "check": "tsc --pretty --noEmit",
     "clean": "rm -rf .turbo && rm -rf node_modules"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "devDependencies": {
     "@types/bun": "latest",
