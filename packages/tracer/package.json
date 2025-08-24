@@ -17,11 +17,11 @@
     "clean": "rm -rf .turbo && rm -rf node_modules"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@evm-transaction-trace/typescript-config": "workspace:*"
   },
   "peerDependencies": {
-    "typescript": "^5",
-    "@evm-transaction-trace/typescript-config": "workspace:*"
+    "typescript": "^5"
   },
   "dependencies": {
     "@evm-transaction-trace/utils": "workspace:*",
