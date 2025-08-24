@@ -1,5 +1,16 @@
 # @evm-transaction-trace/tracer
 
+## 2.7.0
+
+### Minor Changes
+
+- 9d43d74: fix pkg json
+
+### Patch Changes
+
+- Updated dependencies [9d43d74]
+  - @evm-transaction-trace/utils@2.6.0
+
 ## 2.6.0
 
 ### Minor Changes
