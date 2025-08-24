@@ -1,5 +1,16 @@
 # @evm-transaction-trace/tracer
 
+## 2.6.0
+
+### Minor Changes
+
+- d9511aa: remove module and use fs filesystem
+
+### Patch Changes
+
+- Updated dependencies [d9511aa]
+  - @evm-transaction-trace/utils@2.5.0
+
 ## 2.5.0
 
 ### Minor Changes
