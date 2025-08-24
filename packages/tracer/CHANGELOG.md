@@ -1,5 +1,16 @@
 # @evm-transaction-trace/tracer
 
+## 2.3.0
+
+### Minor Changes
+
+- 1d2479a: fix
+
+### Patch Changes
+
+- Updated dependencies [1d2479a]
+  - @evm-transaction-trace/utils@2.2.0
+
 ## 2.2.0
 
 ### Minor Changes
