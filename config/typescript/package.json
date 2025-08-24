@@ -1,5 +1,6 @@
 {
   "name": "@evm-transaction-trace/typescript-config",
   "version": "0.1.0",
-  "description": "Evm-Transaction-Trace TypeScript Config"
+  "description": "Evm-Transaction-Trace TypeScript Config",
+  "private": true
 }
