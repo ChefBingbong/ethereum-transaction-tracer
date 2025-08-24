@@ -1,6 +1,6 @@
 {
   "name": "@evm-transaction-trace/tracer",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "license": "ISC",
   "main": "./dist/cjs/index.js",
   "types": "./dist/types/index.d.ts",
