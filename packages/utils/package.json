@@ -26,8 +26,7 @@
     "build:cjs": "bun build ./src/index.ts --outdir ./dist/cjs --format cjs --target node --external pino --external pino-pretty --external radash --external viem --external zod",
     "build:types": "tsc -p tsconfig.json --emitDeclarationOnly --declaration --declarationMap false --outDir dist/types --noEmit false",
     "prepublishOnly": "bun run build",
-    "prepack": "bun ../../.github/replace-workspace-protocol.ts",
-    "postpack": "git checkout -- package.json"
+    "prepack": "bun ../../.github/replace-workspace-protocol.ts"
   },
   "publishConfig": {
     "access": "public"

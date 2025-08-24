@@ -12,7 +12,7 @@ export function tryDecodePretty(spec: string[], data?: Hex) {
     return { type: s.slice(0, i), name: s.slice(i + 1) } as const
   })
   const out: KV = {}
-  const [error, values] = safeSyncTry(() => decodeAbiParameters(params, data) as unknown[])
+  const [error, values] = safeSyncTry(() => decodeAbiParameters(params, data))
   if (error) return `data: ${trunc(data)}`
 
   for (let i = 0; i < params.length; i++) {
