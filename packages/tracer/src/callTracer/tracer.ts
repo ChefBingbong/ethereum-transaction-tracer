@@ -35,7 +35,7 @@ export class TransactionTracer {
     }
 
     this.cache = new TracerCache(this.chainId, args.cachePath, args.cacheOptions)
-    this.decoder = new Decoder(this.cache, true)
+    this.decoder = new Decoder(this.cache)
 
     this.printer = new TracePrettyPrinter(
       this.cache,

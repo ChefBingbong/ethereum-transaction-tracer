@@ -24,10 +24,7 @@ import type { TracerCache } from '../cache'
 import type { RpcCallTrace } from '../types'
 
 export class Decoder {
-  constructor(
-    public cache: TracerCache,
-    public use4bytesDirectory: boolean,
-  ) {}
+  constructor(public cache: TracerCache) {}
 
   public decodeReturnPretty = (fnItem: AbiFunction, output: Hex) => {
     const [error, data] = safeSyncTry(() =>
