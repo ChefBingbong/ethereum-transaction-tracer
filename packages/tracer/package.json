@@ -1,6 +1,6 @@
 {
   "name": "@evm-transaction-trace/tracer",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "type": "module",
   "license": "ISC",
   "main": "./dist/cjs/index.cjs",
@@ -45,7 +45,6 @@
     "viem": "^2.33.3",
     "zod": "^4.0.17"
   },
-
   "exports": {
     ".": {
       "types": "./dist/types/src/index.d.ts",
