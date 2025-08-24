@@ -1,8 +1,9 @@
 {
   "name": "@evm-transaction-trace/tracer",
+  "version": "0.0.1",
   "module": "src/index.ts",
   "type": "module",
-  "version": "0.0.1",
+  "license": "ISC",
   "repository": {
     "type": "git",
     "url": "https://github.com/ChefBingbong/ethereum-transaction-tracer.git",
