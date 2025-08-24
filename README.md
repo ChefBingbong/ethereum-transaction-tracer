@@ -39,7 +39,7 @@ const tracer = new TransactionTracer(client, {
 
 ```
 
-see the [Documentation](/.github/docs/DOCUMENTATION.md) to learn more about what how each config option affetcs usage and results. Thern to visualise a trace simply evoke the method and wait for the trace to log in your terminal
+see the [Documentation]('https://github.com/ChefBingbong/ethereum-transaction-tracer/blob/main/docs/DOCUMENTATION.md) to learn more about what how each config option affetcs usage and results. Thern to visualise a trace simply evoke the method and wait for the trace to log in your terminal
 
 ```ts
 const [error, trace] = await tracer.traceCall({
@@ -102,7 +102,7 @@ const [error, trace] = await tracer.traceGasCall({
 
 ## Contributing
 
-If you're interested in contributing, please read the [contributing docs](/.github/docs/CONTRIBUTING.md) **before submitting a pull request**.
+If you're interested in contributing, please read the [contributing docs]('https://github.com/ChefBingbong/ethereum-transaction-tracer/blob/main/docs/CONTRIBUTING.md) **before submitting a pull request**.
 
 ## Authors
 
