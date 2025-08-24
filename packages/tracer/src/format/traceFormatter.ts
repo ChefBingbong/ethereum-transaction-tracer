@@ -33,7 +33,7 @@ export class TracePrettyPrinter {
     const [error] = await safeTry(() => this.processInnerCallsLive(root, true, 0))
     if (error) return safeError(error)
 
-    await this.cache.save()
+    this.cache.save()
     return safeResult(null)
   }
 
@@ -48,7 +48,7 @@ export class TracePrettyPrinter {
     const [error] = await safeTry(() => this.processInnerGasCalls(root, true, 0, summary))
     if (error) return safeError(error)
 
-    await this.cache.save()
+    this.cache.save()
     return safeResult(null)
   }
 

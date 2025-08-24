@@ -1,5 +1,6 @@
 import { join } from 'node:path'
-import { AddressMap, safeTry } from '@evm-transaction-trace/utils'
+import { AddressMap, safeSyncTry } from '@evm-transaction-trace/utils'
+import fs from 'fs-extra'
 import {
   type Abi,
   type AbiEvent,
@@ -54,14 +55,11 @@ export class TracerCache {
     }
   }
 
-  async load(): Promise<void> {
+  public load() {
     const filePath = this.getTracerCachePath()
-    const file = Bun.file(filePath)
+    fs.ensureFileSync(filePath)
 
-    const fileExists = await file.exists()
-    if (!fileExists) return
-
-    const [error, json] = await safeTry<CacheJson>(() => file.json())
+    const [error, json] = safeSyncTry<CacheJson>(() => fs.readJSONSync(this.getTracerCachePath()))
     if (error) return
 
     json.contractNames?.forEach(([key, v]) => {
@@ -78,19 +76,21 @@ export class TracerCache {
     })
   }
 
-  async save(): Promise<void> {
-    const filePath = this.getTracerCachePath()
-
-    const payload: CacheJson = {
-      contractNames: Array.from(this.contractNames.entries()),
-      fourByteDir: Array.from(this.fourByteDir.entries()),
-      eventsDir: Array.from(this.eventsDir.entries()),
-      errorDir: Array.from(this.errorDir.entries()),
-    }
-
-    await Bun.write(filePath, JSON.stringify(payload, null, 2), {
-      createPath: true,
-    })
+  public save() {
+    fs.ensureFileSync(this.getTracerCachePath())
+    const [error, _] = safeSyncTry(() =>
+      fs.writeJSONSync(
+        this.getTracerCachePath(),
+        {
+          contractNames: Array.from(this.contractNames.entries()),
+          fourByteDir: Array.from(this.fourByteDir.entries()),
+          eventsDir: Array.from(this.eventsDir.entries()),
+          errorDir: Array.from(this.errorDir.entries()),
+        },
+        { spaces: 2 },
+      ),
+    )
+    if (error) return
   }
 
   private getTracerCachePath(): string {

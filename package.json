@@ -1,5 +1,6 @@
 {
   "name": "evm-transaction-trace",
+  "type": "module",
   "workspaces": [
     "config/*",
     "packages/*",
