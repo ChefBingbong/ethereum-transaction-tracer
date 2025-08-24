@@ -12,7 +12,8 @@ pnpm add evm-tt
 yarn add evm-tt
 ```
 
-## Usage
+# Usage
+## Transaction Trace
 
 to use evm-tt in your backend application simply import the main `TransactionTracer` entity and create and instance for your needs. Note that your prc provider must support the `debug_tracecall` JSON RPC method.
 ```ts
@@ -49,13 +50,55 @@ const [error, trace] = await tracer.traceCall({
     tracer: 'callTracer',
     chain: client.chain,
     tracerConfig: { withLog: true },
+    stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
+
 })
 ```
 
-## Result
+### Result
 
 <img width="1092" alt="Console testing" src="https://github.com/ChefBingbong/ethereum-transaction-tracer/blob/main/assets/tx-trace.png">
 
+
+## Gas Profiler
+
+you can also get a traces gas profile, which outputs the gas spent by each call made in a request. This method is very useful for seeing how much gas is being spent by different external contract calls. To evoke this method run
+
+```ts
+  const [error, trace] = await tracer.traceGasCall({
+    account: SENDER,
+    blockNumber: 9451543n,
+    to: TO,
+    data: '0xd46cad.....',
+    tracer: 'callTracer',
+    chain: client.chain,
+    tracerConfig: { withLog: true },
+    stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
+  })
+})
+```
+
+### Result
+
+<img width="1092" alt="Console testing" src="https://github.com/ChefBingbong/ethereum-transaction-tracer/blob/main/assets/gas-trace.png">
+
+### State Overrides
+
+when simulation transaction request traces from calldata, you can use the evm-tt `state overrides` helper, to override account balances and allowances, so that you can test transactions without having to have the required balance. this is very useful for tracing large transactions that would otherwise be difficult to test without the proper balances. to use state overrides, import it and pass it in for the `stateOverride` option.
+
+```ts
+import { getUnlimitedBalanceAndApprovalStateOverrides } from '@evm-tt/tracer'
+
+const SENDER = '0xda8A8833E938192781AdE161d4b46c4973A40402' // Account to override balance for
+const TO = '0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af' // Account to grant allowance for (spender)
+const TOKEN = '0xdAC17F958D2ee523a2206206994597C13D831ec7' // Token to grant the allowance and balance overrides for
+
+const [error, trace] = await tracer.traceGasCall({
+  ...
+  stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
+})
+})
+```
 
 ## Contributing
 
