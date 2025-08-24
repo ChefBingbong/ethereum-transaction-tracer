@@ -1,5 +1,11 @@
 # @evm-tt/utils
 
+## 0.1.0
+
+### Minor Changes
+
+- 1eeb4df: first release
+
 ## 2.6.0
 
 ### Minor Changes
