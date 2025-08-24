@@ -1,6 +1,6 @@
 {
   "name": "@evm-transaction-trace/tracer",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "type": "module",
   "license": "ISC",
   "main": "./dist/cjs/index.js",
@@ -23,13 +23,9 @@
     "check": "tsc --pretty --noEmit ",
     "clean": "rm -rf .turbo node_modules dist",
     "build": "bun run clean && bun run build:cjs && bun run build:esm && bun run build:types",
-
     "build:cjs": "tsc -p tsconfig.json --module commonjs --moduleResolution node --rootDir ./src --outDir ./dist/cjs --removeComments --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > ./dist/cjs/package.json",
-
     "build:esm": "tsc -p tsconfig.json --module esnext --moduleResolution node --rootDir ./src --outDir ./dist/esm && printf '{\"type\": \"module\",\"sideEffects\":false}' > ./dist/esm/package.json",
-
     "build:types": "tsc -p tsconfig.json --emitDeclarationOnly --declaration --declarationMap --rootDir ./src --declarationDir ./dist/types",
-
     "prepublishOnly": "bun run build",
     "prepack": "bun ../../.github/replace-workspace-protocol.ts"
   },
