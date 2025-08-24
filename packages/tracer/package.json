@@ -1,7 +1,6 @@
 {
   "name": "@evm-transaction-trace/tracer",
   "version": "2.5.0",
-  "type": "module",
   "license": "ISC",
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
@@ -33,14 +32,16 @@
     "access": "public"
   },
   "devDependencies": {
+    "@evm-transaction-trace/typescript-config": "workspace:*",
     "@types/bun": "latest",
-    "@evm-transaction-trace/typescript-config": "workspace:*"
+    "@types/fs-extra": "^11.0.4"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
     "@evm-transaction-trace/utils": "workspace:*",
+    "fs-extra": "^11.3.1",
     "picocolors": "^1.1.1",
     "viem": "^2.33.3",
     "zod": "^4.0.17"

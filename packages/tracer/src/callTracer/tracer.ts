@@ -43,10 +43,7 @@ export class TransactionTracer {
       args.logDebug ?? false,
       args.verbosity ?? LogVerbosity.Highest,
     )
-  }
-
-  public init = async () => {
-    await this.cache.load()
+    this.cache.load()
   }
 
   private callTraceRequest = async ({

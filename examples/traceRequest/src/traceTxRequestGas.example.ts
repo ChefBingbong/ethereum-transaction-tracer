@@ -34,8 +34,6 @@ const tracer = new TransactionTracer(client, {
 })
 
 if (import.meta.main) {
-  await tracer.init()
-
   const [error, trace] = await tracer.traceCall({
     account: SENDER,
     blockNumber: 9451543n,
