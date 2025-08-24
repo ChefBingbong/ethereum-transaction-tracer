@@ -1,9 +1,14 @@
 {
   "name": "@evm-transaction-trace/utils",
-  "version": "0.0.3",
+  "version": "1.0.1",
   "module": "src/index.ts",
   "type": "module",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ChefBingbong/ethereum-transaction-tracer.git",
+    "directory": "packages/utils"
+  },
   "scripts": {
     "check": "tsc --pretty --noEmit",
     "clean": "rm -rf .turbo && rm -rf node_modules"
