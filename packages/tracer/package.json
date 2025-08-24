@@ -86,11 +86,21 @@
   },
   "typesVersions": {
     "*": {
-      "cache": ["./dist/types/cache/index.d.ts"],
-      "callTracer": ["./dist/types/callTracer/index.d.ts"],
-      "decoder": ["./dist/types/decoder/index.d.ts"],
-      "format": ["./dist/types/format/index.d.ts"],
-      "types": ["./dist/types/types/index.d.ts"]
+      "cache": [
+        "./dist/types/cache/index.d.ts"
+      ],
+      "callTracer": [
+        "./dist/types/callTracer/index.d.ts"
+      ],
+      "decoder": [
+        "./dist/types/decoder/index.d.ts"
+      ],
+      "format": [
+        "./dist/types/format/index.d.ts"
+      ],
+      "types": [
+        "./dist/types/types/index.d.ts"
+      ]
     }
   },
   "engines": {
