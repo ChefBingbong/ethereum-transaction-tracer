@@ -46,7 +46,7 @@
     "zod": "^4.0.17"
   },
 
- "exports": {
+  "exports": {
     ".": {
       "types": "./dist/types/src/index.d.ts",
       "import": "./dist/esm/index.js",
