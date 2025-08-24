@@ -4,10 +4,14 @@
   "type": "module",
   "license": "ISC",
   "sideEffects": false,
-  "main": "./dist/cjs/index.cjs",       
-  "module": "./dist/esm/index.js",       
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.js",
   "types": "./dist/types/src/index.d.ts",
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/ChefBingbong/ethereum-transaction-tracer.git",
@@ -47,5 +51,7 @@
       "default": "./dist/esm/index.js"
     }
   },
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  }
 }
