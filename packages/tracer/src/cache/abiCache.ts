@@ -1,6 +1,5 @@
 import { join } from 'node:path'
 import { AddressMap, safeTry } from '@evm-transaction-trace/utils'
-import { sleep } from 'bun'
 import {
   type Abi,
   type AbiEvent,
@@ -16,6 +15,8 @@ import {
 import { ETHERSCAN_RATE_LIMIT } from '../constants'
 import type { AbiError, AbiInfo, CacheJson, CacheOptions, RpcCallTrace } from '../types'
 import { getAbiFromEtherscan } from './abiSources'
+
+const sleep = async (ms: number) => await new Promise((resolve) => setTimeout(resolve, ms))
 
 export class TracerCache {
   public contractNames = new AddressMap<string>()
