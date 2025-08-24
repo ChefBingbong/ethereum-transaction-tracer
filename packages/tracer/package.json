@@ -3,11 +3,10 @@
   "version": "2.6.0",
   "license": "ISC",
   "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
   "typings": "./dist/types/index.d.ts",
   "files": [
-    "*",
+    "src",
     "dist",
     "README.md",
     "LICENSE"
@@ -19,12 +18,12 @@
     "directory": "packages/tracer"
   },
   "scripts": {
-    "check": "tsc --pretty --noEmit ",
+    "check": "tsc --pretty --noEmit",
     "clean": "rm -rf .turbo node_modules dist",
     "build": "bun run clean && bun run build:cjs && bun run build:esm && bun run build:types",
     "build:cjs": "tsc -p tsconfig.json --module commonjs --moduleResolution node --rootDir ./src --outDir ./dist/cjs --removeComments --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > ./dist/cjs/package.json",
-    "build:esm": "tsc -p tsconfig.json --module esnext --moduleResolution node --rootDir ./src --outDir ./dist/esm && printf '{\"type\": \"module\",\"sideEffects\":false}' > ./dist/esm/package.json",
-    "build:types": "tsc -p tsconfig.json --emitDeclarationOnly --declaration --declarationMap --rootDir ./src --declarationDir ./dist/types",
+    "build:esm": "tsc -p tsconfig.json --module esnext --moduleResolution node --rootDir ./src --outDir ./dist/esm --sourceMap true && printf '{\"type\":\"module\",\"sideEffects\":false}' > ./dist/esm/package.json",
+    "build:types": "tsc -p tsconfig.json --emitDeclarationOnly --declaration --declarationMap false --rootDir ./src --declarationDir ./dist/types",
     "prepublishOnly": "bun run build",
     "prepack": "bun ../../.github/replace-workspace-protocol.ts"
   },
@@ -50,52 +49,48 @@
     ".": {
       "types": "./dist/types/index.d.ts",
       "import": "./dist/esm/index.js",
-      "default": "./dist/cjs/index.js"
+      "require": "./dist/cjs/index.js",
+      "default": "./dist/esm/index.js"
     },
     "./cache": {
       "types": "./dist/types/cache/index.d.ts",
       "import": "./dist/esm/cache/index.js",
-      "default": "./dist/cjs/cache/index.js"
+      "require": "./dist/cjs/cache/index.js",
+      "default": "./dist/esm/cache/index.js"
     },
     "./callTracer": {
       "types": "./dist/types/callTracer/index.d.ts",
       "import": "./dist/esm/callTracer/index.js",
-      "default": "./dist/cjs/callTracer/index.js"
+      "require": "./dist/cjs/callTracer/index.js",
+      "default": "./dist/esm/callTracer/index.js"
     },
     "./decoder": {
       "types": "./dist/types/decoder/index.d.ts",
       "import": "./dist/esm/decoder/index.js",
-      "default": "./dist/cjs/decoder/index.js"
+      "require": "./dist/cjs/decoder/index.js",
+      "default": "./dist/esm/decoder/index.js"
     },
     "./format": {
       "types": "./dist/types/format/index.d.ts",
       "import": "./dist/esm/format/index.js",
-      "default": "./dist/cjs/format/index.js"
+      "require": "./dist/cjs/format/index.js",
+      "default": "./dist/esm/format/index.js"
     },
     "./types": {
       "types": "./dist/types/types/index.d.ts",
       "import": "./dist/esm/types/index.js",
-      "default": "./dist/cjs/types/index.js"
+      "require": "./dist/cjs/types/index.js",
+      "default": "./dist/esm/types/index.js"
     },
     "./package.json": "./package.json"
   },
   "typesVersions": {
     "*": {
-      "cache": [
-        "./dist/types/cache/index.d.ts"
-      ],
-      "callTracer": [
-        "./dist/types/callTracer/index.d.ts"
-      ],
-      "decoder": [
-        "./dist/types/decoder/index.d.ts"
-      ],
-      "format": [
-        "./dist/types/format/index.d.ts"
-      ],
-      "types": [
-        "./dist/types/types/utils.d.ts"
-      ]
+      "cache": ["./dist/types/cache/index.d.ts"],
+      "callTracer": ["./dist/types/callTracer/index.d.ts"],
+      "decoder": ["./dist/types/decoder/index.d.ts"],
+      "format": ["./dist/types/format/index.d.ts"],
+      "types": ["./dist/types/types/index.d.ts"]
     }
   },
   "engines": {
