@@ -19,7 +19,6 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@evm-transaction-trace/typescript-config": "workspace:*"
-
   },
   "peerDependencies": {
     "typescript": "^5"
