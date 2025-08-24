@@ -1,5 +1,16 @@
 # @evm-transaction-trace/tracer
 
+## 2.2.0
+
+### Minor Changes
+
+- a05f9ab: added support for node distributions
+
+### Patch Changes
+
+- Updated dependencies [a05f9ab]
+  - @evm-transaction-trace/utils@2.1.0
+
 ## 2.1.0
 
 ### Minor Changes
