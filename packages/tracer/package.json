@@ -1,6 +1,6 @@
 {
   "name": "@evm-transaction-trace/tracer",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "module": "src/index.ts",
   "type": "module",
   "license": "ISC",
