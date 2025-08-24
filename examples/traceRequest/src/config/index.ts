@@ -10,8 +10,6 @@ export function getEnvVarsWithBase<T extends z.ZodRawShape>(additional: T) {
   return mergedSchema.parse(process.env)
 }
 
-export const { CHAIN_ID, RPC_URL, ETHERSCAN_API_KEY } = getEnvVarsWithBase({
-  RPC_URL: z.string().url(),
-  CHAIN_ID: z.coerce.number(),
+export const { ETHERSCAN_API_KEY } = getEnvVarsWithBase({
   ETHERSCAN_API_KEY: z.string().optional(),
 })
