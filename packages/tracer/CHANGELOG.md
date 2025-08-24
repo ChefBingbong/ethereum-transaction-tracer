@@ -1,5 +1,16 @@
 # @evm-transaction-trace/tracer
 
+## 2.5.0
+
+### Minor Changes
+
+- e6a03a4: fix package exports
+
+### Patch Changes
+
+- Updated dependencies [e6a03a4]
+  - @evm-transaction-trace/utils@2.4.0
+
 ## 2.4.0
 
 ### Minor Changes

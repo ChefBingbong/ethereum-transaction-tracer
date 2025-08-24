@@ -1,53 +1,41 @@
 {
   "name": "@evm-transaction-trace/utils",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "type": "module",
   "license": "ISC",
   "sideEffects": false,
-
   "main": "./dist/cjs/index.js",
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
   "typings": "./dist/types/index.d.ts",
-
   "files": [
     "*",
     "dist",
     "README.md",
     "LICENSE"
   ],
-
   "repository": {
     "type": "git",
     "url": "https://github.com/ChefBingbong/ethereum-transaction-tracer.git",
     "directory": "packages/utils"
   },
-
   "scripts": {
     "check": "tsc --pretty --noEmit",
     "clean": "rm -rf .turbo node_modules dist",
-
     "build": "bun run clean && bun run build:cjs && bun run build:esm && bun run build:types",
-
     "build:cjs": "tsc -p tsconfig.json --module commonjs --moduleResolution node --rootDir ./src --outDir ./dist/cjs --removeComments --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > ./dist/cjs/package.json",
-
     "build:esm": "tsc -p tsconfig.json --module esnext --moduleResolution node --rootDir ./src --outDir ./dist/esm && printf '{\"type\": \"module\",\"sideEffects\":false}' > ./dist/esm/package.json",
-
     "build:types": "tsc -p tsconfig.json --emitDeclarationOnly --declaration --declarationMap --rootDir ./src --declarationDir ./dist/types",
-
     "prepublishOnly": "bun run build",
     "prepack": "bun ../../.github/replace-workspace-protocol.ts"
   },
-
   "publishConfig": {
     "access": "public"
   },
-
   "devDependencies": {
     "@types/bun": "latest",
     "@evm-transaction-trace/typescript-config": "workspace:*"
   },
-
   "dependencies": {
     "pino": "9.6.0",
     "pino-pretty": "^13.1.1",
@@ -55,7 +43,6 @@
     "viem": "^2.34.0",
     "zod": "^4.0.17"
   },
-
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
@@ -76,7 +63,6 @@
       ]
     }
   },
-
   "engines": {
     "node": ">=22"
   }
