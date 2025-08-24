@@ -1,5 +1,11 @@
 # @evm-transaction-trace/utils
 
+## 2.3.0
+
+### Minor Changes
+
+- e26492d: remove post publish script
+
 ## 2.2.0
 
 ### Minor Changes
