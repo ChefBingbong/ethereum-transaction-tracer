@@ -5,7 +5,6 @@
   "type": "module",
   "license": "ISC",
   "scripts": {
-    "release": "bun check && changeset publish",
     "check": "tsc --pretty --noEmit",
     "clean": "rm -rf .turbo && rm -rf node_modules"
   },
