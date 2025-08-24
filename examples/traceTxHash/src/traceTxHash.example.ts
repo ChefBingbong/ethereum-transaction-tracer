@@ -1,5 +1,5 @@
 import { LogVerbosity, TransactionTracer } from '@evm-tt/tracer'
-import { erc20Abi, type PublicClient } from 'viem'
+import { erc20Abi } from 'viem'
 import { CFG } from '../abis/CFG'
 import { FiatTokenProxyAbi } from '../abis/FiatTokenProxy'
 import { FiatTokenProxy2 } from '../abis/FiatTokenProxyV2'
@@ -8,10 +8,9 @@ import { PoolManager } from '../abis/PoolManager'
 import { UniSwapPool } from '../abis/UniswapPool'
 import { UniversalRouter } from '../abis/UniversalRouter'
 import { getPublicClient } from './client'
-import { RPC_URL } from './config'
 
 // must use a berachain al url for this example
-const client = getPublicClient(RPC_URL) as PublicClient
+const client = getPublicClient('https://ethereum-mainnet.gateway.tatum.io')
 
 const tracer = new TransactionTracer(client, {
   cachePath: `./tx-cache-dir`,
