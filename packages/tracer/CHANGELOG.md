@@ -1,5 +1,16 @@
 # @evm-tt/tracer
 
+## 0.1.0
+
+### Minor Changes
+
+- 1eeb4df: first release
+
+### Patch Changes
+
+- Updated dependencies [1eeb4df]
+  - @evm-tt/utils@0.1.0
+
 ## 2.7.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@evm-tt/utils",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "license": "ISC",
   "sideEffects": false,
