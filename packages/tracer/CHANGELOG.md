@@ -1,5 +1,11 @@
 # @evm-transaction-trace/tracer
 
+## 2.1.0
+
+### Minor Changes
+
+- b1a0bce: fixed version
+
 ## 2.0.0
 
 ### Major Changes
