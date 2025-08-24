@@ -26,4 +26,5 @@ export type GasTally = {
   fail: number
   abortedAt?: string
 }
+
 export type LineSink = (line: string) => void
