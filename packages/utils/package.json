@@ -1,9 +1,13 @@
 {
   "name": "@evm-transaction-trace/utils",
   "version": "2.0.0",
-  "module": "src/index.ts",
   "type": "module",
   "license": "ISC",
+  "sideEffects": false,
+  "main": "./dist/cjs/index.cjs",       
+  "module": "./dist/esm/index.js",       
+  "types": "./dist/types/src/index.d.ts",
+  "files": ["dist", "README.md", "LICENSE"],
   "repository": {
     "type": "git",
     "url": "https://github.com/ChefBingbong/ethereum-transaction-tracer.git",
@@ -11,7 +15,15 @@
   },
   "scripts": {
     "check": "tsc --pretty --noEmit",
-    "clean": "rm -rf .turbo && rm -rf node_modules"
+    "clean": "rm -rf .turbo node_modules dist",
+    "build": "bun run build:js && bun run build:types",
+    "build:js": "bun run build:esm && bun run build:cjs",
+    "build:esm": "bun build ./src/index.ts --outdir ./dist/esm --format esm --target node --external pino --external pino-pretty --external radash --external viem --external zod",
+    "build:cjs": "bun build ./src/index.ts --outdir ./dist/cjs --format cjs --target node --external pino --external pino-pretty --external radash --external viem --external zod",
+    "build:types": "tsc -p tsconfig.json --emitDeclarationOnly --declaration --declarationMap false --outDir dist/types --noEmit false",
+    "prepublishOnly": "bun run build",
+    "prepack": "bun ../../.github/replace-workspace-protocol.ts",
+    "postpack": "git checkout -- package.json"
   },
   "publishConfig": {
     "access": "public"
@@ -28,6 +40,12 @@
     "zod": "^4.0.17"
   },
   "exports": {
-    ".": "./src/index.ts"
-  }
+    ".": {
+      "types": "./dist/types/src/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.cjs",
+      "default": "./dist/esm/index.js"
+    }
+  },
+  "engines": { "node": ">=22" }
 }

@@ -22,7 +22,7 @@
     "examples/traceRequest": {
       "name": "@evm-transaction-trace/txrequest",
       "dependencies": {
-        "@evm-transaction-trace/tracer": "^1.0.0",
+        "@evm-transaction-trace/tracer": "^2.1.0",
         "pino-pretty": "^13.1.1",
         "viem": "^2.33.3",
         "zod": "^4.0.17",
@@ -38,7 +38,7 @@
     "examples/traceTxHash": {
       "name": "@evm-transaction-trace/txhash",
       "dependencies": {
-        "@evm-transaction-trace/tracer": "^1.0.0",
+        "@evm-transaction-trace/tracer": "^2.1.0",
         "pino-pretty": "^13.1.1",
         "viem": "^2.33.3",
         "zod": "^4.0.17",
@@ -53,7 +53,7 @@
     },
     "packages/tracer": {
       "name": "@evm-transaction-trace/tracer",
-      "version": "1.0.1",
+      "version": "2.1.0",
       "dependencies": {
         "@evm-transaction-trace/utils": "workspace:*",
         "picocolors": "^1.1.1",
@@ -70,7 +70,7 @@
     },
     "packages/utils": {
       "name": "@evm-transaction-trace/utils",
-      "version": "1.0.1",
+      "version": "2.0.0",
       "dependencies": {
         "pino": "9.6.0",
         "pino-pretty": "^13.1.1",
