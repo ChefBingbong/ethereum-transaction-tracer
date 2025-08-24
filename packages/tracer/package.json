@@ -17,14 +17,14 @@
     "clean": "rm -rf .turbo && rm -rf node_modules"
   },
   "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5",
+    "@types/bun": "latest",
     "@evm-transaction-trace/typescript-config": "workspace:*"
   },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
   "dependencies": {
-    "@evm-transaction-trace/utils": "workspace:*",
+    "@evm-transaction-trace/utils": "2.0.0",
     "picocolors": "^1.1.1",
     "viem": "^2.33.3",
     "zod": "^4.0.17"
