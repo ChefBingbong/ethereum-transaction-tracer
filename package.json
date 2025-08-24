@@ -12,7 +12,8 @@
   "scripts": {
     "check-types": "tsc --noEmit",
     "build": "turbo run build",
-    "release": "turbo run build && bun run changeset publish",
+    "build:packages": "turbo run build  --filter='./packages/*'",
+    "release": "bun run build:packages && bun run changeset publish",
     "check": "turbo run check --cache=local:r,remote:r",
     "clean": "turbo run clean && rm -rf node_modules",
     "lint": "biome check .",

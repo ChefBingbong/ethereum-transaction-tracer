@@ -18,7 +18,7 @@
     "directory": "packages/utils"
   },
   "scripts": {
-    "check": "tsc --pretty --noEmit",
+    "check": "tsc --pretty --noEmit ",
     "clean": "rm -rf .turbo node_modules dist",
     "build": "bun run build:js && bun run build:types",
     "build:js": "bun run build:esm && bun run build:cjs",
