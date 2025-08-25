@@ -8,7 +8,11 @@
     "evm-tt": "./dist/bin.cjs"
   },
 
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
 
   "scripts": {
     "clean": "rm -rf dist node_modules",
@@ -17,7 +21,9 @@
     "prepublishOnly": "bun run build"
   },
 
-  "publishConfig": { "access": "public" },
+  "publishConfig": {
+    "access": "public"
+  },
 
   "dependencies": {
     "@evm-tt/tracer": "workspace:*",
@@ -32,5 +38,7 @@
     "@evm-tt/typescript-config": "workspace:*"
   },
 
-  "engines": { "node": ">=22" }
+  "engines": {
+    "node": ">=22"
+  }
 }
