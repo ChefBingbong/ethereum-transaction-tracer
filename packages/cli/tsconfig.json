@@ -1,0 +1,4 @@
+{
+  "extends": "@evm-tt/typescript-config/base.json",
+  "include": ["src"]
+}

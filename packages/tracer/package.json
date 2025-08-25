@@ -39,7 +39,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@evm-tt/utils": "workspace:*",
+    "@evm-tt/utils": "0.1.0",
     "fs-extra": "^11.3.1",
     "picocolors": "^1.1.1",
     "viem": "^2.33.3",
