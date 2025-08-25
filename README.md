@@ -29,10 +29,9 @@ const tracer = new TransactionTracer(client, {
         abi: erc20Abi,
       },
     },
-    contractNames: {
-      [USDT0]: 'USDT',
-    },
-    extraAbis: [erc20Abi],
+    extraAbis: [
+      // useful for abis that have no fixed address
+    ],
   },
   verbosity: LogVerbosity.Highest,
 })
