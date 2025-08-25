@@ -7,7 +7,6 @@ const tracerPkgPath = join(__dirname, '..', 'packages', 'tracer', 'package.json'
 const utilsPkgPath = join(__dirname, '..', 'packages', 'utils', 'package.json')
 const cliPkgPath = join(__dirname, '..', 'packages', 'cli', 'package.json')
 
-
 type Pkg = {
   name: string
   version: string
@@ -22,7 +21,6 @@ const load = (p: string) => JSON.parse(readFileSync(p, 'utf8')) as Pkg
 const tracer = load(tracerPkgPath)
 const utils = load(utilsPkgPath)
 const cli = load(cliPkgPath)
-
 
 const replaceWorkspaces = (obj?: Record<string, string>) => {
   if (!obj) return
@@ -45,4 +43,3 @@ writeFileSync(cliPkgPath, `${JSON.stringify(cli, null, 2)}\n`)
 
 console.log(`Replaced workspace deps in ${tracerPkgPath}`)
 console.log(`Replaced workspace deps in ${cliPkgPath}`)
-
