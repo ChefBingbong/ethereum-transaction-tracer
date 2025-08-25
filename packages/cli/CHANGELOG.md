@@ -1,5 +1,11 @@
 # @evm-tt/cli
 
+## 0.3.0
+
+### Minor Changes
+
+- 1b1397a: fix
+
 ## 0.2.0
 
 ### Minor Changes
