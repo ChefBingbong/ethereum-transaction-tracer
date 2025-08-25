@@ -86,8 +86,6 @@ export type TraceTxRpcSchema = {
 
 export type TraceCallParameters = PrepareTransactionRequestParameters & {
   _chainnt?: Account | Address | undefined
-  tracer?: 'callTracer' | 'prestateTracer'
-  tracerConfig?: { onlyTopCall?: boolean; withLog?: boolean } // ← add withLog
   stateOverride?: StateOverrides
 } & (
     | { blockNumber?: bigint | undefined; blockTag?: undefined }
@@ -96,6 +94,4 @@ export type TraceCallParameters = PrepareTransactionRequestParameters & {
 
 export type TraceTxParameters = {
   txHash: Hex
-  tracer?: 'callTracer' | 'prestateTracer'
-  tracerConfig?: { onlyTopCall?: boolean; withLog?: boolean }
 }

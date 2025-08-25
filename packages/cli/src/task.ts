@@ -78,7 +78,6 @@ export function registerTasks(cli: MiniCli) {
       const { tracer } = makeTracer(a)
       const [err, res] = await tracer.traceTransactionHash({
         txHash: a.hash as `0x${string}`,
-        tracer: 'callTracer',
       })
       if (err) {
         console.error(pc.red('✖ Trace failed:\n'), err)
@@ -109,7 +108,6 @@ export function registerTasks(cli: MiniCli) {
       const { tracer } = makeTracer(args)
       const [err, res] = await tracer.traceTransactionHash({
         txHash: args['hash'] as `0x${string}`,
-        tracer: 'callTracer',
       })
       if (err) {
         console.error(pc.red('✖ Trace failed:\n'), err)
@@ -160,8 +158,6 @@ export function registerTasks(cli: MiniCli) {
         data: a.data as `0x${string}`,
         account: (a.from ?? undefined) as `0x${string}` | undefined,
         chain: client.chain,
-        tracer: 'callTracer',
-        tracerConfig: { withLog: true },
         stateOverride: overrides as any,
       })
 
@@ -198,8 +194,6 @@ export function registerTasks(cli: MiniCli) {
         data: args['data'] as `0x${string}`,
         account: (args['from'] ?? undefined) as `0x${string}` | undefined,
         chain: client.chain,
-        tracer: 'callTracer',
-        tracerConfig: { withLog: true },
         stateOverride: overrides as any,
       })
       if (err) {

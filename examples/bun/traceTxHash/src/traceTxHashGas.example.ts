@@ -70,9 +70,7 @@ const tracer = new TransactionTracer(client, {
 
 if (import.meta.main) {
   const [error, trace] = await tracer.traceGasFromTransactionHash({
-    tracer: 'callTracer',
     txHash: '0xca7c76095ba8babf071ea1795f99c3306513d3dfc2aad24dab890f84d0b9e184',
-    tracerConfig: { withLog: true },
   })
 
   if (error) {
