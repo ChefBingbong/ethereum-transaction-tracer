@@ -47,11 +47,15 @@ const [error, trace] = await tracer.traceCall({
     blockNumber: 9451543n,
     to: TO,
     data: '0x83643.....',
-    tracer: 'callTracer',
     chain: client.chain,
-    tracerConfig: { withLog: true },
     stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
 
+})
+
+// OR TRACE TX HASH
+
+const [error, trace] = await tracer.traceCall({
+    txHash: '0xf4a91c18dad36c9a0717da2375aef02b14bcd0e89dd5f1fc8f19d7952cdb5649,
 })
 ```
 
@@ -70,9 +74,7 @@ you can also get a traces gas profile, which outputs the gas spent by each call 
     blockNumber: 9451543n,
     to: TO,
     data: '0xd46cad.....',
-    tracer: 'callTracer',
     chain: client.chain,
-    tracerConfig: { withLog: true },
     stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
   })
 })
@@ -96,7 +98,6 @@ const TOKEN = '0xdAC17F958D2ee523a2206206994597C13D831ec7' // Token to grant the
 const [error, trace] = await tracer.traceGasCall({
   ...
   stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
-})
 })
 ```
 

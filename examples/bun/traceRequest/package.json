@@ -5,7 +5,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/ChefBingbong/ethereum-transaction-tracer.git",
-    "directory": "examples/traceRequest"
+    "directory": "examples/bun/traceRequest"
   },
   "scripts": {
     "check": "tsc --pretty --noEmit",
@@ -24,7 +24,7 @@
     "@evm-tt/typescript-config": "workspace:*"
   },
   "dependencies": {
-    "@evm-tt/tracer": "workspace:*",
+    "@evm-tt/tracer": "0.3.0",
     "pino-pretty": "^13.1.1",
     "viem": "^2.33.3",
     "zod": "^4.0.17"
