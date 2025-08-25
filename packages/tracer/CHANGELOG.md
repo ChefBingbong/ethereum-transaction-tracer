@@ -1,5 +1,11 @@
 # @evm-tt/tracer
 
+## 0.3.0
+
+### Minor Changes
+
+- c458b60: update tracer config
+
 ## 0.2.0
 
 ### Minor Changes
