@@ -53,7 +53,7 @@
     },
     "packages/cli": {
       "name": "@evm-tt/cli",
-      "version": "0.0.0",
+      "version": "0.3.0",
       "bin": {
         "evm-tt": "./dist/bin.cjs",
       },
@@ -71,9 +71,9 @@
     },
     "packages/tracer": {
       "name": "@evm-tt/tracer",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "dependencies": {
-        "@evm-tt/utils": "workspace:*",
+        "@evm-tt/utils": "0.1.0",
         "fs-extra": "^11.3.1",
         "picocolors": "^1.1.1",
         "viem": "^2.33.3",

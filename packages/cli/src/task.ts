@@ -16,7 +16,7 @@ function makeTracer(args: any) {
     LogVerbosity[(args.verbosity as keyof typeof LogVerbosity) ?? 'Normal'] ?? LogVerbosity.Medium
 
   const tracer = new TransactionTracer(client, {
-    cachePath: args['cache-path'],
+    cachePath: './evm-tt-cache',
     cacheOptions: {
       etherscanApiKey: args['etherscan-key'],
     },
@@ -48,12 +48,12 @@ export function registerTasks(cli: MiniCli) {
           type: 'string',
           required: true,
         })
-        .option({ name: 'chain-id', description: 'Chain ID (default mainnet)', type: 'number' })
-        .option({ name: 'cache-path', description: 'Persistent cache dir', type: 'string' })
+        .option({ name: 'chain-id', description: 'Chain ID (default mainnet)', type: 'number', required: true })
         .option({
           name: 'etherscan-key',
           description: 'Explorer API key for ABI lookups',
           type: 'string',
+          required: true,
         })
         .option({
           name: 'verbosity',
@@ -65,9 +65,8 @@ export function registerTasks(cli: MiniCli) {
       const schema = z.object({
         rpc: z.string().url(),
         hash: z.string().regex(/^0x[0-9a-fA-F]{64}$/),
-        'chain-id': z.number().optional(),
-        'cache-path': z.string().optional(),
-        'etherscan-key': z.string().optional(),
+        'chain-id': z.number(),
+        'etherscan-key': z.string(),
         verbosity: z.string().optional(),
       })
       const a = schema.parse(args)
@@ -88,9 +87,8 @@ export function registerTasks(cli: MiniCli) {
       t.describe('Trace a mined tx with gas focus (same call today, flag for future)')
         .option({ name: 'rpc', type: 'string', required: true, description: 'RPC URL' })
         .option({ name: 'hash', type: 'string', required: true, description: 'Tx hash' })
-        .option({ name: 'chain-id', type: 'number', description: 'Chain ID' })
-        .option({ name: 'cache-path', type: 'string', description: 'Cache dir' })
-        .option({ name: 'etherscan-key', type: 'string', description: 'Explorer key' })
+        .option({ name: 'chain-id', type: 'number', description: 'Chain ID', required: true })
+        .option({ name: 'etherscan-key', type: 'string', description: 'Explorer key', required: true })
         .option({
           name: 'verbosity',
           type: 'string',
