@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@evm-tt/tracer':
-        specifier: 0.2.0
-        version: 0.2.0(typescript@5.9.2)
+        specifier: 0.3.0
+        version: 0.3.0(typescript@5.9.2)
       pino-pretty:
         specifier: ^13.1.1
         version: 13.1.1
@@ -29,8 +29,8 @@ packages:
   '@adraffy/ens-normalize@1.11.0':
     resolution: {integrity: sha512-/3DDPKHqqIqxUULp8yP4zODUY1i+2xvVWsv8A79xGWdCAG+8sb0hRh0Rk2QyOJUnnbyPUAZYcpBuRe3nS2OIUg==}
 
-  '@evm-tt/tracer@0.2.0':
-    resolution: {integrity: sha512-5s+rSpgUbL1WwtGBYOIUarJqVNVQuurTeQOlbL2Ob//XpS2Z7W7UbJl91zEvZd9flnEr9gv38vJNiR7XV8JHKw==}
+  '@evm-tt/tracer@0.3.0':
+    resolution: {integrity: sha512-6Nfixd+IBregPgMYNssDgXEcxiuU2/phnXRG1HNZ+VopZjCFGhL4lKfP9cOoJloGg13RAbuHhg11LjEihMCdAg==}
     engines: {node: '>=22'}
     peerDependencies:
       typescript: ^5
@@ -231,7 +231,7 @@ snapshots:
 
   '@adraffy/ens-normalize@1.11.0': {}
 
-  '@evm-tt/tracer@0.2.0(typescript@5.9.2)':
+  '@evm-tt/tracer@0.3.0(typescript@5.9.2)':
     dependencies:
       '@evm-tt/utils': 0.1.0(typescript@5.9.2)
       fs-extra: 11.3.1

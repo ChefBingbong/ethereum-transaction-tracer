@@ -47,11 +47,15 @@ const [error, trace] = await tracer.traceCall({
     blockNumber: 9451543n,
     to: TO,
     data: '0x83643.....',
-    tracer: 'callTracer',
     chain: client.chain,
-    tracerConfig: { withLog: true },
     stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
 
+})
+
+// OR TRACE TX HASH
+
+const [error, trace] = await tracer.traceCall({
+    txHash: '0xf4a91c18dad36c9a0717da2375aef02b14bcd0e89dd5f1fc8f19d7952cdb5649,
 })
 ```
 
@@ -70,9 +74,7 @@ you can also get a traces gas profile, which outputs the gas spent by each call 
     blockNumber: 9451543n,
     to: TO,
     data: '0xd46cad.....',
-    tracer: 'callTracer',
     chain: client.chain,
-    tracerConfig: { withLog: true },
     stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
   })
 })
@@ -97,8 +99,12 @@ const [error, trace] = await tracer.traceGasCall({
   ...
   stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
 })
-})
 ```
+
+## Try It Out
+
+if you want to try it out. simply check out into the `examples/` workspace in this monorepo. We have examples for `pnpm` and `bun` runtimes. Simpley `cd` into which ever example you desrire. there are two projects for each runTime. `/traceTxRequest` and `/TraceTxHash`. to start, `cd` into `/tracetXhash` and run `pnpm i` or `bun i` depending on which and to test out the examples run `bun run trace:tx` or `pnpm run trace:tx`. To run the `trace:request` script properly you will need an alchemy RPC URL.
+
 
 ## Contributing
 
