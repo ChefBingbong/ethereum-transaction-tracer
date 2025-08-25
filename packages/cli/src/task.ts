@@ -48,7 +48,12 @@ export function registerTasks(cli: MiniCli) {
           type: 'string',
           required: true,
         })
-        .option({ name: 'chain-id', description: 'Chain ID (default mainnet)', type: 'number', required: true })
+        .option({
+          name: 'chain-id',
+          description: 'Chain ID (default mainnet)',
+          type: 'number',
+          required: true,
+        })
         .option({
           name: 'etherscan-key',
           description: 'Explorer API key for ABI lookups',
@@ -88,7 +93,12 @@ export function registerTasks(cli: MiniCli) {
         .option({ name: 'rpc', type: 'string', required: true, description: 'RPC URL' })
         .option({ name: 'hash', type: 'string', required: true, description: 'Tx hash' })
         .option({ name: 'chain-id', type: 'number', description: 'Chain ID', required: true })
-        .option({ name: 'etherscan-key', type: 'string', description: 'Explorer key', required: true })
+        .option({
+          name: 'etherscan-key',
+          type: 'string',
+          description: 'Explorer key',
+          required: true,
+        })
         .option({
           name: 'verbosity',
           type: 'string',
