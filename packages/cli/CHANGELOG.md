@@ -1,5 +1,16 @@
 # @evm-tt/cli
 
+## 0.5.0
+
+### Minor Changes
+
+- c458b60: update tracer config
+
+### Patch Changes
+
+- Updated dependencies [c458b60]
+  - @evm-tt/tracer@0.3.0
+
 ## 0.4.0
 
 ### Minor Changes
