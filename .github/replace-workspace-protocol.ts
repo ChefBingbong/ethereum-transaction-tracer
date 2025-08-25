@@ -38,6 +38,12 @@ replaceWorkspaces(tracer.devDependencies)
 replaceWorkspaces(tracer.peerDependencies)
 replaceWorkspaces(tracer.optionalDependencies)
 
+
+replaceWorkspaces(cli.dependencies)
+replaceWorkspaces(cli.devDependencies)
+replaceWorkspaces(cli.peerDependencies)
+replaceWorkspaces(cli.optionalDependencies)
+
 writeFileSync(tracerPkgPath, `${JSON.stringify(tracer, null, 2)}\n`)
 writeFileSync(cliPkgPath, `${JSON.stringify(cli, null, 2)}\n`)
 
