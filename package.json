@@ -12,6 +12,7 @@
     "url": "https://github.com/ChefBingbong/ethereum-transaction-tracer.git"
   },
   "scripts": {
+    "evm-tt": "node packages/cli/dist/bin.js",
     "check-types": "tsc --noEmit",
     "build": "turbo run build",
     "build:packages": "turbo run build  --filter='./packages/*'",

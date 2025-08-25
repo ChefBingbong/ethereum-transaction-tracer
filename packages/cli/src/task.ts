@@ -1,239 +1,203 @@
-import { HardhatError } from './argumentTypes'
-import {
-  OverriddenTaskDefinition,
-  SimpleScopeDefinition,
-  SimpleTaskDefinition,
-} from './taskDefinitions'
-import type {
-  ActionType,
-  ScopeDefinition,
-  ScopesMap,
-  TaskArguments,
-  TaskDefinition,
-  TaskIdentifier,
-  TasksMap,
-} from './types'
+import { LogVerbosity, TransactionTracer } from '@evm-tt/tracer'
+import pc from 'picocolors'
+import { createPublicClient, http } from 'viem'
+import { mainnet } from 'viem/chains'
+import { z } from 'zod'
+import type { MiniCli } from './cli'
 
-export function parseTaskIdentifier(taskIdentifier: TaskIdentifier): {
-  scope: string | undefined
-  task: string
-} {
-  if (typeof taskIdentifier === 'string') {
-    return {
-      scope: undefined,
-      task: taskIdentifier,
-    }
-  } else {
-    return {
-      scope: taskIdentifier.scope,
-      task: taskIdentifier.task,
-    }
-  }
+function makeClient(rpc: string, chainId?: number) {
+  const chain = chainId ? { ...mainnet, id: chainId } : mainnet
+  return createPublicClient({ chain, transport: http(rpc) })
 }
 
-/**
- * This class defines the DSL used in Hardhat config files
- * for creating and overriding tasks.
- */
-export class TasksDSL {
-  public readonly internalTask = this.subtask
+function makeTracer(args: any) {
+  const client = makeClient(args.rpc, args['chain-id'])
+  const verbosity =
+    LogVerbosity[(args.verbosity as keyof typeof LogVerbosity) ?? 'Normal'] ?? LogVerbosity.Medium
 
-  private readonly _tasks: TasksMap = {}
-  private readonly _scopes: ScopesMap = {}
+  const tracer = new TransactionTracer(client, {
+    cachePath: args['cache-path'],
+    cacheOptions: {
+      etherscanApiKey: args['etherscan-key'],
+    },
+    verbosity,
+  })
+  return { client, tracer }
+}
 
-  /**
-   * Creates a task, overriding any previous task with the same name.
-   *
-   * @remarks The action must await every async call made within it.
-   *
-   * @param name The task's name.
-   * @param description The task's description.
-   * @param action The task's action.
-   * @returns A task definition.
-   */
-  public task<TaskArgumentsT extends TaskArguments>(
-    name: string,
-    description?: string,
-    action?: ActionType<TaskArgumentsT>,
-  ): TaskDefinition
+function loadOverrides(path?: string) {
+  if (!path) return undefined
+  const resolved = require('node:path').resolve(String(path))
+  const json = require(resolved)
+  return json
+}
 
-  /**
-   * Creates a task without description, overriding any previous task
-   * with the same name.
-   *
-   * @remarks The action must await every async call made within it.
-   *
-   * @param name The task's name.
-   * @param action The task's action.
-   *
-   * @returns A task definition.
-   */
-  public task<TaskArgumentsT extends TaskArguments>(
-    name: string,
-    action: ActionType<TaskArgumentsT>,
-  ): TaskDefinition
-
-  public task<TaskArgumentsT extends TaskArguments>(
-    name: string,
-    descriptionOrAction?: string | ActionType<TaskArgumentsT>,
-    action?: ActionType<TaskArgumentsT>,
-  ): TaskDefinition {
-    // if this function is updated, update the corresponding callback
-    // passed to `new SimpleScopeDefinition`
-    return this._addTask(name, descriptionOrAction, action, false)
-  }
-
-  /**
-   * Creates a subtask, overriding any previous task with the same name.
-   *
-   * @remarks The subtasks won't be displayed in the CLI help messages.
-   * @remarks The action must await every async call made within it.
-   *
-   * @param name The task's name.
-   * @param description The task's description.
-   * @param action The task's action.
-   * @returns A task definition.
-   */
-  public subtask<TaskArgumentsT extends TaskArguments>(
-    name: string,
-    description?: string,
-    action?: ActionType<TaskArgumentsT>,
-  ): TaskDefinition
-
-  /**
-   * Creates a subtask without description, overriding any previous
-   * task with the same name.
-   *
-   * @remarks The subtasks won't be displayed in the CLI help messages.
-   * @remarks The action must await every async call made within it.
-   *
-   * @param name The task's name.
-   * @param action The task's action.
-   * @returns A task definition.
-   */
-  public subtask<TaskArgumentsT extends TaskArguments>(
-    name: string,
-    action: ActionType<TaskArgumentsT>,
-  ): TaskDefinition
-  public subtask<TaskArgumentsT extends TaskArguments>(
-    name: string,
-    descriptionOrAction?: string | ActionType<TaskArgumentsT>,
-    action?: ActionType<TaskArgumentsT>,
-  ): TaskDefinition {
-    // if this function is updated, update the corresponding callback
-    // passed to `new SimpleScopeDefinition`
-    return this._addTask(name, descriptionOrAction, action, true)
-  }
-
-  public scope(name: string, description?: string): ScopeDefinition {
-    if (this._tasks[name] !== undefined) {
-      throw new HardhatError('ERRORS.TASK_DEFINITIONS.TASK_SCOPE_CLASH', {
-        scopeName: name,
+export function registerTasks(cli: MiniCli) {
+  cli
+    .task('traceTx', (t) => {
+      t.describe('Trace a mined transaction by hash')
+        .option({
+          name: 'rpc',
+          description: 'RPC URL (must support debug_trace*)',
+          type: 'string',
+          required: true,
+        })
+        .option({
+          name: 'hash',
+          description: 'Transaction hash (0x...)',
+          type: 'string',
+          required: true,
+        })
+        .option({ name: 'chain-id', description: 'Chain ID (default mainnet)', type: 'number' })
+        .option({ name: 'cache-path', description: 'Persistent cache dir', type: 'string' })
+        .option({
+          name: 'etherscan-key',
+          description: 'Explorer API key for ABI lookups',
+          type: 'string',
+        })
+        .option({
+          name: 'verbosity',
+          description: 'Lowest|Low|Normal|High|Highest',
+          type: 'string',
+        })
+    })
+    .action(async (args) => {
+      const schema = z.object({
+        rpc: z.string().url(),
+        hash: z.string().regex(/^0x[0-9a-fA-F]{64}$/),
+        'chain-id': z.number().optional(),
+        'cache-path': z.string().optional(),
+        'etherscan-key': z.string().optional(),
+        verbosity: z.string().optional(),
       })
-    }
-
-    const scopeDefinition = this._scopes[name]
-
-    if (scopeDefinition !== undefined) {
-      // if the scope already exists, the only thing we might
-      // do is to update its description
-      if (description !== undefined) {
-        scopeDefinition.setDescription(description)
+      const a = schema.parse(args)
+      const { tracer } = makeTracer(a)
+      const [err, res] = await tracer.traceTransactionHash({
+        txHash: a.hash as `0x${string}`,
+        tracer: 'callTracer',
+      })
+      if (err) {
+        console.error(pc.red('✖ Trace failed:\n'), err)
+        process.exit(1)
       }
+      console.log(res)
+    })
 
-      return scopeDefinition
-    }
-
-    const scope = new SimpleScopeDefinition(
-      name,
-      description,
-      (taskName, descriptionOrAction, action) =>
-        // if this function is updated, update the dsl.task function too
-        this._addTask({ scope: name, task: taskName }, descriptionOrAction, action, false),
-      (subtaskName, descriptionOrAction, action) =>
-        // if this function is updated, update the dsl.subtask function too
-        this._addTask({ scope: name, task: subtaskName }, descriptionOrAction, action, true),
-    )
-
-    this._scopes[name] = scope
-
-    return scope
-  }
-
-  /**
-   * Retrieves the task definitions.
-   *
-   * @returns The tasks container.
-   */
-  public getTaskDefinitions(): TasksMap {
-    return this._tasks
-  }
-
-  /**
-   * Retrieves the scoped task definitions.
-   *
-   * @returns The scoped tasks container.
-   */
-  public getScopesDefinitions(): ScopesMap {
-    return this._scopes
-  }
-
-  public getTaskDefinition(scope: string | undefined, name: string): TaskDefinition | undefined {
-    if (scope === undefined) {
-      return this._tasks[name]
-    } else {
-      return this._scopes[scope]?.tasks?.[name]
-    }
-  }
-
-  private _addTask<TaskArgumentsT extends TaskArguments>(
-    taskIdentifier: TaskIdentifier,
-    descriptionOrAction?: string | ActionType<TaskArgumentsT>,
-    action?: ActionType<TaskArgumentsT>,
-    isSubtask?: boolean,
-  ) {
-    const { scope, task } = parseTaskIdentifier(taskIdentifier)
-
-    if (scope === undefined && this._scopes[task] !== undefined) {
-      throw new HardhatError('ERRORS.TASK_DEFINITIONS.SCOPE_TASK_CLASH', {
-        taskName: task,
+  cli
+    .task('traceGasTx', (t) => {
+      t.describe('Trace a mined tx with gas focus (same call today, flag for future)')
+        .option({ name: 'rpc', type: 'string', required: true, description: 'RPC URL' })
+        .option({ name: 'hash', type: 'string', required: true, description: 'Tx hash' })
+        .option({ name: 'chain-id', type: 'number', description: 'Chain ID' })
+        .option({ name: 'cache-path', type: 'string', description: 'Cache dir' })
+        .option({ name: 'etherscan-key', type: 'string', description: 'Explorer key' })
+        .option({
+          name: 'verbosity',
+          type: 'string',
+          description: 'Lowest|Low|Normal|High|Highest',
+        })
+    })
+    .action(async (args) => {
+      const { tracer } = makeTracer(args)
+      const [err, res] = await tracer.traceTransactionHash({
+        txHash: args['hash'] as `0x${string}`,
+        tracer: 'callTracer',
       })
-    }
+      if (err) {
+        console.error(pc.red('✖ Trace failed:\n'), err)
+        process.exit(1)
+      }
+      console.log(res)
+    })
 
-    const parentTaskDefinition = this.getTaskDefinition(scope, task)
+  cli
+    .task('traceRequest', (t) => {
+      t.describe('Simulate calldata and trace (debug_traceCall)')
+        .option({ name: 'rpc', type: 'string', required: true, description: 'RPC URL' })
+        .option({ name: 'to', type: 'string', required: true, description: 'Target address' })
+        .option({ name: 'data', type: 'string', required: true, description: 'Calldata 0x...' })
+        .option({ name: 'from', type: 'string', description: 'From address' })
+        .option({ name: 'state-file', type: 'string', description: 'Path to stateOverrides JSON' })
+        .option({ name: 'chain-id', type: 'number', description: 'Chain ID' })
+        .option({ name: 'cache-path', type: 'string', description: 'Cache dir' })
+        .option({ name: 'etherscan-key', type: 'string', description: 'Explorer key' })
+        .option({
+          name: 'verbosity',
+          type: 'string',
+          description: 'Lowest|Low|Normal|High|Highest',
+        })
+    })
+    .action(async (args) => {
+      const s = z.object({
+        rpc: z.string().url(),
+        to: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
+        data: z.string().regex(/^0x[a-fA-F0-9]*$/),
+        from: z
+          .string()
+          .regex(/^0x[a-fA-F0-9]{40}$/)
+          .optional(),
+        'state-file': z.string().optional(),
+        'chain-id': z.number().optional(),
+        'cache-path': z.string().optional(),
+        'etherscan-key': z.string().optional(),
+        verbosity: z.string().optional(),
+      })
+      const a = s.parse(args)
 
-    let taskDefinition: TaskDefinition
+      const { tracer, client } = makeTracer(a)
+      const overrides = loadOverrides(a['state-file'])
 
-    if (parentTaskDefinition !== undefined) {
-      taskDefinition = new OverriddenTaskDefinition(parentTaskDefinition, isSubtask)
-    } else {
-      taskDefinition = new SimpleTaskDefinition(taskIdentifier, isSubtask)
-    }
+      const [err, res] = await tracer.traceCall({
+        to: a.to as `0x${string}`,
+        data: a.data as `0x${string}`,
+        account: (a.from ?? undefined) as `0x${string}` | undefined,
+        chain: client.chain,
+        tracer: 'callTracer',
+        tracerConfig: { withLog: true },
+        stateOverride: overrides as any,
+      })
 
-    if (descriptionOrAction instanceof Function) {
-      action = descriptionOrAction
-      descriptionOrAction = undefined
-    }
+      if (err) {
+        console.error(pc.red('✖ Trace failed:\n'), err)
+        process.exit(1)
+      }
+      console.log(res)
+    })
 
-    if (descriptionOrAction !== undefined) {
-      taskDefinition.setDescription(descriptionOrAction)
-    }
-
-    if (action !== undefined) {
-      taskDefinition.setAction(action)
-    }
-
-    if (scope === undefined) {
-      this._tasks[task] = taskDefinition
-    } else {
-      //   const scopeDefinition = this._scopes[scope]
-      //   assertHardhatInvariant(
-      //     scopeDefinition !== undefined,
-      //     "It shouldn't be possible to create a task in a scope that doesn't exist",
-      //   )
-      //   scopeDefinition.tasks[task] = taskDefinition
-    }
-
-    return taskDefinition
-  }
+  cli
+    .task('traceGasRequest', (t) => {
+      t.describe('Simulate calldata and trace with gas focus')
+        .option({ name: 'rpc', type: 'string', required: true, description: 'RPC URL' })
+        .option({ name: 'to', type: 'string', required: true, description: 'Target address' })
+        .option({ name: 'data', type: 'string', required: true, description: 'Calldata 0x...' })
+        .option({ name: 'from', type: 'string', description: 'From address' })
+        .option({ name: 'state-file', type: 'string', description: 'Path to stateOverrides JSON' })
+        .option({ name: 'chain-id', type: 'number', description: 'Chain ID' })
+        .option({ name: 'cache-path', type: 'string', description: 'Cache dir' })
+        .option({ name: 'etherscan-key', type: 'string', description: 'Explorer key' })
+        .option({
+          name: 'verbosity',
+          type: 'string',
+          description: 'Lowest|Low|Normal|High|Highest',
+        })
+    })
+    .action(async (args) => {
+      const { tracer, client } = makeTracer(args)
+      const overrides = loadOverrides(args['state-file'])
+      // TODO: pass gas-profiler toggle if/when supported
+      const [err, res] = await tracer.traceCall({
+        to: args['to'] as `0x${string}`,
+        data: args['data'] as `0x${string}`,
+        account: (args['from'] ?? undefined) as `0x${string}` | undefined,
+        chain: client.chain,
+        tracer: 'callTracer',
+        tracerConfig: { withLog: true },
+        stateOverride: overrides as any,
+      })
+      if (err) {
+        console.error(pc.red('✖ Trace failed:\n'), err)
+        process.exit(1)
+      }
+      console.log(res)
+    })
 }
