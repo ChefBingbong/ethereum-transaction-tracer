@@ -1,5 +1,12 @@
 # @evm-tt/tracer
 
+## 0.2.0
+
+### Minor Changes
+
+- 9baeda7: added cli
+- 32bf2d0: fix
+
 ## 0.1.0
 
 ### Minor Changes
