@@ -38,7 +38,6 @@ replaceWorkspaces(tracer.devDependencies)
 replaceWorkspaces(tracer.peerDependencies)
 replaceWorkspaces(tracer.optionalDependencies)
 
-
 replaceWorkspaces(cli.dependencies)
 replaceWorkspaces(cli.devDependencies)
 replaceWorkspaces(cli.peerDependencies)
