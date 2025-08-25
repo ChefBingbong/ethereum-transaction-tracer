@@ -19,41 +19,9 @@
       "name": "@evm-tt/typescript-config",
       "version": "0.1.0",
     },
-    "examples/traceRequest": {
-      "name": "@evm-tt/txrequest",
-      "dependencies": {
-        "@evm-tt/tracer": "workspace:*",
-        "pino-pretty": "^13.1.1",
-        "viem": "^2.33.3",
-        "zod": "^4.0.17",
-      },
-      "devDependencies": {
-        "@types/bun": "latest",
-      },
-      "peerDependencies": {
-        "@evm-tt/typescript-config": "workspace:*",
-        "typescript": "^5",
-      },
-    },
-    "examples/traceTxHash": {
-      "name": "@evm-tt/txhash",
-      "dependencies": {
-        "@evm-tt/tracer": "workspace:*",
-        "pino-pretty": "^13.1.1",
-        "viem": "^2.33.3",
-        "zod": "^4.0.17",
-      },
-      "devDependencies": {
-        "@types/bun": "latest",
-      },
-      "peerDependencies": {
-        "@evm-tt/typescript-config": "workspace:*",
-        "typescript": "^5",
-      },
-    },
     "packages/cli": {
       "name": "@evm-tt/cli",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "bin": {
         "evm-tt": "./dist/bin.cjs",
       },
@@ -216,10 +184,6 @@
     "@evm-tt/cli": ["@evm-tt/cli@workspace:packages/cli"],
 
     "@evm-tt/tracer": ["@evm-tt/tracer@workspace:packages/tracer"],
-
-    "@evm-tt/txhash": ["@evm-tt/txhash@workspace:examples/traceTxHash"],
-
-    "@evm-tt/txrequest": ["@evm-tt/txrequest@workspace:examples/traceRequest"],
 
     "@evm-tt/typescript-config": ["@evm-tt/typescript-config@workspace:config/typescript"],
 
