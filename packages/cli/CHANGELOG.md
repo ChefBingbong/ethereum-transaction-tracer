@@ -1,5 +1,11 @@
 # @evm-tt/cli
 
+## 0.4.0
+
+### Minor Changes
+
+- cc76c8a: fix cli distribution
+
 ## 0.3.0
 
 ### Minor Changes
