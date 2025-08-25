@@ -3,28 +3,26 @@
   "version": "0.0.0",
   "license": "ISC",
   "type": "module",
-
   "bin": {
     "evm-tt": "./dist/bin.cjs"
   },
-
   "files": [
+    "src",
     "dist",
     "README.md",
     "LICENSE"
   ],
-
   "scripts": {
-    "clean": "rm -rf dist node_modules",
+    "check": "tsc --pretty --noEmit",
+    "clean": "rm -rf .turbo node_modules dist",
     "build": "bun run clean && bun run build:cjs",
     "build:cjs": "tsc -p tsconfig.json --module commonjs --moduleResolution node --outDir ./dist --rootDir ./src --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > ./dist/package.json",
-    "prepublishOnly": "bun run build"
+    "prepublishOnly": "bun run build",
+    "prepack": "bun ../../.github/replace-workspace-protocol.ts"
   },
-
   "publishConfig": {
     "access": "public"
   },
-
   "dependencies": {
     "@evm-tt/tracer": "workspace:*",
     "commander": "^12.1.0",
@@ -32,7 +30,6 @@
     "viem": "^2.34.0",
     "zod": "^4.1.1"
   },
-
   "devDependencies": {
     "@types/bun": "latest",
     "@evm-tt/typescript-config": "workspace:*"
