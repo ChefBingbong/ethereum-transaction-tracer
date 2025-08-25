@@ -101,6 +101,11 @@ const [error, trace] = await tracer.traceGasCall({
 })
 ```
 
+## Try It Out
+
+if you want to try it out. simply check out into the `examples/` workspace in this monorepo. We have examples for `pnpm` and `bun` runtimes. Simpley `cd` into which ever example you desrire. there are two projects for each runTime. `/traceTxRequest` and `/TraceTxHash`. to start, `cd` into `/tracetXhash` and run `pnpm i` or `bun i` depending on which and to test out the examples run `bun run trace:tx` or `pnpm run trace:tx`. To run the `trace:request` script properly you will need an alchemy RPC URL.
+
+
 ## Contributing
 
 If you're interested in contributing, please read the [contributing docs]('https://github.com/ChefBingbong/ethereum-transaction-tracer/blob/main/docs/CONTRIBUTING.md) **before submitting a pull request**.

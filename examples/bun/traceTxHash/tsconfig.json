@@ -1,3 +1,25 @@
 {
-  "extends": "@evm-tt/typescript-config/base.json"
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Default",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleDetection": "force",
+    "allowJs": false,
+
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "types": ["bun-types"],
+    "esModuleInterop": true,
+    "sourceMap": true
+  }
 }
