@@ -1,5 +1,11 @@
 # @evm-tt/cli
 
+## 0.8.0
+
+### Minor Changes
+
+- c153585: rm gradient string
+
 ## 0.7.0
 
 ### Minor Changes
