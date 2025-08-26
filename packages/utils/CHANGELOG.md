@@ -1,5 +1,11 @@
 # @evm-tt/utils
 
+## 0.2.0
+
+### Minor Changes
+
+- d800b35: refactor cli app
+
 ## 0.1.0
 
 ### Minor Changes

@@ -1,5 +1,16 @@
 # @evm-tt/tracer
 
+## 0.4.0
+
+### Minor Changes
+
+- d800b35: refactor cli app
+
+### Patch Changes
+
+- Updated dependencies [d800b35]
+  - @evm-tt/utils@0.2.0
+
 ## 0.3.0
 
 ### Minor Changes
