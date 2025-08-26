@@ -1,6 +1,6 @@
-import { logger } from '@evm-tt/utils'
 import { execSync } from 'node:child_process'
 import https from 'node:https'
+import { logger } from '@evm-tt/utils'
 import { getPackageVersion } from './getPackageVersion'
 
 /**

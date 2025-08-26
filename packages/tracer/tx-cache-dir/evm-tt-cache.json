@@ -1,37 +1,13 @@
 {
   "contractNames": [
-    [
-      "0x66a9893cc07d91d95644aedd05d03f95e1dba8af",
-      "UniversalRouter"
-    ],
-    [
-      "0x000000000022d473030f116ddee9f6b43ac78ba3",
-      "Permit2"
-    ],
-    [
-      "0x3416cf6c708da44db2624d63ea0aaef7113527c6",
-      "UniswapV3Pool"
-    ],
-    [
-      "0xdac17f958d2ee523a2206206994597c13d831ec7",
-      "TetherToken"
-    ],
-    [
-      "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-      "FiatTokenProxy"
-    ],
-    [
-      "0x43506849d7c04f9138d1a2050bbf3a0c054402dd",
-      "FiatTokenV2_2"
-    ],
-    [
-      "0x000000000004444c5dc75cb358380d2e3de08a90",
-      "PoolManager"
-    ],
-    [
-      "0xcccccccccc33d538dbc2ee4feab0a7a1ff4e8a94",
-      "CFG"
-    ]
+    ["0x66a9893cc07d91d95644aedd05d03f95e1dba8af", "UniversalRouter"],
+    ["0x000000000022d473030f116ddee9f6b43ac78ba3", "Permit2"],
+    ["0x3416cf6c708da44db2624d63ea0aaef7113527c6", "UniswapV3Pool"],
+    ["0xdac17f958d2ee523a2206206994597c13d831ec7", "TetherToken"],
+    ["0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48", "FiatTokenProxy"],
+    ["0x43506849d7c04f9138d1a2050bbf3a0c054402dd", "FiatTokenV2_2"],
+    ["0x000000000004444c5dc75cb358380d2e3de08a90", "PoolManager"],
+    ["0xcccccccccc33d538dbc2ee4feab0a7a1ff4e8a94", "CFG"]
   ],
   "fourByteDir": [
     [

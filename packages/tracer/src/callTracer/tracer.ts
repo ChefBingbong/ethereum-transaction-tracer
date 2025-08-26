@@ -1,7 +1,7 @@
 import { safeError, safeResult, safeTry } from '@evm-tt/utils'
 import { ProgressBar } from '@opentf/cli-pbar'
 import {
-  BaseError,
+  type BaseError,
   formatTransactionRequest,
   numberToHex,
   type PublicClient,
