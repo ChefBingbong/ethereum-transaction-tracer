@@ -128,8 +128,13 @@ export class TracerCache {
     return `${item.name}(${(item.inputs ?? []).map((i) => i.type).join(',')})`
   }
 
-  public prefetchUnknownAbis = async (addresses: Address[]) => {
+  public prefetchUnknownAbis = async (
+    addresses: Address[],
+    updateProgressCb?: (v: number) => void,
+  ) => {
     if (!this.input?.etherscanApiKey) return
+
+    const value = Number((100 / addresses.length).toFixed(2))
     for (let i = 0; i < addresses.length; i += ETHERSCAN_RATE_LIMIT) {
       const results = await Promise.all(
         addresses.slice(i, i + ETHERSCAN_RATE_LIMIT).map(async (a) => {
@@ -138,6 +143,8 @@ export class TracerCache {
             this.chainId,
             this.input?.etherscanApiKey,
           )
+
+          updateProgressCb?.(value)
           return error ? undefined : result
         }),
       )

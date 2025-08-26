@@ -12,6 +12,7 @@ import type { CacheOptions } from './types.cache'
 export type TraaceOptions = {
   cachePath: string
   cacheOptions?: CacheOptions
+  showProgressBar?: boolean
   logDebug?: boolean
   verbosity?: LogVerbosity
 }
@@ -85,6 +86,7 @@ export type TraceTxRpcSchema = {
 }
 
 export type TraceCallParameters = PrepareTransactionRequestParameters & {
+  showProgressBar?: boolean
   _chainnt?: Account | Address | undefined
   stateOverride?: StateOverrides
 } & (

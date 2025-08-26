@@ -1,4 +1,4 @@
-import { hexToBig, LoggerProvider, safeError, safeResult, safeTry } from '@evm-tt/utils'
+import { hexToBig, safeError, safeResult, safeTry } from '@evm-tt/utils'
 import pc from 'picocolors'
 import type { TracerCache } from '../cache/index'
 import type { Decoder } from '../decoder'
@@ -7,20 +7,16 @@ import { LogVerbosity, type RpcCallTrace } from '../types'
 import { TraceFormatter } from './prettyPrinter'
 
 export class TracePrettyPrinter {
-  private readonly logger: LoggerProvider
   private readonly formatter: TraceFormatter
   private readonly sink: LineSink
 
   constructor(
     private readonly cache: TracerCache,
     private readonly decoder: Decoder,
-    private readonly level: boolean,
     private verbosity: LogVerbosity,
   ) {
     this.sink = (line) => console.log(line)
     this.formatter = new TraceFormatter(this.decoder, this.cache, verbosity)
-    this.logger = new LoggerProvider(this.level)
-    this.logger.init()
   }
 
   public async formatTraceColored(root: RpcCallTrace, _opts?: PrettyOpts) {

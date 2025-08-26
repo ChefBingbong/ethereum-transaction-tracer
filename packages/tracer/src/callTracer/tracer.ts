@@ -1,12 +1,13 @@
 import { safeError, safeResult, safeTry } from '@evm-tt/utils'
+import { ProgressBar } from '@opentf/cli-pbar'
 import {
-  BaseError,
+  type BaseError,
   formatTransactionRequest,
   numberToHex,
   type PublicClient,
   type TransactionRequest,
 } from 'viem'
-import { extract, getTransactionError, parseAccount, recoverAuthorizationAddress } from 'viem/utils'
+import { extract, getTransactionError, parseAccount } from 'viem/utils'
 import { TracerCache } from '../cache'
 import { Decoder } from '../decoder'
 import { TracePrettyPrinter } from '../format'
@@ -25,6 +26,8 @@ export class TransactionTracer {
   public chainId?: number
   private client: PublicClient
   private printer: TracePrettyPrinter
+  private progressBar: ProgressBar | undefined
+  private pbCount = 0
 
   constructor(client: PublicClient, args: TraaceOptions) {
     this.client = client
@@ -36,13 +39,19 @@ export class TransactionTracer {
 
     this.cache = new TracerCache(this.chainId, args.cachePath, args.cacheOptions)
     this.decoder = new Decoder(this.cache)
-
     this.printer = new TracePrettyPrinter(
       this.cache,
       this.decoder,
-      args.logDebug ?? false,
       args.verbosity ?? LogVerbosity.Highest,
     )
+    if (args.showProgressBar) {
+      this.progressBar = new ProgressBar({
+        prefix: 'tracing Transaction',
+        showPercent: false,
+        showCount: true,
+      })
+      this.pbCount = 0
+    }
     this.cache.load()
   }
 
@@ -57,6 +66,8 @@ export class TransactionTracer {
         parameters: ['blobVersionedHashes', 'chainId', 'fees', 'nonce', 'type'],
       }),
     )
+
+    this.updateProgressBar(2)
 
     if (error) {
       return safeError(
@@ -88,18 +99,6 @@ export class TransactionTracer {
     const blockNumberHex = blockNumber ? numberToHex(blockNumber) : undefined
     const block = blockNumberHex || blockTag
 
-    const to = await (async () => {
-      if (tx.to) return tx.to
-      if (authorizationList && authorizationList.length > 0)
-        return await recoverAuthorizationAddress({
-          authorization: authorizationList[0],
-        }).catch(() => {
-          throw new BaseError('`to` is required. Could not infer from `authorizationList`')
-        })
-
-      return undefined
-    })()
-
     const chainFormat = this.client.chain?.formatters?.transactionRequest?.format
     const format = chainFormat || formatTransactionRequest
 
@@ -117,7 +116,7 @@ export class TransactionTracer {
       maxFeePerGas,
       maxPriorityFeePerGas,
       nonce,
-      to,
+      to: tx.to,
       value,
       stateOverride,
     } as TransactionRequest)
@@ -153,10 +152,14 @@ export class TransactionTracer {
       )
     }
 
+    this.updateProgressBar(2)
+
     const calls = this.cache.getUnknownAbisFromCall(trace)
     const [fetchError, _] = await safeTry(() => {
-      return this.cache.prefetchUnknownAbis(calls)
+      return this.cache.prefetchUnknownAbis(calls, this.updateProgressBar)
     })
+
+    this.stopProgressBar()
 
     return fetchError ? safeError(fetchError) : safeResult(trace)
   }
@@ -180,6 +183,7 @@ export class TransactionTracer {
         { retryCount: 0 },
       ),
     )
+    this.updateProgressBar(6)
 
     if (error) {
       return safeError(
@@ -192,13 +196,16 @@ export class TransactionTracer {
 
     const calls = this.cache.getUnknownAbisFromCall(trace)
     const [fetchError, _] = await safeTry(() => {
-      return this.cache.prefetchUnknownAbis(calls)
+      return this.cache.prefetchUnknownAbis(calls, this.updateProgressBar)
     })
+
+    this.stopProgressBar()
 
     return fetchError ? safeError(fetchError) : safeResult(trace)
   }
 
   public traceCall = async ({ stateOverride, ...args }: TraceCallParameters) => {
+    this.startProgressBar()
     const [traceError, trace] = await this.callTraceRequest({
       stateOverride,
       ...args,
@@ -218,7 +225,11 @@ export class TransactionTracer {
       showReturnData: true,
       showLogs: true,
       progress: {
-        onUpdate: () => null,
+        onUpdate: (value: number) => {
+          if (args.showProgressBar) {
+            this.updateProgressBar(value)
+          }
+        },
         includeLogs: true,
       },
     })
@@ -226,6 +237,7 @@ export class TransactionTracer {
   }
 
   public traceTransactionHash = async ({ txHash }: TraceTxParameters) => {
+    this.startProgressBar()
     const [error, trace] = await this.callTraceTxHash({
       txHash,
     })
@@ -252,6 +264,7 @@ export class TransactionTracer {
   }
 
   public traceGasCall = async ({ stateOverride, ...args }: TraceCallParameters) => {
+    this.startProgressBar()
     const [traceError, trace] = await this.callTraceRequest({
       stateOverride,
       ...args,
@@ -272,6 +285,7 @@ export class TransactionTracer {
   }
 
   public traceGasFromTransactionHash = async ({ txHash }: TraceTxParameters) => {
+    this.startProgressBar()
     const [error, trace] = await this.callTraceTxHash({ txHash })
 
     if (error) {
@@ -285,5 +299,22 @@ export class TransactionTracer {
 
     const [formatError, _] = await this.printer.formatGasTraceColored(trace)
     return formatError ? safeError(formatError) : safeResult(_)
+  }
+
+  private updateProgressBar = (value: number) => {
+    if (!this.progressBar) return
+    this.progressBar.update({ value: this.pbCount })
+    this.pbCount += value
+  }
+
+  private stopProgressBar = () => {
+    if (!this.progressBar) return
+    this.progressBar.update({ value: 100 })
+    this.progressBar.stop()
+  }
+
+  private startProgressBar = () => {
+    if (!this.progressBar) return
+    this.progressBar.start({ total: 100 })
   }
 }
