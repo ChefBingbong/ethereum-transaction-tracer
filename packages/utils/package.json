@@ -46,12 +46,14 @@
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
+      "bun": "./src/types/index.ts",
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js",
       "default": "./dist/esm/index.js"
     },
     "./data-structures": {
-      "types": "./dist/types/data-structures/index.d.ts",
+      "types": "./dist/data-structures/index.d.ts",
+      "bun": "./src/data-structures/index.ts",
       "import": "./dist/esm/data-structures/index.js",
       "require": "./dist/cjs/data-structures/index.js",
       "default": "./dist/esm/data-structures/index.js"

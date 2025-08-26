@@ -1,9 +1,13 @@
 import * as cliPrompt from '@clack/prompts'
-import { validateApiKey, validateChainId, validateRpcUrl } from '@evm-tt/utils'
+import { logger, validateApiKey, validateChainId, validateRpcUrl } from '@evm-tt/utils'
 import { clearEnvFile, getEnvPath, loadEnv, saveEnv, setEtherscanInEnv, setRpcInEnv } from './env'
 
 export async function runInteractiveSetup() {
-  cliPrompt.intro('\n\n   evm-tt Interactive setup & config')
+  cliPrompt.intro('evm-tt Interactive setup & config')
+  logger.info('   You can use this interactive cli to pre-set enviornment variables that would other wise')
+  logger.info('   have to be passed through on the command line. you currently can set your etherscan api')
+  logger.info('   key and rpcUrls with this cli. More support will be added in future for abi files etc\n')
+
 
   while (true) {
     const choice = await cliPrompt.select({
@@ -13,7 +17,7 @@ export async function runInteractiveSetup() {
         { value: 'etherscan', label: 'Set Etherscan API key' },
         { value: 'rpc', label: 'Add/Update RPC URL for a Chain ID' },
         { value: 'view', label: 'View current config' },
-        { value: 'clear', label: 'Clear & remove .env' }, // <-- NEW
+        { value: 'clear', label: 'Clear & remove .env' },
         { value: 'exit', label: 'Exit' },
       ],
     })
