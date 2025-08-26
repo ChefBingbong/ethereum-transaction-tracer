@@ -1,5 +1,11 @@
 # @evm-tt/cli
 
+## 0.7.0
+
+### Minor Changes
+
+- 402547d: fix esm
+
 ## 0.6.0
 
 ### Minor Changes
