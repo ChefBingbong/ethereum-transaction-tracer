@@ -20,7 +20,7 @@ export async function runInteractiveSetup() {
     if (cliPrompt.isCancel(choice) || choice === 'exit') return
 
     if (choice === 'view') {
-      const env = await loadEnv()
+      const env = loadEnv()
       const envPath = getEnvPath()
 
       const hasKey = env.ETHERSCAN_API_KEY ?? '(not set)'
@@ -33,7 +33,7 @@ export async function runInteractiveSetup() {
     }
 
     if (choice === 'etherscan') {
-      const env = await loadEnv()
+      const env = loadEnv()
       const apiKey = await cliPrompt.password({
         message: 'Paste your Etherscan API key',
         validate: validateApiKey,
@@ -47,13 +47,13 @@ export async function runInteractiveSetup() {
         )
         return
       }
-      await saveEnv(envPath)
+      saveEnv(envPath)
       cliPrompt.outro(`Saved ETHERSCAN_API_KEY to ${envPath}`)
       continue
     }
 
     if (choice === 'rpc') {
-      const env = await loadEnv()
+      const env = loadEnv()
       const envPath = getEnvPath()
 
       const chainId = await cliPrompt.text({
@@ -75,12 +75,10 @@ export async function runInteractiveSetup() {
         return
       }
 
-      await saveEnv(updatedEnv)
+      saveEnv(updatedEnv)
       cliPrompt.outro(`Saved RPC_URL_${String(chainId)} to ${envPath}`)
     }
 
-    if (choice === 'clear') {
-      await clearEnvFile()
-    }
+    if (choice === 'clear') clearEnvFile()
   }
 }

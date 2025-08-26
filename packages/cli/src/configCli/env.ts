@@ -1,6 +1,3 @@
-import { default as fs, default as fsp } from 'node:fs/promises'
-import os from 'node:os'
-import path from 'node:path'
 import * as p from '@clack/prompts'
 import {
   getPublicClient,
@@ -8,9 +5,13 @@ import {
   reliableFetchJson,
   safeErrorStr,
   safeResult,
+  safeSyncTry,
   safeTry,
   stringifyEnv,
 } from '@evm-tt/utils'
+import * as fss from 'fs-extra'
+import os from 'node:os'
+import path from 'node:path'
 import { APP_DIR, ENV_BASENAME, ETHERSCAN_BASE_URL } from '../consts'
 import { type CliEnv, etherscanAbiSchema, type RpcKey } from './schema'
 
@@ -26,14 +27,45 @@ export function getEnvPath() {
   return path.join(getConfigDir(), ENV_BASENAME)
 }
 
-export async function loadEnv(): Promise<CliEnv> {
-  const envPath = getEnvPath()
-  const buf = await fsp.readFile(envPath, 'utf8')
-  return parseEnv<CliEnv>(buf)
+function fileExists(pth: string) {
+  const [error] = safeSyncTry(() => fss.accessSync(pth))
+  if (error) p.note('error reading file')
+  return (!error)
 }
-export async function saveEnv(env: CliEnv): Promise<void> {
-  await fsp.mkdir(getConfigDir(), { recursive: true })
-  await fsp.writeFile(getEnvPath(), stringifyEnv(env), { mode: 0o600 })
+
+export function loadEnv(): CliEnv {
+  const envPath = getEnvPath()
+  const exists = fileExists(envPath)
+
+  if (!exists) return {} as CliEnv
+  return parseEnv<CliEnv>(fss.readFileSync(envPath, 'utf8'))
+}
+
+export function saveEnv(env: CliEnv) {
+  const [error] = safeSyncTry(() => {
+    fss.mkdirSync(getConfigDir(), { recursive: true })
+    fss.writeFileSync(getEnvPath(), stringifyEnv(env), { mode: 0o600 })
+  })
+  if (error) p.note('failed to save env')
+}
+
+export function clearEnvFile(opts: { force?: boolean } = {}) {
+  const envPath = getEnvPath()
+  const exists = fileExists(envPath)
+  if (!exists) p.note(`No env file found at ${envPath}`, 'Nothing to clear')
+
+  if (!opts.force) {
+    const ok = p.confirm({ message: `Delete ${envPath}?`, initialValue: false })
+    if (p.isCancel(ok) || !ok) {
+      p.cancel('Aborted')
+      return
+    }
+  }
+  const [error] = safeSyncTry(() => {
+    fss.rmSync(envPath, { force: true })
+  })
+  if (error) p.note('failed to save env')
+  p.outro(`Cleared config (${envPath})`)
 }
 
 export function getRpcFromEnv(env: CliEnv, chainId: number | string) {
@@ -68,35 +100,4 @@ export async function setEtherscanInEnv(env: CliEnv, apiKey: string) {
     return safeErrorStr('[Etherscan]: invalid response')
   }
   return safeResult({ ...env, ['ETHERSCAN_API_KEY']: apiKey } as CliEnv)
-}
-
-export function clearEnv() {
-  return fs
-    .rm(getEnvPath(), { force: true })
-    .then(() => void 0)
-    .catch(() => void 0)
-}
-
-export async function clearEnvFile(opts: { force?: boolean } = {}) {
-  const envPath = getEnvPath()
-  try {
-    fsp.stat(envPath)
-  } catch {
-    p.note(`No env file found at ${envPath}`, 'Nothing to clear')
-    return
-  }
-
-  if (!opts.force) {
-    const ok = await p.confirm({
-      message: `Delete ${envPath}?`,
-      initialValue: false,
-    })
-    if (p.isCancel(ok) || !ok) {
-      p.cancel('Aborted')
-      return
-    }
-  }
-
-  fsp.rm(envPath, { force: true })
-  p.outro(`Cleared config (${envPath})`)
 }
