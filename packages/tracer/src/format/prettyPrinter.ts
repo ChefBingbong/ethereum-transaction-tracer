@@ -1,55 +1,26 @@
 import type { EventTopic } from '@evm-tt/utils'
-import {
-  hexToBig,
-  hexToBigint,
-  isPrecompileSource,
-  SUMMARY_DEPTH,
-  stringify,
-  truncate,
-} from '@evm-tt/utils'
+import { hexToBig, isPrecompileSource, stringify, SUMMARY_DEPTH, truncate } from '@evm-tt/utils'
 import pc from 'picocolors'
-import {
-  type Address,
-  formatEther,
-  formatGwei,
-  type Hex,
-  hexToBigInt,
-  isAddressEqual,
-  zeroAddress,
-} from 'viem'
+import type { Address, Hex } from 'viem'
 import type { TracerCache } from '../cache'
 import type { Decoder } from '../decoder'
-import { LogVerbosity, type RpcCallTrace, type RpcCallType } from '../types'
+import { LogVerbosity, type RpcCallTrace } from '../types'
 import {
-  addr,
+  addrLabelStyled,
   argVal,
   dark,
   dim,
   emit,
   eventArgVal,
   fn,
+  getSharedBadges,
+  nameFromSelector,
   retData,
   retLabel,
   revData,
   revLabel,
-  typeBadge,
-  yellowLight,
+  sumInner,
 } from './theme'
-
-function sumInner(node: RpcCallTrace) {
-  let total = 0n
-  let count = 0
-  const kids = node.calls ?? []
-  for (const c of kids) {
-    const used = hexToBig(c.gasUsed)
-    total += used
-    count += 1
-    const sub = sumInner(c)
-    total += sub.total
-    count += sub.count
-  }
-  return { total, count }
-}
 
 export class TraceFormatter {
   constructor(
@@ -59,69 +30,69 @@ export class TraceFormatter {
   ) {}
 
   public printCall = (node: RpcCallTrace, hasError: boolean) => {
-    const typeBadge = ` ${this.badgeFor(node.type)}`
-    const failBadge = hasError ? ` ${pc.red('❌')}` : ''
-    const valueStr = this.getValueString(node)
-    const gasStr = this.getGasString(node)
-
     const paint = hasError ? pc.red : undefined
-    const left = this.addrLabelStyled(node.to, paint)
+    const left = addrLabelStyled(node.to, this.cache, paint)
     const method = this.formatContractCall(node, hasError)
+    const { typeBadge, valueStr, gasStr, failBadge } = getSharedBadges(
+      node,
+      this.verbosity,
+      hasError,
+    )
     return `${left}::${method} ${typeBadge} ${valueStr}${gasStr}${failBadge}`
   }
 
   public printDelegateCall = (node: RpcCallTrace, hasError: boolean) => {
-    const typeBadge = ` ${this.badgeFor(node.type)}`
-    const failBadge = hasError ? ` ${pc.red('❌')}` : ''
-    const valueStr = this.getValueString(node)
-    const gasStr = this.getGasString(node)
-
     const paint = hasError ? pc.red : undefined
-
-    const left = `${this.addrLabelStyled(node.from as Address, paint)} → ${this.addrLabelStyled(node.to, paint)}`
-
+    const fromLabel = addrLabelStyled(node.from, this.cache, paint)
+    const toLabel = addrLabelStyled(node.to, this.cache, paint)
+    const { typeBadge, valueStr, gasStr, failBadge } = getSharedBadges(
+      node,
+      this.verbosity,
+      hasError,
+    )
+    const left = `${fromLabel} → ${toLabel}`
     const method = this.formatContractCall(node, hasError)
     return `${left}::${method} ${typeBadge} ${valueStr}${gasStr}${failBadge}`
   }
 
   public printCreateCall = (node: RpcCallTrace, hasError: boolean) => {
-    const typeBadge = ` ${this.badgeFor(node.type)}`
-    const failBadge = hasError ? ` ${pc.red('❌')}` : ''
-    const valueStr = this.getValueString(node)
-    const gasStr = this.getGasString(node)
-
     const paint = hasError ? pc.red : undefined
-
-    const created = node.to
-      ? this.addrLabelStyled(node.to, paint)
-      : this.addrLabelStyled(undefined, paint)
-
-    const initLen = node.input ? (node.input.length - 2) / 2 : 0
     const method = hasError ? pc.bold(pc.red('create')) : fn('create')
-    return `${created}::${method}(init_code_len=${initLen}) ${typeBadge} ${valueStr}${gasStr}${failBadge}`
+    const initLen = `init_code_len=${node.input ? (node.input.length - 2) / 2 : 0}`
+
+    const { typeBadge, valueStr, gasStr, failBadge } = getSharedBadges(
+      node,
+      this.verbosity,
+      hasError,
+    )
+    const created = node.to
+      ? addrLabelStyled(node.to, this.cache, paint)
+      : addrLabelStyled(undefined, this.cache, paint)
+
+    return `${created}::${method}(${initLen}) ${typeBadge} ${valueStr}${gasStr}${failBadge}`
   }
 
   public printSeltDestructCall = (node: RpcCallTrace, hasError: boolean) => {
-    const typeBadge = ` ${this.badgeFor(node.type)}`
-    const failBadge = hasError ? ` ${pc.red('❌')}` : ''
-    const valueStr = this.getValueString(node)
-    const gasStr = this.getGasString(node)
-
     const paint = hasError ? pc.red : undefined
-
-    const target = this.addrLabelStyled(node.to, paint)
+    const target = addrLabelStyled(node.to, this.cache, paint)
     const method = hasError ? pc.bold(pc.red('selfdestruct')) : fn('selfdestruct')
+
+    const { typeBadge, valueStr, gasStr, failBadge } = getSharedBadges(
+      node,
+      this.verbosity,
+      hasError,
+    )
     return `${target}::${method} ${typeBadge} ${valueStr}${gasStr}${failBadge}`
   }
 
   public printDefault = (node: RpcCallTrace, hasError: boolean) => {
-    const typeBadge = ` ${this.badgeFor(node.type)}`
-    const failBadge = hasError ? ` ${pc.red('❌')}` : ''
-    const valueStr = this.getValueString(node)
-    const gasStr = this.getGasString(node)
-
     const paint = hasError ? pc.red : undefined
-    const left = this.addrLabelStyled(node.to, paint)
+    const left = addrLabelStyled(node.to, this.cache, paint)
+    const { typeBadge, valueStr, gasStr, failBadge } = getSharedBadges(
+      node,
+      this.verbosity,
+      hasError,
+    )
     const calld =
       node.input && node.input !== '0x' ? dim(`calldata=${truncate(node.input)}`) : dim('()')
     return `${left}::${calld} ${typeBadge} ${valueStr}${gasStr}${failBadge}`
@@ -143,7 +114,7 @@ export class TraceFormatter {
       )
       return `${logPrefix} ${emit(dec.name)}(${argPairs.join(', ')})`
     }
-    return `${logPrefix} ${this.addrLabelStyled(addr)} ${dim(
+    return `${logPrefix} ${addrLabelStyled(addr, this.cache)} ${dim(
       `topic0=${topics?.[0] ?? ''} data=${truncate(data)}`,
     )}`
   }
@@ -179,7 +150,7 @@ export class TraceFormatter {
 
   public printGasCall(node: RpcCallTrace, hasError: boolean, depth: number): string {
     const paint = hasError ? pc.red : undefined
-    const left = this.addrLabelStyled(node.to, paint)
+    const left = addrLabelStyled(node.to, this.cache, paint)
     const rightLabel = this.formatGasCall(node, hasError)
 
     const label = depth === 1 ? `${left}\n• ${rightLabel}` : `• ${rightLabel}`
@@ -207,7 +178,7 @@ export class TraceFormatter {
     if (error) return dim('()')
 
     const fnName = decodedCall.fnName
-    const selectorSig = this.nameFromSelector(node.input)
+    const selectorSig = nameFromSelector(node.input, this.cache)
 
     if (fnName) {
       const styled = hasError ? pc.bold(pc.red(fnName)) : fn(fnName)
@@ -234,43 +205,11 @@ export class TraceFormatter {
       return `${styled}()`
     }
 
-    const selectorSig = this.nameFromSelector(node.input)
+    const selectorSig = nameFromSelector(node.input, this.cache)
     if (selectorSig) {
       return hasError ? pc.bold(pc.red(selectorSig)) : fn(selectorSig)
     }
 
     return node.input && node.input !== '0x' ? dim('') : dim('()')
-  }
-
-  badgeFor = (t: RpcCallType) => typeBadge(`[${t.toLowerCase()}]`)
-
-  getValueString = (node: RpcCallTrace) => {
-    if (this.verbosity < LogVerbosity.Highest) return ''
-    return dark(`${yellowLight('value=')}${formatEther(hexToBigInt(node.value ?? '0x00'))} ETH`)
-  }
-
-  getGasString = (node: RpcCallTrace) => {
-    if (this.verbosity < LogVerbosity.Highest) return ''
-    return dark(
-      `(${yellowLight('gas=')}${formatGwei(hexToBigint(node.gas))} ${yellowLight('used=')}${formatGwei(hexToBigint(node.gasUsed))}) Gwei`,
-    )
-  }
-  public addrLabelStyled(address: Address | undefined, color?: (s: string) => string) {
-    const paint = color ?? addr
-    if (!address) return paint('<unknown>')
-
-    const name = this.cache.contractNames.get(address)
-    const defaultLabel = name ? `${name}${dark('()')}` : address.toLowerCase()
-    return paint(
-      isAddressEqual(address, zeroAddress) ? 'Precompile.DataCopy' : pc.bold(defaultLabel),
-    )
-  }
-
-  private nameFromSelector(input: Hex | undefined) {
-    if (!input || input.length < 10) return undefined
-    const fn = this.cache.abiItemFromSelector(input)
-    if (!fn) return undefined
-    const sig = `${fn.name}(${(fn.inputs ?? []).map((i) => i.type).join(',')})`
-    return sig
   }
 }

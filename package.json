@@ -18,6 +18,7 @@
     "build:packages": "turbo run build  --filter='./packages/*'",
     "release": "bun run build:packages && bun run changeset publish",
     "check": "turbo run check --cache=local:r,remote:r",
+    "run": "turbo watch start --filter=@evm-tt/cli",
     "clean": "turbo run clean && rm -rf node_modules",
     "lint": "biome check .",
     "lint:fix": "biome check . --write",

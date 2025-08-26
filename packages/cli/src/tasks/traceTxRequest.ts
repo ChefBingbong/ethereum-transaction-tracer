@@ -27,6 +27,8 @@ createTask('traceRequest')
     const tracer = makeTracer(parsedArgs.data)
     const [traceError] = await tracer.traceTransactionHash({
       txHash: parsedArgs.data.hash,
+      showProgressBar: true,
+      streamLogs: true,
     })
 
     if (traceError) {

@@ -63,6 +63,5 @@ export function resolveAndParseCliParams<T extends z.ZodTypeAny>(
   if (!merged['etherscanKey']) merged['etherscanKey'] = env.ETHERSCAN_API_KEY
   if (!merged['rpc']) merged['rpc'] = getRpcFromEnv(env, Number(chainId))
 
-  console.log(merged)
   return schema.safeParse(merged)
 }
