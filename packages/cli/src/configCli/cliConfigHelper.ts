@@ -4,10 +4,15 @@ import { clearEnvFile, getEnvPath, loadEnv, saveEnv, setEtherscanInEnv, setRpcIn
 
 export async function runInteractiveSetup() {
   cliPrompt.intro('evm-tt Interactive setup & config')
-  logger.info('   You can use this interactive cli to pre-set enviornment variables that would other wise')
-  logger.info('   have to be passed through on the command line. you currently can set your etherscan api')
-  logger.info('   key and rpcUrls with this cli. More support will be added in future for abi files etc\n')
-
+  logger.info(
+    '   You can use this interactive cli to pre-set enviornment variables that would other wise',
+  )
+  logger.info(
+    '   have to be passed through on the command line. you currently can set your etherscan api',
+  )
+  logger.info(
+    '   key and rpcUrls with this cli. More support will be added in future for abi files etc\n',
+  )
 
   while (true) {
     const choice = await cliPrompt.select({
