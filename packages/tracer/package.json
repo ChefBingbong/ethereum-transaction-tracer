@@ -49,36 +49,42 @@
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",
+      "bun": "./src/index.ts",
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js",
       "default": "./dist/esm/index.js"
     },
     "./cache": {
       "types": "./dist/types/cache/index.d.ts",
+      "bun": "./src/cache/index.ts",
       "import": "./dist/esm/cache/index.js",
       "require": "./dist/cjs/cache/index.js",
       "default": "./dist/esm/cache/index.js"
     },
     "./callTracer": {
       "types": "./dist/types/callTracer/index.d.ts",
+      "bun": "./src/callTracer/index.ts",
       "import": "./dist/esm/callTracer/index.js",
       "require": "./dist/cjs/callTracer/index.js",
       "default": "./dist/esm/callTracer/index.js"
     },
     "./decoder": {
       "types": "./dist/types/decoder/index.d.ts",
+      "bun": "./src/decoder/index.ts",
       "import": "./dist/esm/decoder/index.js",
       "require": "./dist/cjs/decoder/index.js",
       "default": "./dist/esm/decoder/index.js"
     },
     "./format": {
       "types": "./dist/types/format/index.d.ts",
+      "bun": "./src/format/index.ts",
       "import": "./dist/esm/format/index.js",
       "require": "./dist/cjs/format/index.js",
       "default": "./dist/esm/format/index.js"
     },
     "./types": {
       "types": "./dist/types/types/index.d.ts",
+      "bun": "./src/types/index.ts",
       "import": "./dist/esm/types/index.js",
       "require": "./dist/cjs/types/index.js",
       "default": "./dist/esm/types/index.js"
