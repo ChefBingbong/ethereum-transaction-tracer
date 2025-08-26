@@ -13,7 +13,7 @@ createTask('traceTx')
   .option('--etherscan-key <key>', 'Etherscan API key (overrides env)')
   .option('--verbosity <level>', 'Lowest|Low|Normal|High|Highest', 'Highest')
   .action(async (opts) => {
-    const env = await loadEnv()
+    const env = loadEnv()
     const parsedArgs = resolveAndParseCliParams(traceTxArgs, env, opts)
 
     if (parsedArgs.error) {
