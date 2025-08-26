@@ -1,30 +1,46 @@
-import { hexToBig, safeError, safeResult, safeTry } from '@evm-tt/utils'
+import { hexToBig, logger, safeError, safeResult, safeTry } from '@evm-tt/utils'
 import pc from 'picocolors'
 import type { TracerCache } from '../cache/index'
 import type { Decoder } from '../decoder'
-import type { GasTally, LineSink, PrettyOpts } from '../types'
+import type { GasTally, LineSink, PrettyOpts, PrinterArgs } from '../types'
 import { LogVerbosity, type RpcCallTrace } from '../types'
 import { TraceFormatter } from './prettyPrinter'
 
 export class TracePrettyPrinter {
   private readonly formatter: TraceFormatter
   private readonly sink: LineSink
+  public lines: string[] = []
 
-  constructor(
+  private constructor(
     private readonly cache: TracerCache,
     private readonly decoder: Decoder,
     private verbosity: LogVerbosity,
+    private logStream: boolean,
   ) {
-    this.sink = (line) => console.log(line)
+    this.sink = (line: string) => {
+      if (this.logStream) {
+        console.log(line)
+        return
+      }
+      this.lines.push(line)
+    }
     this.formatter = new TraceFormatter(this.decoder, this.cache, verbosity)
+  }
+
+  static createTracer(cache: TracerCache, decoder: Decoder, args: PrinterArgs) {
+    return new TracePrettyPrinter(cache, decoder, args.verbosity, args.logStream)
   }
 
   public async formatTraceColored(root: RpcCallTrace, _opts?: PrettyOpts) {
     const [error] = await safeTry(() => this.processInnerCallsLive(root, true, 0))
     if (error) return safeError(error)
 
+    if (!this.logStream) {
+      logger.info('Stream Trace has been set to false')
+    }
+
     this.cache.save()
-    return safeResult(null)
+    return safeResult(this.lines.join('\n'))
   }
 
   public async formatGasTraceColored(root: RpcCallTrace) {
@@ -38,8 +54,11 @@ export class TracePrettyPrinter {
     const [error] = await safeTry(() => this.processInnerGasCalls(root, true, 0, summary))
     if (error) return safeError(error)
 
+    if (!this.logStream) {
+      logger.info('Stream Trace has been set to false')
+    }
     this.cache.save()
-    return safeResult(null)
+    return safeResult(this.lines.join('\n'))
   }
 
   private async processInnerCallsLive(

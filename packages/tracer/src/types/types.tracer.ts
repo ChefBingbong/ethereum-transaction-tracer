@@ -16,6 +16,7 @@ export type TraaceOptions = {
   logDebug?: boolean
   verbosity?: LogVerbosity
 }
+export type PrinterArgs = { verbosity: LogVerbosity; logStream: boolean }
 
 export enum LogVerbosity {
   Low = 0,
@@ -87,6 +88,7 @@ export type TraceTxRpcSchema = {
 
 export type TraceCallParameters = PrepareTransactionRequestParameters & {
   showProgressBar?: boolean
+  streamLogs?: boolean
   _chainnt?: Account | Address | undefined
   stateOverride?: StateOverrides
 } & (
@@ -96,4 +98,6 @@ export type TraceCallParameters = PrepareTransactionRequestParameters & {
 
 export type TraceTxParameters = {
   txHash: Hex
+  showProgressBar?: boolean
+  streamLogs?: boolean
 }

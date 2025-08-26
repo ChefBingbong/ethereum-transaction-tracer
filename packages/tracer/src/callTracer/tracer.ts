@@ -25,13 +25,14 @@ export class TransactionTracer {
   public decoder: Decoder
   public chainId?: number
   private client: PublicClient
-  private printer: TracePrettyPrinter
   private progressBar: ProgressBar | undefined
+  private verbosity = LogVerbosity.Highest
   private pbCount = 0
 
   constructor(client: PublicClient, args: TraaceOptions) {
     this.client = client
     this.chainId = client.chain?.id
+    if (args.verbosity) this.verbosity = args.verbosity
 
     if (!this.chainId) {
       throw new Error('[Tracer]: Unable to detect chainId from client')
@@ -39,11 +40,6 @@ export class TransactionTracer {
 
     this.cache = new TracerCache(this.chainId, args.cachePath, args.cacheOptions)
     this.decoder = new Decoder(this.cache)
-    this.printer = new TracePrettyPrinter(
-      this.cache,
-      this.decoder,
-      args.verbosity ?? LogVerbosity.Highest,
-    )
     if (args.showProgressBar) {
       this.progressBar = new ProgressBar({
         prefix: 'tracing Transaction',
@@ -220,8 +216,11 @@ export class TransactionTracer {
         }),
       )
     }
-
-    const [formatError, _] = await this.printer.formatTraceColored(trace, {
+    const printer = TracePrettyPrinter.createTracer(this.cache, this.decoder, {
+      verbosity: this.verbosity,
+      logStream: !!args.streamLogs,
+    })
+    const [formatError, lines] = await printer.formatTraceColored(trace, {
       showReturnData: true,
       showLogs: true,
       progress: {
@@ -233,10 +232,14 @@ export class TransactionTracer {
         includeLogs: true,
       },
     })
-    return formatError ? safeError(formatError) : safeResult(_)
+    return formatError ? safeError(formatError) : safeResult(lines)
   }
 
-  public traceTransactionHash = async ({ txHash }: TraceTxParameters) => {
+  public traceTransactionHash = async ({
+    txHash,
+    showProgressBar,
+    streamLogs,
+  }: TraceTxParameters) => {
     this.startProgressBar()
     const [error, trace] = await this.callTraceTxHash({
       txHash,
@@ -250,17 +253,24 @@ export class TransactionTracer {
         }),
       )
     }
-
-    const [formatError, _] = await this.printer.formatTraceColored(trace, {
+    const printer = TracePrettyPrinter.createTracer(this.cache, this.decoder, {
+      verbosity: this.verbosity,
+      logStream: !!streamLogs,
+    })
+    const [formatError, lines] = await printer.formatTraceColored(trace, {
       showReturnData: true,
       showLogs: true,
       progress: {
-        onUpdate: () => null,
+        onUpdate: (value: number) => {
+          if (showProgressBar) {
+            this.updateProgressBar(value)
+          }
+        },
         includeLogs: true,
       },
     })
 
-    return formatError ? safeError(formatError) : safeResult(_)
+    return formatError ? safeError(formatError) : safeResult(lines)
   }
 
   public traceGasCall = async ({ stateOverride, ...args }: TraceCallParameters) => {
@@ -279,12 +289,15 @@ export class TransactionTracer {
         }),
       )
     }
-
-    const [formatError, _] = await this.printer.formatGasTraceColored(trace)
-    return formatError ? safeError(formatError) : safeResult(_)
+    const printer = TracePrettyPrinter.createTracer(this.cache, this.decoder, {
+      verbosity: this.verbosity,
+      logStream: !!args.streamLogs,
+    })
+    const [formatError, lines] = await printer.formatGasTraceColored(trace)
+    return formatError ? safeError(formatError) : safeResult(lines)
   }
 
-  public traceGasFromTransactionHash = async ({ txHash }: TraceTxParameters) => {
+  public traceGasFromTransactionHash = async ({ txHash, streamLogs }: TraceTxParameters) => {
     this.startProgressBar()
     const [error, trace] = await this.callTraceTxHash({ txHash })
 
@@ -296,9 +309,12 @@ export class TransactionTracer {
         }),
       )
     }
-
-    const [formatError, _] = await this.printer.formatGasTraceColored(trace)
-    return formatError ? safeError(formatError) : safeResult(_)
+    const printer = TracePrettyPrinter.createTracer(this.cache, this.decoder, {
+      verbosity: this.verbosity,
+      logStream: !!streamLogs,
+    })
+    const [formatError, lines] = await printer.formatGasTraceColored(trace)
+    return formatError ? safeError(formatError) : safeResult(lines)
   }
 
   private updateProgressBar = (value: number) => {
