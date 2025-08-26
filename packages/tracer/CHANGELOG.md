@@ -1,5 +1,16 @@
 # @evm-tt/tracer
 
+## 0.5.0
+
+### Minor Changes
+
+- c8bd8df: small improvements
+
+### Patch Changes
+
+- Updated dependencies [c8bd8df]
+  - @evm-tt/utils@0.3.0
+
 ## 0.4.0
 
 ### Minor Changes
