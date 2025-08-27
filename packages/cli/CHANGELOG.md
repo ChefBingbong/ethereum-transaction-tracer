@@ -1,5 +1,11 @@
 # @evm-tt/cli
 
+## 0.10.0
+
+### Minor Changes
+
+- 90e3ab3: improve warnings and disable traceReq
+
 ## 0.9.1
 
 ### Patch Changes
