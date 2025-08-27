@@ -1,6 +1,6 @@
 # dependencies (bun install)
 node_modules
-
+tx-cache-dir
 # output
 out
 dist
