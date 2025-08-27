@@ -1,5 +1,12 @@
 # @evm-tt/tracer
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [45d7553]
+  - @evm-tt/utils@0.4.0
+
 ## 0.5.0
 
 ### Minor Changes

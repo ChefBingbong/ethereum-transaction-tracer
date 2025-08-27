@@ -1,5 +1,11 @@
 # @evm-tt/utils
 
+## 0.4.0
+
+### Minor Changes
+
+- 45d7553: fix pkg json
+
 ## 0.3.0
 
 ### Minor Changes
