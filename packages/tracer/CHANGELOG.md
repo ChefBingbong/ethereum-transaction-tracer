@@ -1,5 +1,16 @@
 # @evm-tt/tracer
 
+## 0.6.0
+
+### Minor Changes
+
+- 6288e0c: update readme
+
+### Patch Changes
+
+- Updated dependencies [6288e0c]
+  - @evm-tt/utils@0.5.0
+
 ## 0.5.1
 
 ### Patch Changes

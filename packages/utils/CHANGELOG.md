@@ -1,5 +1,11 @@
 # @evm-tt/utils
 
+## 0.5.0
+
+### Minor Changes
+
+- 6288e0c: update readme
+
 ## 0.4.0
 
 ### Minor Changes
