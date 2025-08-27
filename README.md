@@ -1,16 +1,34 @@
-# evm-tt
+# EVM Transaction Tracer
 
 evm-tt `(evm-transaction-trace)` brings tenderly and foundry like stack traces to javascript enviornments. Unlike tenderly, evm-tt supports any evm chain, supporting traces for both verified onchain transactions and calldat simulations. There is a gas profiler built in, aswell as async caching and abi lookups for indexing contract names and methods. evm-tt is an extremely useful tool for backend web3 javascript developers and makes up where tenderly and foundry fall short.
 
 installation
 to install this library simly run
+
+## bun
 ```bash
-bun add evm-tt
-
-pnpm add evm-tt
-
-yarn add evm-tt
+bun add @evm-tt/tracer
 ```
+
+## yarn
+```bash
+yarn add @evm-tt/tracer
+```
+
+## pnpm
+```bash
+pnpm add @evm-tt/tracer
+```
+
+## CLI Installation
+or install the cli to access all the capabilities of `evm-tt` from you command line. To install the cli. run the command below and install globally on you machne
+
+```bash
+npm install -g @evm-tt/cli
+```
+
+<img width="1092" alt="Console testing" src="https://github.com/ChefBingbong/ethereum-transaction-tracer/blob/main/assets/cli.png">
+
 
 # Usage
 ## Transaction Trace
