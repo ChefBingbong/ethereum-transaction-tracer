@@ -1,24 +1,26 @@
 import { LogVerbosity, TransactionTracer } from '@evm-tt/tracer'
 import { type Chain, createPublicClient, http } from 'viem'
+import z from 'zod'
 import { getConfigDir } from '../configCli/env'
-import type { traceTxArgs } from '../configCli/schema'
+import { baseTraceSchema } from '../configCli/schema'
 
 export function makeClient(rpc: string, chainId: number) {
   return createPublicClient({ transport: http(rpc), chain: { id: chainId } as Chain })
 }
 
-export function makeTracer(args: traceTxArgs) {
+export function makeTracer<T extends z.infer<typeof baseTraceSchema>>(args: T) {
   const client = makeClient(args.rpc, Number(args.chainId))
   const verbosity = LogVerbosity[args.verbosity]
 
-  return new TransactionTracer(client, {
-    cachePath: args.cachePath ?? getConfigDir(),
+  const tracer = new TransactionTracer(client, {
+    cachePath: getConfigDir(),
     showProgressBar: true,
     cacheOptions: {
       etherscanApiKey: args.etherscanKey,
     },
     verbosity,
   })
+  return { tracer, client }
 }
 
 export function loadOverrides(path?: string) {

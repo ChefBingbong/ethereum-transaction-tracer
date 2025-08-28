@@ -1,5 +1,5 @@
 import type { EventTopic } from '@evm-tt/utils'
-import { hexToBig, isPrecompileSource, SUMMARY_DEPTH, stringify, truncate } from '@evm-tt/utils'
+import { hexToBig, isPrecompileSource, stringify, SUMMARY_DEPTH, truncate } from '@evm-tt/utils'
 import pc from 'picocolors'
 import type { Address, Hex } from 'viem'
 import type { TracerCache } from '../cache'

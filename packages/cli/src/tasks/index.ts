@@ -1,3 +1,6 @@
 import './cli'
+import './convertions'
+import './encoding'
+import './fourByte'
 import './traceTx'
 import './traceTxRequest'

@@ -13,6 +13,7 @@ export type PrettyOpts = {
   showLogs?: boolean
   hexGas?: boolean
   maxData?: number
+  gasProfiler: boolean
   progress?: {
     onUpdate(done: number, total: number): void
     includeLogs?: boolean

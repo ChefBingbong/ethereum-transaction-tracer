@@ -1,6 +1,7 @@
-import type { Hex } from 'viem'
-import { decodeAbiParameters } from 'viem/utils'
-import { safeSyncTry } from './safe'
+import type { Abi, Hex } from 'viem'
+import { decodeAbiParameters, decodeFunctionData } from 'viem/utils'
+import { safeErrorStr, safeResult, safeSyncTry } from './safe'
+import { normalizeHex } from './utils'
 
 type KV = Record<string, string>
 
@@ -36,4 +37,13 @@ export function kvList(obj: KV): string {
   const parts: string[] = []
   for (const [k, v] of Object.entries(obj)) parts.push(`${k}: ${v}`)
   return parts.join(', ')
+}
+
+export const safeDecodeFunctionData = (abi: Abi | undefined, data: string | undefined) => {
+  if (!abi || !data) return safeErrorStr('invalid arguments')
+  const [error, decoded] = safeSyncTry(() => {
+    return decodeFunctionData({ abi, data: normalizeHex(data) })
+  })
+  if (error) return safeErrorStr(error.message)
+  return safeResult({ functionName: decoded.functionName, args: decoded.args ?? [] })
 }

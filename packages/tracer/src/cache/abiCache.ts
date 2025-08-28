@@ -1,6 +1,6 @@
-import { join } from 'node:path'
 import { AddressMap, safeSyncTry } from '@evm-tt/utils'
 import fs from 'fs-extra'
+import { join } from 'node:path'
 import {
   type Abi,
   type AbiEvent,
@@ -53,6 +53,7 @@ export class TracerCache {
         this.contractNames.set(address, name)
       }
     }
+    this.load()
   }
 
   public load() {
