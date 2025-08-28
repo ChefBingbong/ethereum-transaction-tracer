@@ -1,8 +1,8 @@
 import { LogVerbosity, TransactionTracer } from '@evm-tt/tracer'
 import { type Chain, createPublicClient, http } from 'viem'
-import z from 'zod'
+import type z from 'zod'
 import { getConfigDir } from '../configCli/env'
-import { baseTraceSchema } from '../configCli/schema'
+import type { baseTraceSchema } from '../configCli/schema'
 
 export function makeClient(rpc: string, chainId: number) {
   return createPublicClient({ transport: http(rpc), chain: { id: chainId } as Chain })
