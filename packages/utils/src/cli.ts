@@ -7,7 +7,10 @@ export function parseEnv<T>(src: string): T {
     if (i === -1) continue
     const k = trimmed.slice(0, i).trim()
     let v = trimmed.slice(i + 1).trim()
-    if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
+    if (
+      (v.startsWith('"') && v.endsWith('"')) ||
+      (v.startsWith("'") && v.endsWith("'"))
+    ) {
       v = v.slice(1, -1)
     }
     out[k] = v

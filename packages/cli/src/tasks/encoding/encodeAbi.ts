@@ -5,7 +5,10 @@ import createTask from '../../program'
 createTask('encode-abi')
   .description('Encode ABI from sunction signature')
   .alias('casae')
-  .requiredOption('-s --sig <signature_string>', 'Function signature MyFunc(uint256,address)')
+  .requiredOption(
+    '-s --sig <signature_string>',
+    'Function signature MyFunc(uint256,address)',
+  )
   .requiredOption('-a --args <args_array>', 'Function arguments')
   .action(async (opts, program) => {
     const { args, sig } = opts

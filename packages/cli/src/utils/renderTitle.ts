@@ -24,14 +24,22 @@ function hexToRgb(hex: string): [number, number, number] {
           .map((c) => c + c)
           .join('')
       : s
-  const n = parseInt(h, 16)
+  const n = Number.parseInt(h, 16)
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
 }
 
 const lerp = (a: number, b: number, t: number) => Math.round(a + (b - a) * t)
 
-function colorBetween(a: [number, number, number], b: [number, number, number], t: number) {
-  return [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)] as const
+function colorBetween(
+  a: [number, number, number],
+  b: [number, number, number],
+  t: number,
+) {
+  return [
+    lerp(a[0], b[0], t),
+    lerp(a[1], b[1], t),
+    lerp(a[2], b[2], t),
+  ] as const
 }
 
 function gradientStops(colors: string[]) {

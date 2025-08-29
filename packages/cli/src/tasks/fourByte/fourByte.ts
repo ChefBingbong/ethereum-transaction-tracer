@@ -8,7 +8,10 @@ createTask('4byte')
   .description('Get the function signatures for the given selector')
   .alias('4')
   .alias('4b')
-  .requiredOption('-s --selector <selector_hex>', 'Function selector (0x + 4 bytes)')
+  .requiredOption(
+    '-s --selector <selector_hex>',
+    'Function selector (0x + 4 bytes)',
+  )
   .action(async (opts) => {
     const cachePath = getConfigDir()
     const selector = opts.selector as Hex

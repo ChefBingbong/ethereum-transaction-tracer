@@ -111,8 +111,10 @@ export class Decoder {
 
   private decodePrecompileEcRecover = (node: RpcCallTrace) => {
     const inputText =
-      tryDecodePretty(['bytes32 hash', 'uint256 v', 'uint256 r', 'uint256 s'], node.input) ??
-      `bytes: ${trunc(node.input)}`
+      tryDecodePretty(
+        ['bytes32 hash', 'uint256 v', 'uint256 r', 'uint256 s'],
+        node.input,
+      ) ?? `bytes: ${trunc(node.input)}`
 
     const outputText =
       tryDecodePretty(['address signer']) ??
@@ -148,7 +150,9 @@ export class Decoder {
   private decodePrecompileIdentity = (node: RpcCallTrace) => {
     const inLen = hexLenBytes(node.input)
     const outLen = hexLenBytes(node.output ?? '0x')
-    const same = !!node.output && node.input.toLowerCase() === (node.output as string).toLowerCase()
+    const same =
+      !!node.output &&
+      node.input.toLowerCase() === (node.output as string).toLowerCase()
     return {
       name: 'dataCopy',
       inputText: `(${inLen} bytes: ${trunc(node.input)})`,

@@ -39,11 +39,17 @@ export function kvList(obj: KV): string {
   return parts.join(', ')
 }
 
-export const safeDecodeFunctionData = (abi: Abi | undefined, data: string | undefined) => {
+export const safeDecodeFunctionData = (
+  abi: Abi | undefined,
+  data: string | undefined,
+) => {
   if (!abi || !data) return safeErrorStr('invalid arguments')
   const [error, decoded] = safeSyncTry(() => {
     return decodeFunctionData({ abi, data: normalizeHex(data) })
   })
   if (error) return safeErrorStr(error.message)
-  return safeResult({ functionName: decoded.functionName, args: decoded.args ?? [] })
+  return safeResult({
+    functionName: decoded.functionName,
+    args: decoded.args ?? [],
+  })
 }

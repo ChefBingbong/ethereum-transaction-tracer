@@ -1,11 +1,17 @@
 import { getUnlimitedBalanceAndApprovalStateOverrides } from '@evm-tt/tracer'
 import { logger } from '@evm-tt/utils'
-import { loadEnv, resolveAndParseCliParams, traceRequestArgs } from '../configCli'
+import {
+  loadEnv,
+  resolveAndParseCliParams,
+  traceRequestArgs,
+} from '../configCli'
 import createTask from '../program'
 import { makeTracer } from '../utils/tracer'
 
 createTask('traceRequest')
-  .description('Simulate and trace a transaction request via calldata (debug_traceCall)')
+  .description(
+    'Simulate and trace a transaction request via calldata (debug_traceCall)',
+  )
   .requiredOption('--to <0x..>', 'Tareget Recipient or Contract')
   .requiredOption('--data <0x..>', 'encoded transaction calldata')
   .requiredOption('--value <0n>', 'native value for the transaction')
@@ -13,7 +19,11 @@ createTask('traceRequest')
   .option('--token <0x..>', 'approval token of the transaction')
   .option('--gas', 'flag to run gas profiler')
   .option('--rpc <url>', 'RPC URL (overrides env)')
-  .option('--chain-id <id>', 'Chain ID to resolve RPC_URL_<id> from env', Number.parseInt)
+  .option(
+    '--chain-id <id>',
+    'Chain ID to resolve RPC_URL_<id> from env',
+    Number.parseInt,
+  )
   .option('--cache-path <path>', 'Cache directory')
   .option('--etherscan-key <key>', 'Etherscan API key (overrides env)')
   .option('--verbosity <level>', 'Lowest|Low|Normal|High|Highest', 'Highest')
@@ -28,7 +38,8 @@ createTask('traceRequest')
     const tracerArgs = parsedArgs.data
     const { tracer, client } = makeTracer(parsedArgs.data)
 
-    const { maxFeePerGas, maxPriorityFeePerGas } = await client.estimateFeesPerGas()
+    const { maxFeePerGas, maxPriorityFeePerGas } =
+      await client.estimateFeesPerGas()
     const { baseFeePerGas } = await client.getBlock()
 
     const [traceError] = await tracer.traceCall({

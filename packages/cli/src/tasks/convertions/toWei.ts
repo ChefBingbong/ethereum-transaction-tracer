@@ -17,7 +17,12 @@ export const validateUnits = (unit?: string): Unit => {
 createTask('to-wei')
   .description('Convert an ETH amount to wei (default from ether)')
   .argument('<amount>', 'Amount to convert', Number.parseInt)
-  .argument('[fromUnit]', 'ether | gwei | wei (default: ether)', validateUnits, 'ether')
+  .argument(
+    '[fromUnit]',
+    'ether | gwei | wei (default: ether)',
+    validateUnits,
+    'ether',
+  )
   .action((amount: number, fromUnit: Unit) => {
     const unit = (fromUnit ?? 'ether').toLowerCase()
     const decimals = unitsToDecimals(unit)

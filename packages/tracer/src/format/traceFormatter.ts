@@ -35,7 +35,12 @@ export class TracePrettyPrinter {
   }
 
   static createTracer(cache: TracerCache, decoder: Decoder, args: PrinterArgs) {
-    return new TracePrettyPrinter(cache, decoder, args.verbosity, args.logStream)
+    return new TracePrettyPrinter(
+      cache,
+      decoder,
+      args.verbosity,
+      args.logStream,
+    )
   }
 
   public async formatTrace(root: RpcCallTrace, opts: PrettyOpts) {
@@ -62,14 +67,28 @@ export class TracePrettyPrinter {
     if (node.logs?.length && this.verbosity > LogVerbosity.Medium) {
       for (let i = 0; i < node.logs.length; i++) {
         const lg = node.logs[i]
-        const lastLog = i === node.logs.length - 1 && (node.calls?.length ?? 0) === 0
-        this.writeLine(this.formatter.printLog(lastLog, lg.address, lg.topics, lg.data, nextPrefix))
+        const lastLog =
+          i === node.logs.length - 1 && (node.calls?.length ?? 0) === 0
+        this.writeLine(
+          this.formatter.printLog(
+            lastLog,
+            lg.address,
+            lg.topics,
+            lg.data,
+            nextPrefix,
+          ),
+        )
       }
     }
 
     const children = node.calls ?? []
     for (let i = 0; i < children.length; i++) {
-      await this.processInnerCalls(children[i], i === children.length - 1, depth + 1, nextPrefix)
+      await this.processInnerCalls(
+        children[i],
+        i === children.length - 1,
+        depth + 1,
+        nextPrefix,
+      )
     }
     this.writeLine(this.formatTraceReturn(node, hasError, nextPrefix).trimEnd())
   }
@@ -100,13 +119,22 @@ export class TracePrettyPrinter {
 
     const children = node.calls ?? []
     for (let i = 0; i < children.length; i++) {
-      await this.processInnerGasCalls(children[i], i === children.length - 1, depth + 1, nextPrefix)
+      await this.processInnerGasCalls(
+        children[i],
+        i === children.length - 1,
+        depth + 1,
+        nextPrefix,
+      )
     }
 
     this.formatGasTraceSummary(hasError, depth)
   }
 
-  private formatTraceReturn(node: RpcCallTrace, hasError: boolean, nextPrefix: string) {
+  private formatTraceReturn(
+    node: RpcCallTrace,
+    hasError: boolean,
+    nextPrefix: string,
+  ) {
     if (hasError) return this.formatter.printRevert(node, nextPrefix)
     return this.formatter.printReturn(node, nextPrefix)
   }
@@ -140,7 +168,11 @@ export class TracePrettyPrinter {
     }
   }
 
-  private formatTraceGasCall(node: RpcCallTrace, hasError: boolean, depth: number): string {
+  private formatTraceGasCall(
+    node: RpcCallTrace,
+    hasError: boolean,
+    depth: number,
+  ): string {
     return this.formatter.printGasCall(node, hasError, depth)
   }
 
@@ -151,7 +183,8 @@ export class TracePrettyPrinter {
     this.writeLine(`frames: ${topLevelFrames}   ok: ${ok}   fail: ${fail}`)
     this.writeLine(`total used : ${pc.bold(Number(topLevelTotal))}`)
 
-    if (hasError) this.writeLine(`${pc.red('reverted at')}: ${pc.red(abortedAt)}`)
+    if (hasError)
+      this.writeLine(`${pc.red('reverted at')}: ${pc.red(abortedAt)}`)
   }
 
   private writeLine(line = '') {

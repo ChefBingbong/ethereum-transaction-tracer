@@ -20,7 +20,8 @@ export type PrecompilePretty = {
   outputText?: string
 }
 
-export const toAddr = (n: number): Address => `0x${n.toString(16).padStart(40, '0')}` as Address
+export const toAddr = (n: number): Address =>
+  `0x${n.toString(16).padStart(40, '0')}` as Address
 
 export function hexLenBytes(hex?: Hex): number {
   if (!hex) return 0
@@ -37,7 +38,8 @@ export const defaultRevert = (node: {
   return `${node.revertReason ?? node.error} ${selector}`
 }
 
-export const normalizeHex = (v: string): Hex => (v.startsWith('0x') ? v : `0x${v}`) as Hex
+export const normalizeHex = (v: string): Hex =>
+  (v.startsWith('0x') ? v : `0x${v}`) as Hex
 
 const DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz'
 export const digitVal = (c: string) => {
@@ -70,7 +72,8 @@ export const bigintFromBase = (value: string, base: number) => {
   const b = BigInt(base)
   for (const ch of s) {
     const d = digitVal(ch)
-    if (d >= base) throw new Error(`digit "${ch}" out of range for base ${base}`)
+    if (d >= base)
+      throw new Error(`digit "${ch}" out of range for base ${base}`)
     out = out * b + BigInt(d)
   }
   return negative ? -out : out

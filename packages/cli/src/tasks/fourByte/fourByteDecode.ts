@@ -1,5 +1,10 @@
 import { getAbiItemFromDelector, TracerCache } from '@evm-tt/tracer'
-import { formatArgsInline, logger, normalizeHex, safeDecodeFunctionData } from '@evm-tt/utils'
+import {
+  formatArgsInline,
+  logger,
+  normalizeHex,
+  safeDecodeFunctionData,
+} from '@evm-tt/utils'
 import { toFunctionSignature } from 'viem'
 import { getConfigDir } from '../../configCli/env'
 import createTask from '../../program'

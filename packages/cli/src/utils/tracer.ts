@@ -5,7 +5,10 @@ import { getConfigDir } from '../configCli/env'
 import type { baseTraceSchema } from '../configCli/schema'
 
 export function makeClient(rpc: string, chainId: number) {
-  return createPublicClient({ transport: http(rpc), chain: { id: chainId } as Chain })
+  return createPublicClient({
+    transport: http(rpc),
+    chain: { id: chainId } as Chain,
+  })
 }
 
 export function makeTracer<T extends z.infer<typeof baseTraceSchema>>(args: T) {

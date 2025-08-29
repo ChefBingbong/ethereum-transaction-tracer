@@ -15,14 +15,12 @@
       "cache": false
     },
     "trace:tx": {
-      "persistent": true,
-      "cache": false,
-      "outputLogs": "none"
+      "cache": false
     },
     "trace:tx:gas": {
       "persistent": true,
       "cache": false,
-      "outputLogs": "none"
+      "outputLogs": "full"
     },
     "trace:requests": {
       "persistent": true,

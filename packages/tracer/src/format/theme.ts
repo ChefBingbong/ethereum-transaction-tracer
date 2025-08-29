@@ -1,6 +1,13 @@
 import { hexToBig, hexToBigint } from '@evm-tt/utils'
 import pc from 'picocolors'
-import { type Address, formatEther, formatGwei, type Hex, isAddressEqual, zeroAddress } from 'viem'
+import {
+  type Address,
+  formatEther,
+  formatGwei,
+  type Hex,
+  isAddressEqual,
+  zeroAddress,
+} from 'viem'
 import type { TracerCache } from '../cache'
 import { LogVerbosity, type RpcCallTrace, type RpcCallType } from '../types'
 
@@ -24,7 +31,9 @@ export const badgeFor = (t: RpcCallType) => typeBadge(`[${t.toLowerCase()}]`)
 
 export const getValueString = (node: RpcCallTrace, verbosity: LogVerbosity) => {
   if (verbosity < LogVerbosity.Highest) return ''
-  return dark(`${yellowLight('value=')}${formatEther(hexToBigint(node.value ?? '0x00'))} ETH`)
+  return dark(
+    `${yellowLight('value=')}${formatEther(hexToBigint(node.value ?? '0x00'))} ETH`,
+  )
 }
 
 export const getGasString = (node: RpcCallTrace, verbosity: LogVerbosity) => {
@@ -43,7 +52,11 @@ export function addrLabelStyled(
 
   const name = cache.contractNames.get(address)
   const defaultLabel = name ? `${name}${dark('()')}` : address.toLowerCase()
-  return paint(isAddressEqual(address, zeroAddress) ? 'Precompile.DataCopy' : pc.bold(defaultLabel))
+  return paint(
+    isAddressEqual(address, zeroAddress)
+      ? 'Precompile.DataCopy'
+      : pc.bold(defaultLabel),
+  )
 }
 
 export function nameFromSelector(input: Hex | undefined, cache: TracerCache) {
@@ -54,7 +67,11 @@ export function nameFromSelector(input: Hex | undefined, cache: TracerCache) {
   return sig
 }
 
-export const getSharedBadges = (node: RpcCallTrace, verbosity: LogVerbosity, hasError: boolean) => {
+export const getSharedBadges = (
+  node: RpcCallTrace,
+  verbosity: LogVerbosity,
+  hasError: boolean,
+) => {
   const typeBadge = ` ${badgeFor(node.type)}`
   const failBadge = hasError ? ` ${pc.red('❌')}` : ''
   const valueStr = getValueString(node, verbosity)

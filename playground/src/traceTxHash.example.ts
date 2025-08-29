@@ -10,7 +10,9 @@ import { UniversalRouter } from '../abis/UniversalRouter'
 import { getPublicClient } from './client'
 
 // must use a berachain al url for this example
-const client = getPublicClient('https://ethereum-mainnet.gateway.tatum.io') as PublicClient
+const client = getPublicClient(
+  'https://ethereum-mainnet.gateway.tatum.io',
+) as PublicClient
 
 const tracer = new TransactionTracer(client, {
   cachePath: `./tx-cache-dir`,
@@ -70,7 +72,8 @@ const tracer = new TransactionTracer(client, {
 
 if (import.meta.main) {
   const [error, trace] = await tracer.traceTransactionHash({
-    txHash: '0xf4a91c18dad36c9a0717da2375aef02b14bcd0e89dd5f1fc8f19d7952cdb5649',
+    txHash:
+      '0xf4a91c18dad36c9a0717da2375aef02b14bcd0e89dd5f1fc8f19d7952cdb5649',
   })
 
   if (error) {

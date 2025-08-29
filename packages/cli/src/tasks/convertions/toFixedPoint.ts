@@ -8,7 +8,9 @@ const fail = (task: string) => {
 }
 
 createTask('to-fixed-point')
-  .description('Convert an integer into a fixed point number with given decimals')
+  .description(
+    'Convert an integer into a fixed point number with given decimals',
+  )
   .aliases(['to-fix', 'tf', '2f'])
   .requiredOption('--value <int>', 'Integer amount (wei-like integer)')
   .requiredOption('--decimals <n>', 'Number of decimals', '18')

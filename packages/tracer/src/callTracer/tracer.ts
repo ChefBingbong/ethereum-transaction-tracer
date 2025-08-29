@@ -38,7 +38,11 @@ export class TransactionTracer {
       throw new Error('[Tracer]: Unable to detect chainId from client')
     }
 
-    this.cache = new TracerCache(this.chainId, args.cachePath, args.cacheOptions)
+    this.cache = new TracerCache(
+      this.chainId,
+      args.cachePath,
+      args.cacheOptions,
+    )
     this.decoder = new Decoder(this.cache)
     if (args.showProgressBar) {
       this.progressBar = new ProgressBar({
@@ -131,7 +135,10 @@ export class TransactionTracer {
     return formatError ? safeError(formatError) : safeResult(lines)
   }
 
-  private callTraceRequest = async ({ stateOverride, ...args }: TraceCallParameters) => {
+  private callTraceRequest = async ({
+    stateOverride,
+    ...args
+  }: TraceCallParameters) => {
     const account_ = args.account ?? this.client.account
     const account = account_ ? parseAccount(account_) : null
 
@@ -175,7 +182,8 @@ export class TransactionTracer {
     const blockNumberHex = blockNumber ? numberToHex(blockNumber) : undefined
     const block = blockNumberHex || blockTag
 
-    const chainFormat = this.client.chain?.formatters?.transactionRequest?.format
+    const chainFormat =
+      this.client.chain?.formatters?.transactionRequest?.format
     const format = chainFormat || formatTransactionRequest
 
     const request = format({

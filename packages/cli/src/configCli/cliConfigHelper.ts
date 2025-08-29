@@ -1,6 +1,18 @@
 import * as cliPrompt from '@clack/prompts'
-import { logger, validateApiKey, validateChainId, validateRpcUrl } from '@evm-tt/utils'
-import { clearEnvFile, getEnvPath, loadEnv, saveEnv, setEtherscanInEnv, setRpcInEnv } from './env'
+import {
+  logger,
+  validateApiKey,
+  validateChainId,
+  validateRpcUrl,
+} from '@evm-tt/utils'
+import {
+  clearEnvFile,
+  getEnvPath,
+  loadEnv,
+  saveEnv,
+  setEtherscanInEnv,
+  setRpcInEnv,
+} from './env'
 
 export async function runInteractiveSetup() {
   cliPrompt.intro('evm-tt Interactive setup & config')
@@ -37,7 +49,9 @@ export async function runInteractiveSetup() {
         .filter(([e]) => e.includes('RPC_URL'))
         .join('\n')
 
-      cliPrompt.note(`env file: ${envPath}\nETHERSCAN_API_KEY: ${hasKey} \n${rpcPairs}`)
+      cliPrompt.note(
+        `env file: ${envPath}\nETHERSCAN_API_KEY: ${hasKey} \n${rpcPairs}`,
+      )
       continue
     }
 
@@ -77,7 +91,11 @@ export async function runInteractiveSetup() {
         validate: validateRpcUrl,
       })
 
-      const [error, updatedEnv] = await setRpcInEnv(env, String(chainId), String(rpcUrl))
+      const [error, updatedEnv] = await setRpcInEnv(
+        env,
+        String(chainId),
+        String(rpcUrl),
+      )
 
       if (error) {
         cliPrompt.cancel(error)
