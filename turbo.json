@@ -12,6 +12,26 @@
       "persistent": true,
       "cache": false
     },
+    "trace:tx": {
+      "persistent": true,
+      "cache": false,
+      "outputLogs": "none"
+    },
+    "trace:tx:gas": {
+      "persistent": true,
+      "cache": false,
+      "outputLogs": "none"
+    },
+    "trace:requests": {
+      "persistent": true,
+      "cache": false,
+      "outputLogs": "none"
+    },
+    "trace:request:gas": {
+      "persistent": true,
+      "cache": false,
+      "outputLogs": "none"
+    },
     "start": {
       "persistent": true,
       "cache": false
