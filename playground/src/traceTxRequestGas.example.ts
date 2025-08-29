@@ -78,7 +78,7 @@ const tracer = new TransactionTracer(client, {
 })
 
 if (import.meta.main) {
-  const [error, trace] = await tracer.traceGasCall({
+  const [error, trace] = await tracer.traceCall({
     account: SENDER,
     blockNumber: 23212888n,
     to: TO,
@@ -86,6 +86,7 @@ if (import.meta.main) {
     chain: client.chain,
     kzg: undefined,
     showProgressBar: true,
+    gasProfiler: true,
     streamLogs: true,
     stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(
       SENDER,
