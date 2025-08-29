@@ -4,10 +4,7 @@
   "exclude": ["node_modules"],
   "compilerOptions": {
     "paths": {
-      "@evm-tt/utils": ["../utils/src/index.ts"],
       "@evm-tt/utils/*": ["../utils/src/*"],
-      "@evm-tt/cli": ["../cli/src/index.ts"],
-      "@evm-tt/cli/*": ["../cli/src/*"]
     }
   }
 }

@@ -3,9 +3,7 @@
   "include": ["src"],
   "compilerOptions": {
     "paths": {
-      "@evm-tt/tracer": ["../tracer/src/index.ts"],
       "@evm-tt/tracer/*": ["../tracer/src/*"],
-      "@evm-tt/utils": ["../utils/src/index.ts"],
       "@evm-tt/utils/*": ["../utils/src/*"]
     }
   }

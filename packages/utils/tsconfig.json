@@ -2,12 +2,4 @@
   "extends": "@evm-tt/typescript-config/base.json",
   "include": ["src"],
   "exclude": ["node_modules"],
-  "compilerOptions": {
-    "paths": {
-      "@evm-tt/tracer": ["../tracer/src/index.ts"],
-      "@evm-tt/tracer/*": ["../tracer/src/*"],
-      "@evm-tt/cli": ["../cli/src/index.ts"],
-      "@evm-tt/cli/*": ["../cli/src/*"]
-    }
-  }
 }
