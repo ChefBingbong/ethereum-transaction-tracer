@@ -65,7 +65,9 @@
           "options": {
             "paths": {
               "@oogabooga/core/edenTreaty": {
-                "importNames": ["edenTreaty"],
+                "importNames": [
+                  "edenTreaty"
+                ],
                 "message": "Direct usage of edenTreaty from @oogabooga/core/edenTreaty is not allowed. Use the treaty export instead."
               }
             }
@@ -74,8 +76,7 @@
       },
       "suspicious": {
         "noArrayIndexKey": "off",
-        "noImplicitAnyLet": "off",
-        "noUnknownAtRules": "off"
+        "noImplicitAnyLet": "off"
       },
       "complexity": {
         "useLiteralKeys": "off",
@@ -110,7 +111,10 @@
   },
   "overrides": [
     {
-      "includes": ["apps/**", "**/*.script.ts"],
+      "includes": [
+        "apps/**",
+        "**/*.script.ts"
+      ],
       "linter": {
         "rules": {
           "suspicious": {
