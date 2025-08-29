@@ -24,7 +24,7 @@ function hexToRgb(hex: string): [number, number, number] {
           .map((c) => c + c)
           .join('')
       : s
-  const n = parseInt(h, 16)
+  const n = Number.parseInt(h, 16)
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
 }
 

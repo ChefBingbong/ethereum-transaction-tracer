@@ -2,8 +2,8 @@ import type { EventTopic } from '@evm-tt/utils'
 import {
   hexToBig,
   isPrecompileSource,
-  stringify,
   SUMMARY_DEPTH,
+  stringify,
   truncate,
 } from '@evm-tt/utils'
 import pc from 'picocolors'
