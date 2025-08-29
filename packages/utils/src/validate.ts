@@ -1,3 +1,6 @@
+import { InvalidArgumentError } from '@commander-js/extra-typings'
+import type { ZodSchema } from 'zod/v3'
+
 function isValidHttpUrl(v: string) {
   try {
     const u = new URL(v)
@@ -17,4 +20,14 @@ export const validateChainId = (v: string) => {
 
 export function validateRpcUrl(v: string) {
   if (!isValidHttpUrl(String(v))) return 'Must be a valid http(s) URL'
+}
+
+export const validateSchema = <Unit>(
+  value: string,
+  schema: ZodSchema,
+): Unit => {
+  const out = schema.safeParse(value)
+  if (!out.success)
+    throw new InvalidArgumentError(`Invalid numeric value ${value}`)
+  return out.data as Unit
 }

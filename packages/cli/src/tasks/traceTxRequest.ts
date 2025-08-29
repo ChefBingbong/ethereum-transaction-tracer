@@ -1,5 +1,12 @@
+import { getUnlimitedBalanceAndApprovalStateOverrides } from '@evm-tt/tracer'
 import { logger } from '@evm-tt/utils'
+import {
+  loadEnv,
+  resolveAndParseCliParams,
+  traceRequestArgs,
+} from '../configCli'
 import createTask from '../program'
+import { makeTracer } from '../utils/tracer'
 
 createTask('traceRequest')
   .description(
@@ -9,6 +16,8 @@ createTask('traceRequest')
   .requiredOption('--data <0x..>', 'encoded transaction calldata')
   .requiredOption('--value <0n>', 'native value for the transaction')
   .option('--from <0x..>', 'initiator of the transaction')
+  .option('--token <0x..>', 'approval token of the transaction')
+  .option('--gas', 'flag to run gas profiler')
   .option('--rpc <url>', 'RPC URL (overrides env)')
   .option(
     '--chain-id <id>',
@@ -17,29 +26,47 @@ createTask('traceRequest')
   )
   .option('--cache-path <path>', 'Cache directory')
   .option('--etherscan-key <key>', 'Etherscan API key (overrides env)')
-  .option('--verbosity <level>', 'Lowest|Low|Normal|High|Highest', 'Normal')
-  .action(async (_opts) => {
-    logger.error(
-      `Coming soon: trace request is not implemtented in the cli yet`,
-    )
+  .option('--verbosity <level>', 'Lowest|Low|Normal|High|Highest', 'Highest')
+  .action(async (opts) => {
+    const env = loadEnv()
+    const parsedArgs = resolveAndParseCliParams(traceRequestArgs, env, opts)
+
+    if (parsedArgs.error) {
+      logger.error(`${parsedArgs.error.issues[0].message}`)
+      process.exit(1)
+    }
+    const tracerArgs = parsedArgs.data
+    const { tracer, client } = makeTracer(parsedArgs.data)
+
+    const { maxFeePerGas, maxPriorityFeePerGas } =
+      await client.estimateFeesPerGas()
+    const { baseFeePerGas } = await client.getBlock()
+
+    const [traceError] = await tracer.traceCall({
+      account: tracerArgs.from,
+      to: tracerArgs.to,
+      data: tracerArgs.data,
+      value: BigInt(tracerArgs.value),
+      chain: client.chain,
+      showProgressBar: true,
+      streamLogs: true,
+      maxFeePerGas,
+      maxPriorityFeePerGas,
+      gas: baseFeePerGas ?? undefined,
+      gasProfiler: !!opts.gas,
+      stateOverride:
+        tracerArgs.from && tracerArgs.token
+          ? getUnlimitedBalanceAndApprovalStateOverrides(
+              tracerArgs.from,
+              tracerArgs.token,
+              tracerArgs.to,
+            )
+          : undefined,
+    })
+
+    if (traceError) {
+      logger.error(`Failed when tracing tx ${traceError.message}`)
+      process.exit(1)
+    }
     process.exit(1)
-    // const env = loadEnv()
-    // const parsedArgs = resolveAndParseCliParams(traceTxArgs, env, opts)
-
-    // if (parsedArgs.error) {
-    //   logger.error(`${parsedArgs.error.issues[0].message}`)
-    //   process.exit(1)
-    // }
-
-    // const tracer = makeTracer(parsedArgs.data)
-    // const [traceError] = await tracer.traceTransactionHash({
-    //   txHash: parsedArgs.data.hash,
-    //   showProgressBar: true,
-    //   streamLogs: true,
-    // })
-
-    // if (traceError) {
-    //   logger.error(`Failed when tracing tx ${traceError.message}`)
-    //   process.exit(1)
-    // }
   })

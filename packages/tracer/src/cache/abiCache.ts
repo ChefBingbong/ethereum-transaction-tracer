@@ -14,10 +14,17 @@ import {
   toFunctionSelector,
 } from 'viem'
 import { ETHERSCAN_RATE_LIMIT } from '../constants'
-import type { AbiError, AbiInfo, CacheJson, CacheOptions, RpcCallTrace } from '../types'
+import type {
+  AbiError,
+  AbiInfo,
+  CacheJson,
+  CacheOptions,
+  RpcCallTrace,
+} from '../types'
 import { getAbiFromEtherscan } from './abiSources'
 
-const sleep = async (ms: number) => await new Promise((resolve) => setTimeout(resolve, ms))
+const sleep = async (ms: number) =>
+  await new Promise((resolve) => setTimeout(resolve, ms))
 
 export class TracerCache {
   public contractNames = new AddressMap<string>()
@@ -53,13 +60,16 @@ export class TracerCache {
         this.contractNames.set(address, name)
       }
     }
+    this.load()
   }
 
   public load() {
     const filePath = this.getTracerCachePath()
     fs.ensureFileSync(filePath)
 
-    const [error, json] = safeSyncTry<CacheJson>(() => fs.readJSONSync(this.getTracerCachePath()))
+    const [error, json] = safeSyncTry<CacheJson>(() =>
+      fs.readJSONSync(this.getTracerCachePath()),
+    )
     if (error) return
 
     json.contractNames?.forEach(([key, v]) => {
@@ -195,7 +205,11 @@ export class TracerCache {
     this.aggregateCallInputs(root, 0, calls)
     return calls.values().toArray()
   }
-  private aggregateCallInputs(node: RpcCallTrace, depth: number, calls: Set<Address>) {
+  private aggregateCallInputs(
+    node: RpcCallTrace,
+    depth: number,
+    calls: Set<Address>,
+  ) {
     const inputSelector = this.abiItemFromSelector(node.input)
     const outputSelector = this.abiItemFromSelector(node?.output ?? '')
 

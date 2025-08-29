@@ -15,6 +15,7 @@ createTask('traceTx')
     'Chain ID to resolve RPC_URL_<id> from env',
     Number.parseInt,
   )
+  .option('--gas', 'flag to run gas profiler')
   .option('--cache-path <path>', 'Cache directory')
   .option('--etherscan-key <key>', 'Etherscan API key (overrides env)')
   .option('--verbosity <level>', 'Lowest|Low|Normal|High|Highest', 'Highest')
@@ -27,15 +28,17 @@ createTask('traceTx')
       process.exit(1)
     }
 
-    const tracer = makeTracer(parsedArgs.data)
+    const { tracer } = makeTracer(parsedArgs.data)
     const [traceError] = await tracer.traceTransactionHash({
       txHash: parsedArgs.data.hash,
       showProgressBar: true,
       streamLogs: true,
+      gasProfiler: !!opts.gas,
     })
 
     if (traceError) {
       logger.error(`Failed when tracing tx ${traceError.message}`)
       process.exit(1)
     }
+    process.exit(0)
   })

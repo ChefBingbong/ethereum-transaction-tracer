@@ -1,4 +1,4 @@
-import { hexToBig, logger, safeError, safeResult, safeTry } from '@evm-tt/utils'
+import { hexToBig, safeError, safeResult, safeTry } from '@evm-tt/utils'
 import pc from 'picocolors'
 import type { TracerCache } from '../cache/index'
 import type { Decoder } from '../decoder'
@@ -10,6 +10,7 @@ export class TracePrettyPrinter {
   private readonly formatter: TraceFormatter
   private readonly sink: LineSink
   public lines: string[] = []
+  private summary: GasTally
 
   private constructor(
     private readonly cache: TracerCache,
@@ -25,6 +26,12 @@ export class TracePrettyPrinter {
       this.lines.push(line)
     }
     this.formatter = new TraceFormatter(this.decoder, this.cache, verbosity)
+    this.summary = {
+      topLevelTotal: 0n,
+      topLevelFrames: 0,
+      ok: 0,
+      fail: 0,
+    }
   }
 
   static createTracer(cache: TracerCache, decoder: Decoder, args: PrinterArgs) {
@@ -36,41 +43,16 @@ export class TracePrettyPrinter {
     )
   }
 
-  public async formatTraceColored(root: RpcCallTrace, _opts?: PrettyOpts) {
-    const [error] = await safeTry(() =>
-      this.processInnerCallsLive(root, true, 0),
-    )
+  public async formatTrace(root: RpcCallTrace, opts: PrettyOpts) {
+    const [error] = await safeTry(() => {
+      if (!opts.gasProfiler) return this.processInnerCalls(root, true, 0)
+      return this.processInnerGasCalls(root, true, 0)
+    })
     if (error) return safeError(error)
-
-    if (!this.logStream) {
-      logger.info('Stream Trace has been set to false')
-    }
-
-    this.cache.save()
     return safeResult(this.lines.join('\n'))
   }
 
-  public async formatGasTraceColored(root: RpcCallTrace) {
-    const summary = {
-      topLevelTotal: 0n,
-      topLevelFrames: 0,
-      ok: 0,
-      fail: 0,
-    }
-
-    const [error] = await safeTry(() =>
-      this.processInnerGasCalls(root, true, 0, summary),
-    )
-    if (error) return safeError(error)
-
-    if (!this.logStream) {
-      logger.info('Stream Trace has been set to false')
-    }
-    this.cache.save()
-    return safeResult(this.lines.join('\n'))
-  }
-
-  private async processInnerCallsLive(
+  private async processInnerCalls(
     node: RpcCallTrace,
     isLast: boolean,
     depth: number,
@@ -101,7 +83,7 @@ export class TracePrettyPrinter {
 
     const children = node.calls ?? []
     for (let i = 0; i < children.length; i++) {
-      await this.processInnerCallsLive(
+      await this.processInnerCalls(
         children[i],
         i === children.length - 1,
         depth + 1,
@@ -115,7 +97,6 @@ export class TracePrettyPrinter {
     node: RpcCallTrace,
     isLast: boolean,
     depth: number,
-    summary: GasTally,
     prefix = '',
   ) {
     const branch = depth === 0 ? '' : prefix + (isLast ? '└─ ' : '├─ ')
@@ -124,14 +105,14 @@ export class TracePrettyPrinter {
     const usedHere = hexToBig(node.gasUsed)
 
     if (depth === 1) {
-      summary.topLevelTotal += usedHere
-      summary.topLevelFrames += 1
-      hasError ? summary.fail++ : summary.ok++
+      this.summary.topLevelTotal += usedHere
+      this.summary.topLevelFrames += 1
+      hasError ? this.summary.fail++ : this.summary.ok++
     }
 
     if (hasError) {
       const revertedAtMethod = this.formatter.formatGasCall(node, hasError)
-      summary.abortedAt = revertedAtMethod
+      this.summary.abortedAt = revertedAtMethod
     }
 
     this.writeLine(branch + this.formatTraceGasCall(node, hasError, depth))
@@ -142,12 +123,11 @@ export class TracePrettyPrinter {
         children[i],
         i === children.length - 1,
         depth + 1,
-        summary,
         nextPrefix,
       )
     }
 
-    this.formatGasTraceSummary(summary, hasError, depth)
+    this.formatGasTraceSummary(hasError, depth)
   }
 
   private formatTraceReturn(
@@ -196,12 +176,8 @@ export class TracePrettyPrinter {
     return this.formatter.printGasCall(node, hasError, depth)
   }
 
-  private formatGasTraceSummary = (
-    suymmary: GasTally,
-    hasError: boolean,
-    depth: number,
-  ) => {
-    const { topLevelFrames, topLevelTotal, ok, fail, abortedAt } = suymmary
+  private formatGasTraceSummary = (hasError: boolean, depth: number) => {
+    const { topLevelFrames, topLevelTotal, ok, fail, abortedAt } = this.summary
     if (depth !== 0) return
     this.writeLine(pc.bold('\n— Gas summary —'))
     this.writeLine(`frames: ${topLevelFrames}   ok: ${ok}   fail: ${fail}`)
