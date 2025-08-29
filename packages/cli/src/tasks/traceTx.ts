@@ -5,10 +5,16 @@ import createTask from '../program'
 import { makeTracer } from '../utils/tracer'
 
 createTask('traceTx')
-  .description('Trace a mined onchain transaction by hash (debug_traceTransaction)')
+  .description(
+    'Trace a mined onchain transaction by hash (debug_traceTransaction)',
+  )
   .requiredOption('--hash <0x..>', 'Transaction hash (0x + 32 bytes)')
   .option('--rpc <url>', 'RPC URL (overrides env)')
-  .option('--chain-id <id>', 'Chain ID to resolve RPC_URL_<id> from env', Number.parseInt)
+  .option(
+    '--chain-id <id>',
+    'Chain ID to resolve RPC_URL_<id> from env',
+    Number.parseInt,
+  )
   .option('--cache-path <path>', 'Cache directory')
   .option('--etherscan-key <key>', 'Etherscan API key (overrides env)')
   .option('--verbosity <level>', 'Lowest|Low|Normal|High|Highest', 'Highest')

@@ -20,7 +20,8 @@ export type PrecompilePretty = {
   outputText?: string
 }
 
-export const toAddr = (n: number): Address => `0x${n.toString(16).padStart(40, '0')}` as Address
+export const toAddr = (n: number): Address =>
+  `0x${n.toString(16).padStart(40, '0')}` as Address
 
 export function hexLenBytes(hex?: Hex): number {
   if (!hex) return 0

@@ -46,7 +46,8 @@ export const PRECOMPILE_NAME: Record<PrecompileId, string> = {
   //   [PrecompileId.KzgPointEvaluation]: 'kzg_point_evaluation',
 }
 
-export const ALL_PRECOMPILE_ADDRESSES: Address[] = Object.values(PRECOMPILE_ADDRESS)
+export const ALL_PRECOMPILE_ADDRESSES: Address[] =
+  Object.values(PRECOMPILE_ADDRESS)
 
 export function isPrecompileSource(addr: Address) {
   return ALL_PRECOMPILE_ADDRESSES.includes(addr)

@@ -5,7 +5,9 @@ import z from 'zod'
 export const zHex = z
   .string()
   .regex(/^(0x)?[a-fA-F0-9]+$/)
-  .transform((val) => (val.startsWith('0x') ? (val as Hex) : (`0x${val}` as Hex)))
+  .transform((val) =>
+    val.startsWith('0x') ? (val as Hex) : (`0x${val}` as Hex),
+  )
   .refine((val) => val.startsWith('0x'), 'Invalid Hex string format')
 
 // export const TraceTxArgs = BaseTraceSchema.safeExtend({

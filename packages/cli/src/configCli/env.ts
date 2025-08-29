@@ -1,5 +1,3 @@
-import os from 'node:os'
-import path from 'node:path'
 import * as p from '@clack/prompts'
 import {
   getPublicClient,
@@ -12,6 +10,8 @@ import {
   stringifyEnv,
 } from '@evm-tt/utils'
 import * as fss from 'fs-extra'
+import os from 'node:os'
+import path from 'node:path'
 import { APP_DIR, ENV_BASENAME, ETHERSCAN_BASE_URL } from '../consts'
 import { type CliEnv, etherscanAbiSchema, type RpcKey } from './schema'
 
@@ -19,7 +19,10 @@ export function getConfigDir() {
   const isWin = process.platform === 'win32'
   const base =
     (isWin ? process.env['APPDATA'] : process.env['XDG_CONFIG_HOME']) ??
-    (isWin ? path.join(os.homedir(), 'AppData', 'Roaming') : path.join(os.homedir(), '.config'))
+    (isWin
+      ? path.join(os.homedir(), 'AppData', 'Roaming')
+      : path.join(os.homedir(), '.config'))
+
   return path.join(base, APP_DIR)
 }
 
@@ -73,13 +76,19 @@ export function getRpcFromEnv(env: CliEnv, chainId: number | string) {
   return env[key]
 }
 
-export async function setRpcInEnv(env: CliEnv, chainId: number | string, rpcUrl: string) {
+export async function setRpcInEnv(
+  env: CliEnv,
+  chainId: number | string,
+  rpcUrl: string,
+) {
   const key = `RPC_URL_${String(chainId)}` as RpcKey
   const client = getPublicClient(rpcUrl)
 
   const [error, chainIdRes] = await safeTry(() => client.getChainId())
   if (error || chainIdRes !== Number(chainId)) {
-    return safeErrorStr(`ChainId does not match the provided RPC URLs network ${chainIdRes}`)
+    return safeErrorStr(
+      `ChainId does not match the provided RPC URLs network ${chainIdRes}`,
+    )
   }
   return safeResult({ ...env, [key]: rpcUrl } as CliEnv)
 }

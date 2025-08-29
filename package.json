@@ -30,7 +30,7 @@
     "prepare": "lefthook install"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.0.6",
+    "@biomejs/biome": "2.2.2",
     "@changesets/cli": "^2.29.6",
     "@types/bun": "latest",
     "lefthook": "^1.11.16",

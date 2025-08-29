@@ -1,13 +1,25 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.0.6/schema.json",
+  "$schema": "node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
-    "ignoreUnknown": false
+    "includes": [
+      "**",
+      "!**/_cjs",
+      "!**/_esm",
+      "!**/_types",
+      "!**/.turbo",
+      "!**/node_modules",
+      "!**/CHANGELOG.md",
+      "!**/dist",
+      "!**/cache",
+      "!**/tsconfig.json",
+      "!**/tsconfig.*.json"
+    ]
   },
   "formatter": {
     "enabled": true,
     "indentStyle": "space",
     "indentWidth": 2,
-    "lineWidth": 100
+    "lineWidth": 80
   },
   "linter": {
     "enabled": true,
@@ -19,20 +31,60 @@
         "useKeyWithClickEvents": "off",
         "useKeyWithMouseEvents": "off",
         "useButtonType": "off",
-        "useValidAnchor": "off"
+        "useValidAnchor": "off",
+        "noStaticElementInteractions": "off"
       },
       "correctness": {
         "noUnusedVariables": "error",
         "noUnusedImports": "error",
         "useExhaustiveDependencies": "error"
       },
+      "performance": {
+        "noDelete": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off",
+        "noParameterAssign": "off",
+        "noUselessElse": "off",
+        "noUnusedTemplateLiteral": "off",
+        "useAsConstAssertion": "error",
+        "useDefaultParameterLast": "error",
+        "useEnumInitializers": "error",
+        "useSelfClosingElements": "error",
+        "useSingleVarDeclarator": "error",
+        "useNumberNamespace": "error",
+        "noInferrableTypes": "error",
+        "useConsistentArrayType": {
+          "level": "error",
+          "options": {
+            "syntax": "shorthand"
+          }
+        },
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "@oogabooga/core/edenTreaty": {
+                "importNames": [
+                  "edenTreaty"
+                ],
+                "message": "Direct usage of edenTreaty from @oogabooga/core/edenTreaty is not allowed. Use the treaty export instead."
+              }
+            }
+          }
+        }
+      },
       "suspicious": {
         "noArrayIndexKey": "off",
-        "noConsole": "off"
+        "noImplicitAnyLet": "off",
+        "noUnknownAtRules": "off"
       },
       "complexity": {
+        "useLiteralKeys": "off",
+        "noForEach": "off",
         "noStaticOnlyClass": "off",
-        "useLiteralKeys": "off"
+        "noThisInStatic": "off",
+        "useSimpleNumberKeys": "off"
       },
       "security": {
         "noDangerouslySetInnerHtml": "off"
@@ -46,6 +98,13 @@
       "semicolons": "asNeeded"
     }
   },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -53,20 +112,25 @@
   },
   "overrides": [
     {
+      "includes": [
+        "apps/**",
+        "**/*.script.ts"
+      ],
       "linter": {
         "rules": {
           "suspicious": {
-            "noConsole": "off"
+            "noExplicitAny": "off"
           }
         }
       }
+    },
+    {
+      "includes": [
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/packages/db/**",
+        "**/*.script.ts"
+      ]
     }
-  ],
-  "assist": {
-    "actions": {
-      "source": {
-        "organizeImports": "on"
-      }
-    }
-  }
+  ]
 }

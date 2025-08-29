@@ -70,7 +70,8 @@ const tracer = new TransactionTracer(client, {
 
 async function main() {
   const [error, trace] = await tracer.traceTransactionHash({
-    txHash: '0xf4a91c18dad36c9a0717da2375aef02b14bcd0e89dd5f1fc8f19d7952cdb5649',
+    txHash:
+      '0xf4a91c18dad36c9a0717da2375aef02b14bcd0e89dd5f1fc8f19d7952cdb5649',
   })
 
   if (error) {

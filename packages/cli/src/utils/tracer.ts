@@ -4,7 +4,10 @@ import { getConfigDir } from '../configCli/env'
 import type { traceTxArgs } from '../configCli/schema'
 
 export function makeClient(rpc: string, chainId: number) {
-  return createPublicClient({ transport: http(rpc), chain: { id: chainId } as Chain })
+  return createPublicClient({
+    transport: http(rpc),
+    chain: { id: chainId } as Chain,
+  })
 }
 
 export function makeTracer(args: traceTxArgs) {

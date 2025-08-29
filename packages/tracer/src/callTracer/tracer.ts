@@ -38,7 +38,11 @@ export class TransactionTracer {
       throw new Error('[Tracer]: Unable to detect chainId from client')
     }
 
-    this.cache = new TracerCache(this.chainId, args.cachePath, args.cacheOptions)
+    this.cache = new TracerCache(
+      this.chainId,
+      args.cachePath,
+      args.cacheOptions,
+    )
     this.decoder = new Decoder(this.cache)
     if (args.showProgressBar) {
       this.progressBar = new ProgressBar({
@@ -51,7 +55,10 @@ export class TransactionTracer {
     this.cache.load()
   }
 
-  private callTraceRequest = async ({ stateOverride, ...args }: TraceCallParameters) => {
+  private callTraceRequest = async ({
+    stateOverride,
+    ...args
+  }: TraceCallParameters) => {
     const account_ = args.account ?? this.client.account
     const account = account_ ? parseAccount(account_) : null
 
@@ -95,7 +102,8 @@ export class TransactionTracer {
     const blockNumberHex = blockNumber ? numberToHex(blockNumber) : undefined
     const block = blockNumberHex || blockTag
 
-    const chainFormat = this.client.chain?.formatters?.transactionRequest?.format
+    const chainFormat =
+      this.client.chain?.formatters?.transactionRequest?.format
     const format = chainFormat || formatTransactionRequest
 
     const request = format({
@@ -200,7 +208,10 @@ export class TransactionTracer {
     return fetchError ? safeError(fetchError) : safeResult(trace)
   }
 
-  public traceCall = async ({ stateOverride, ...args }: TraceCallParameters) => {
+  public traceCall = async ({
+    stateOverride,
+    ...args
+  }: TraceCallParameters) => {
     this.startProgressBar()
     const [traceError, trace] = await this.callTraceRequest({
       stateOverride,
@@ -273,7 +284,10 @@ export class TransactionTracer {
     return formatError ? safeError(formatError) : safeResult(lines)
   }
 
-  public traceGasCall = async ({ stateOverride, ...args }: TraceCallParameters) => {
+  public traceGasCall = async ({
+    stateOverride,
+    ...args
+  }: TraceCallParameters) => {
     this.startProgressBar()
     const [traceError, trace] = await this.callTraceRequest({
       stateOverride,
@@ -297,7 +311,10 @@ export class TransactionTracer {
     return formatError ? safeError(formatError) : safeResult(lines)
   }
 
-  public traceGasFromTransactionHash = async ({ txHash, streamLogs }: TraceTxParameters) => {
+  public traceGasFromTransactionHash = async ({
+    txHash,
+    streamLogs,
+  }: TraceTxParameters) => {
     this.startProgressBar()
     const [error, trace] = await this.callTraceTxHash({ txHash })
 

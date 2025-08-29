@@ -17,7 +17,9 @@ const SENDER = '0xda8A8833E938192781AdE161d4b46c4973A40402'
 const TO = '0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af'
 const TOKEN = '0xdAC17F958D2ee523a2206206994597C13D831ec7'
 
-const client = getPublicClient('https://ethereum-mainnet.gateway.tatum.io') as PublicClient
+const client = getPublicClient(
+  'https://ethereum-mainnet.gateway.tatum.io',
+) as PublicClient
 
 const tracer = new TransactionTracer(client, {
   cachePath: `./tx-cache-dir`,
@@ -85,7 +87,11 @@ if (import.meta.main) {
     kzg: undefined,
     showProgressBar: true,
     streamLogs: true,
-    stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
+    stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(
+      SENDER,
+      TOKEN,
+      TO,
+    ),
   })
 
   if (error) {

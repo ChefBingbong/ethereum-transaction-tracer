@@ -3,7 +3,13 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const tracerPkgPath = join(__dirname, '..', 'packages', 'tracer', 'package.json')
+const tracerPkgPath = join(
+  __dirname,
+  '..',
+  'packages',
+  'tracer',
+  'package.json',
+)
 const utilsPkgPath = join(__dirname, '..', 'packages', 'utils', 'package.json')
 const cliPkgPath = join(__dirname, '..', 'packages', 'cli', 'package.json')
 
