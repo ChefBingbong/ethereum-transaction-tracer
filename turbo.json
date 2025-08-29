@@ -2,21 +2,13 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "build": {
-      "outputs": [
-        ".next/**/*",
-        "dist/**/*",
-        "types/**/*"
-      ],
-      "dependsOn": [
-        "^build"
-      ],
+      "outputs": [".next/**/*", "dist/**/*", "types/**/*"],
+      "dependsOn": ["^build"],
       "env": [],
       "cache": true
     },
     "check-types": {
-      "dependsOn": [
-        "^check-types"
-      ]
+      "dependsOn": ["^check-types"]
     },
     "dev": {
       "persistent": true,
@@ -30,15 +22,11 @@
       "cache": false
     },
     "check": {
-      "dependsOn": [
-        "^build"
-      ],
+      "dependsOn": ["^build"],
       "cache": false
     },
     "test": {
-      "dependsOn": [
-        "^build"
-      ],
+      "dependsOn": ["^build"],
       "outputs": [],
       "env": []
     },

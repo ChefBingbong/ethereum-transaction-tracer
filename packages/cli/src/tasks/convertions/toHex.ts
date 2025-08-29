@@ -1,5 +1,5 @@
 import { bigintFromBase, bigintToBase, logger, parseRadix } from '@evm-tt/utils'
-import { type Hex } from 'viem'
+import type { Hex } from 'viem'
 import createTask from '../../program'
 
 const fail = (task: string) => {

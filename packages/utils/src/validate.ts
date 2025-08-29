@@ -1,5 +1,5 @@
-import { InvalidArgumentError } from "@commander-js/extra-typings"
-import type { ZodSchema } from "zod/v3"
+import { InvalidArgumentError } from '@commander-js/extra-typings'
+import type { ZodSchema } from 'zod/v3'
 
 function isValidHttpUrl(v: string) {
   try {
@@ -23,7 +23,7 @@ export function validateRpcUrl(v: string) {
 }
 
 export const validateSchema = <Unit>(value: string, schema: ZodSchema): Unit => {
-  const out = schema.safeParse((value))
+  const out = schema.safeParse(value)
   if (!out.success) throw new InvalidArgumentError(`Invalid numeric value ${value}`)
   return out.data as Unit
 }
