@@ -48,7 +48,87 @@ export class TransactionTracer {
       })
       this.pbCount = 0
     }
-    this.cache.load()
+  }
+
+  public traceCall = async ({
+    stateOverride,
+    gasProfiler = false,
+    ...args
+  }: TraceCallParameters) => {
+    this.startProgressBar()
+    const [traceError, trace] = await this.callTraceRequest({
+      stateOverride,
+      ...args,
+    })
+
+    if (traceError) {
+      return safeError(
+        getTransactionError(traceError as BaseError, {
+          ...args,
+          account: null,
+          chain: this.client.chain,
+        }),
+      )
+    }
+    const printer = TracePrettyPrinter.createTracer(this.cache, this.decoder, {
+      verbosity: this.verbosity,
+      logStream: !!args.streamLogs,
+    })
+
+    const [formatError, lines] = await printer.formatTrace(trace, {
+      showReturnData: true,
+      showLogs: true,
+      gasProfiler,
+      progress: {
+        onUpdate: (value: number) => {
+          if (args.showProgressBar) {
+            this.updateProgressBar(value)
+          }
+        },
+        includeLogs: true,
+      },
+    })
+    return formatError ? safeError(formatError) : safeResult(lines)
+  }
+
+  public traceTransactionHash = async ({
+    txHash,
+    showProgressBar,
+    streamLogs,
+    gasProfiler,
+  }: TraceTxParameters) => {
+    this.startProgressBar()
+    const [error, trace] = await this.callTraceTxHash({
+      txHash,
+    })
+
+    if (error) {
+      return safeError(
+        getTransactionError(error as BaseError, {
+          account: null,
+          chain: this.client.chain,
+        }),
+      )
+    }
+    const printer = TracePrettyPrinter.createTracer(this.cache, this.decoder, {
+      verbosity: this.verbosity,
+      logStream: !!streamLogs,
+    })
+    const [formatError, lines] = await printer.formatTrace(trace, {
+      showReturnData: true,
+      showLogs: true,
+      gasProfiler: !!gasProfiler,
+      progress: {
+        onUpdate: (value: number) => {
+          if (showProgressBar) {
+            this.updateProgressBar(value)
+          }
+        },
+        includeLogs: true,
+      },
+    })
+
+    return formatError ? safeError(formatError) : safeResult(lines)
   }
 
   private callTraceRequest = async ({ stateOverride, ...args }: TraceCallParameters) => {
@@ -198,123 +278,6 @@ export class TransactionTracer {
     this.stopProgressBar()
 
     return fetchError ? safeError(fetchError) : safeResult(trace)
-  }
-
-  public traceCall = async ({ stateOverride, ...args }: TraceCallParameters) => {
-    this.startProgressBar()
-    const [traceError, trace] = await this.callTraceRequest({
-      stateOverride,
-      ...args,
-    })
-
-    if (traceError) {
-      return safeError(
-        getTransactionError(traceError as BaseError, {
-          ...args,
-          account: null,
-          chain: this.client.chain,
-        }),
-      )
-    }
-    const printer = TracePrettyPrinter.createTracer(this.cache, this.decoder, {
-      verbosity: this.verbosity,
-      logStream: !!args.streamLogs,
-    })
-    const [formatError, lines] = await printer.formatTraceColored(trace, {
-      showReturnData: true,
-      showLogs: true,
-      progress: {
-        onUpdate: (value: number) => {
-          if (args.showProgressBar) {
-            this.updateProgressBar(value)
-          }
-        },
-        includeLogs: true,
-      },
-    })
-    return formatError ? safeError(formatError) : safeResult(lines)
-  }
-
-  public traceTransactionHash = async ({
-    txHash,
-    showProgressBar,
-    streamLogs,
-  }: TraceTxParameters) => {
-    this.startProgressBar()
-    const [error, trace] = await this.callTraceTxHash({
-      txHash,
-    })
-
-    if (error) {
-      return safeError(
-        getTransactionError(error as BaseError, {
-          account: null,
-          chain: this.client.chain,
-        }),
-      )
-    }
-    const printer = TracePrettyPrinter.createTracer(this.cache, this.decoder, {
-      verbosity: this.verbosity,
-      logStream: !!streamLogs,
-    })
-    const [formatError, lines] = await printer.formatTraceColored(trace, {
-      showReturnData: true,
-      showLogs: true,
-      progress: {
-        onUpdate: (value: number) => {
-          if (showProgressBar) {
-            this.updateProgressBar(value)
-          }
-        },
-        includeLogs: true,
-      },
-    })
-
-    return formatError ? safeError(formatError) : safeResult(lines)
-  }
-
-  public traceGasCall = async ({ stateOverride, ...args }: TraceCallParameters) => {
-    this.startProgressBar()
-    const [traceError, trace] = await this.callTraceRequest({
-      stateOverride,
-      ...args,
-    })
-
-    if (traceError) {
-      return safeError(
-        getTransactionError(traceError as BaseError, {
-          ...args,
-          account: null,
-          chain: this.client.chain,
-        }),
-      )
-    }
-    const printer = TracePrettyPrinter.createTracer(this.cache, this.decoder, {
-      verbosity: this.verbosity,
-      logStream: !!args.streamLogs,
-    })
-    const [formatError, lines] = await printer.formatGasTraceColored(trace)
-    return formatError ? safeError(formatError) : safeResult(lines)
-  }
-
-  public traceGasFromTransactionHash = async ({ txHash, streamLogs }: TraceTxParameters) => {
-    this.startProgressBar()
-    const [error, trace] = await this.callTraceTxHash({ txHash })
-
-    if (error) {
-      return safeError(
-        getTransactionError(error as BaseError, {
-          account: null,
-          chain: this.client.chain,
-        }),
-      )
-    }
-    const printer = TracePrettyPrinter.createTracer(this.cache, this.decoder, {
-      verbosity: this.verbosity,
-      logStream: !!streamLogs,
-    })
-    const [formatError, lines] = await printer.formatGasTraceColored(trace)
-    return formatError ? safeError(formatError) : safeResult(lines)
   }
 
   private updateProgressBar = (value: number) => {

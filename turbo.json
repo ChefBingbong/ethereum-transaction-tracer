@@ -1,9 +1,11 @@
 {
-  "$schema": "https://turborepo.com/schema.json",
+  "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "build": {
+      "outputs": [".next/**/*", "dist/**/*", "types/**/*"],
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "env": [],
+      "cache": true
     },
     "check-types": {
       "dependsOn": ["^check-types"]
@@ -47,6 +49,9 @@
       "dependsOn": ["^build"],
       "outputs": [],
       "env": []
+    },
+    "export": {
+      "cache": true
     }
   }
 }

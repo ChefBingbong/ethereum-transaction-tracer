@@ -89,7 +89,8 @@ export type TraceTxRpcSchema = {
 export type TraceCallParameters = PrepareTransactionRequestParameters & {
   showProgressBar?: boolean
   streamLogs?: boolean
-  _chainnt?: Account | Address | undefined
+  account?: Account | Address | undefined
+  gasProfiler?: boolean
   stateOverride?: StateOverrides
 } & (
     | { blockNumber?: bigint | undefined; blockTag?: undefined }
@@ -100,4 +101,5 @@ export type TraceTxParameters = {
   txHash: Hex
   showProgressBar?: boolean
   streamLogs?: boolean
+  gasProfiler?: boolean
 }

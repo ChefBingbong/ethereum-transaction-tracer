@@ -53,6 +53,7 @@ export class TracerCache {
         this.contractNames.set(address, name)
       }
     }
+    this.load()
   }
 
   public load() {

@@ -7,7 +7,7 @@ async function main() {
   const npmVersion = await getNpmVersion()
   if (npmVersion) renderVersionWarning(npmVersion)
 
-  if (!process.argv.includes('traceTx') && !process.argv.includes('traceRequest')) {
+  if (process.argv.includes('cli')) {
     renderApplicationTitle()
   }
 

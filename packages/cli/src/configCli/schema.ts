@@ -30,8 +30,11 @@ export const traceGasTxArgs = traceTxArgs.safeExtend({
 export type traceGasTxArgs = z.infer<typeof traceGasTxArgs>
 
 export const traceRequestArgs = baseTraceSchema.safeExtend({
+  from: zAddress,
   to: zAddress,
-  data: zAddress,
+  data: zHex,
+  value: z.string(),
+  token: z.optional(zAddress),
 })
 export type traceRequestArgs = z.infer<typeof traceRequestArgs>
 

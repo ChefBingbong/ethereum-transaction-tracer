@@ -67,6 +67,7 @@
       "name": "@evm-tt/utils",
       "version": "0.5.0",
       "dependencies": {
+        "@commander-js/extra-typings": "^14.0.0",
         "abitype": "^1.0.9",
         "pino": "9.6.0",
         "pino-pretty": "^13.1.1",
