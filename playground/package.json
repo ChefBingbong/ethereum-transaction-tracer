@@ -1,11 +1,11 @@
 {
-  "name": "@evm-tt/bun-txhash",
+  "name": "@evm-tt/playground",
   "type": "module",
   "private": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/ChefBingbong/ethereum-transaction-tracer.git",
-    "directory": "examples/bun/traceTxHash"
+    "directory": "examples/bun/traceRequest"
   },
   "scripts": {
     "check": "tsc --pretty --noEmit",
@@ -13,17 +13,20 @@
     "test": "vitest run",
     "trace:tx": "bun run ./src/traceTxHash.example.ts",
     "trace:tx-gas": "bun run ./src/traceTxHashGas.example.ts",
+    "trace:request": "bun run ./src/traceTxRequest.example.ts",
+    "trace:request-gas": "bun run ./src/traceTxRequestGas.example.ts",
     "test:watch": "vitest run",
     "prepare": "lefthook install"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@evm-tt/typescript-config": "workspace:*"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
-    "@evm-tt/tracer": "0.3.0",
+    "@evm-tt/tracer": "workspace:*",
     "pino-pretty": "^13.1.1",
     "viem": "^2.33.3",
     "zod": "^4.0.17"

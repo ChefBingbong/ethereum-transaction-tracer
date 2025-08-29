@@ -7,7 +7,7 @@
       "@evm-tt/utils": ["packages/utils/src/index.ts"],
       "@evm-tt/utils/*": ["packages/utils/src/*"],
       "@evm-tt/cli": ["packages/cli/src/index.ts"],
-      "@evm-tt/cle/*": ["packages/cli/src/*"]
+      "@evm-tt/cli/*": ["packages/cli/src/*"]
     }
   }
 }
