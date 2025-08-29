@@ -4,7 +4,7 @@
   "exclude": ["node_modules"],
   "compilerOptions": {
     "paths": {
-      "@evm-tt/utils/*": ["../utils/src/*"],
+      "@evm-tt/utils/*": ["../utils/src/*"]
     }
   }
 }
