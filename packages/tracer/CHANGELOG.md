@@ -1,5 +1,16 @@
 # @evm-tt/tracer
 
+## 0.7.0
+
+### Minor Changes
+
+- 04a3493: improve builds and add new features
+
+### Patch Changes
+
+- Updated dependencies [04a3493]
+  - @evm-tt/utils@0.6.0
+
 ## 0.6.0
 
 ### Minor Changes
