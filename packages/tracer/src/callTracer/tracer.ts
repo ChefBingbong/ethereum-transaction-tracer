@@ -7,8 +7,8 @@ import {
   formatTransactionRequest,
   http,
   numberToHex,
-  publicActions,
   type PublicClient,
+  publicActions,
   type TransactionRequest,
 } from 'viem'
 import { extract, getTransactionError, parseAccount } from 'viem/utils'
