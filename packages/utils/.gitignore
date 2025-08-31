@@ -6,6 +6,13 @@ out
 dist
 *.tgz
 
+dist/
+*.tsbuildinfo
+src/**/*.js
+src/**/*.js.map
+src/**/*.d.ts
+src/**/*.d.ts.map
+
 # code coverage
 coverage
 *.lcov

@@ -2,6 +2,8 @@
 node_modules
 
 # output
+.turbo
+turbo
 out
 dist
 tx-cache-dir
