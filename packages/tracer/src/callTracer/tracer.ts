@@ -1,10 +1,15 @@
 import { safeError, safeResult, safeTry } from '@evm-tt/utils'
 import { ProgressBar } from '@opentf/cli-pbar'
+import { type Anvil, createAnvil } from '@viem/anvil'
 import {
   type BaseError,
+  type Client,
+  createTestClient,
   formatTransactionRequest,
+  http,
   numberToHex,
   type PublicClient,
+  publicActions,
   type TransactionRequest,
 } from 'viem'
 import { extract, getTransactionError, parseAccount } from 'viem/utils'
@@ -25,8 +30,10 @@ export class TransactionTracer {
   public decoder: Decoder
   public chainId?: number
   private client: PublicClient
+  private testClient: Client
   private progressBar: ProgressBar | undefined
   private verbosity = LogVerbosity.Highest
+  private anvil: Anvil
   private pbCount = 0
 
   constructor(client: PublicClient, args: TraaceOptions) {
@@ -37,6 +44,19 @@ export class TransactionTracer {
     if (!this.chainId) {
       throw new Error('[Tracer]: Unable to detect chainId from client')
     }
+
+    this.anvil = createAnvil({
+      chainId: this.chainId,
+      forkUrl: this.client.chain?.rpcUrls.default.http[0],
+    })
+
+    this.testClient = createTestClient({
+      chain: this.client.chain,
+      mode: 'anvil',
+      transport: http(`http://${this.anvil.host}:${this.anvil.port}`, {
+        timeout: 60000,
+      }),
+    }).extend(publicActions)
 
     this.cache = new TracerCache(
       this.chainId,
@@ -60,6 +80,7 @@ export class TransactionTracer {
     ...args
   }: TraceCallParameters) => {
     this.startProgressBar()
+    if (args.useAnvil) await this.anvil.start()
     const [traceError, trace] = await this.callTraceRequest({
       stateOverride,
       ...args,
@@ -139,11 +160,12 @@ export class TransactionTracer {
     stateOverride,
     ...args
   }: TraceCallParameters) => {
-    const account_ = args.account ?? this.client.account
+    const client = args.useAnvil ? this.testClient : this.client
+    const account_ = args.account ?? client.account
     const account = account_ ? parseAccount(account_) : null
 
     const [error, txRequest] = await safeTry(() =>
-      this.client.prepareTransactionRequest({
+      (client as PublicClient).prepareTransactionRequest({
         ...args,
         stateOverride,
         parameters: ['blobVersionedHashes', 'chainId', 'fees', 'nonce', 'type'],
@@ -182,8 +204,7 @@ export class TransactionTracer {
     const blockNumberHex = blockNumber ? numberToHex(blockNumber) : undefined
     const block = blockNumberHex || blockTag
 
-    const chainFormat =
-      this.client.chain?.formatters?.transactionRequest?.format
+    const chainFormat = client.chain?.formatters?.transactionRequest?.format
     const format = chainFormat || formatTransactionRequest
 
     const request = format({
@@ -206,7 +227,7 @@ export class TransactionTracer {
     } as TransactionRequest)
 
     const [traceError, trace] = await safeTry(() =>
-      this.client.request<TraceCallRpcSchema>(
+      client.request<TraceCallRpcSchema>(
         {
           method: 'debug_traceCall',
           params: [

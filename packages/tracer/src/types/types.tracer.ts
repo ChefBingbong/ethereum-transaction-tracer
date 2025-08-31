@@ -89,6 +89,7 @@ export type TraceTxRpcSchema = {
 export type TraceCallParameters = PrepareTransactionRequestParameters & {
   showProgressBar?: boolean
   streamLogs?: boolean
+  useAnvil?: boolean
   account?: Account | Address | undefined
   gasProfiler?: boolean
   stateOverride?: StateOverrides
