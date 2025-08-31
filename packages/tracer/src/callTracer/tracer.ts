@@ -7,9 +7,9 @@ import {
   formatTransactionRequest,
   http,
   numberToHex,
-  publicActions,
   type PublicClient,
-  type TransactionRequest
+  publicActions,
+  type TransactionRequest,
 } from 'viem'
 import { extract, getTransactionError, parseAccount } from 'viem/utils'
 import { TracerCache } from '../cache'
@@ -163,7 +163,9 @@ export class TransactionTracer {
   }: TraceCallParameters) => {
     let client = this.client
     if (args.useAnvil) {
-      const { testClient, anvil } = this.startAnvilFork({ blockNumber: Number(args.blockNumber) })
+      const { testClient, anvil } = this.startAnvilFork({
+        blockNumber: Number(args.blockNumber),
+      })
       client = testClient
       await anvil.start()
     }
