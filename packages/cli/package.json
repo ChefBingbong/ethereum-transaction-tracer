@@ -20,7 +20,8 @@
     "build": "bun run clean && bun run build:cjs",
     "build:cjs": "tsc -p tsconfig.json --module commonjs --moduleResolution node --outDir ./dist --rootDir ./src --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > ./dist/package.json",
     "prepublishOnly": "bun run build",
-    "prepack": "bun ../../.github/replace-workspace-protocol.ts"
+    "prepack": "bun ../../.github/replace-workspace-protocol.ts",
+    "prepare": "bun run build"
   },
   "publishConfig": {
     "access": "public"

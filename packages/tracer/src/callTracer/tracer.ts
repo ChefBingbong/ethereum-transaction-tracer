@@ -7,8 +7,8 @@ import {
   formatTransactionRequest,
   http,
   numberToHex,
-  type PublicClient,
   publicActions,
+  type PublicClient,
   type TransactionRequest,
 } from 'viem'
 import { extract, getTransactionError, parseAccount } from 'viem/utils'
@@ -58,11 +58,13 @@ export class TransactionTracer {
     }
   }
 
-  private startAnvilFork = (anvilConfig?: { blockNumber?: number }) => {
+  private startAnvilFork = (anvilConfig?: {
+    blockNumber?: bigint | undefined
+  }) => {
     const anvil = createAnvil({
       chainId: this.chainId,
       forkUrl: this.client.chain?.rpcUrls.default.http[0],
-      forkBlockNumber: anvilConfig?.blockNumber,
+      forkBlockNumber: anvilConfig?.blockNumber ?? undefined,
     })
 
     const testClient = createTestClient({
@@ -79,6 +81,7 @@ export class TransactionTracer {
   public traceCall = async ({
     stateOverride,
     gasProfiler = false,
+    useAnvil = true,
     ...args
   }: TraceCallParameters) => {
     this.startProgressBar()
@@ -164,7 +167,7 @@ export class TransactionTracer {
     let client = this.client
     if (args.useAnvil) {
       const { testClient, anvil } = this.startAnvilFork({
-        blockNumber: Number(args.blockNumber),
+        blockNumber: args?.blockNumber,
       })
       client = testClient
       await anvil.start()
