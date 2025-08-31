@@ -50,6 +50,7 @@ createTask('traceRequest')
       chain: client.chain,
       showProgressBar: true,
       streamLogs: true,
+      useAnvil: true,
       maxFeePerGas,
       maxPriorityFeePerGas,
       gas: baseFeePerGas ?? undefined,
