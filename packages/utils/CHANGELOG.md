@@ -1,5 +1,11 @@
 # @evm-tt/utils
 
+## 0.7.0
+
+### Minor Changes
+
+- 75f92a5: add prepare script
+
 ## 0.6.0
 
 ### Minor Changes
