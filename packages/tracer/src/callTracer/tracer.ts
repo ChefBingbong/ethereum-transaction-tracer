@@ -1,9 +1,8 @@
 import { safeError, safeResult, safeTry } from '@evm-tt/utils'
 import { ProgressBar } from '@opentf/cli-pbar'
-import { type Anvil, createAnvil } from '@viem/anvil'
+import { createAnvil } from '@viem/anvil'
 import {
   type BaseError,
-  type Client,
   createTestClient,
   formatTransactionRequest,
   http,
@@ -30,10 +29,8 @@ export class TransactionTracer {
   public decoder: Decoder
   public chainId?: number
   private client: PublicClient
-  private testClient: Client
   private progressBar: ProgressBar | undefined
   private verbosity = LogVerbosity.Highest
-  private anvil: Anvil
   private pbCount = 0
 
   constructor(client: PublicClient, args: TraaceOptions) {
@@ -44,19 +41,6 @@ export class TransactionTracer {
     if (!this.chainId) {
       throw new Error('[Tracer]: Unable to detect chainId from client')
     }
-
-    this.anvil = createAnvil({
-      chainId: this.chainId,
-      forkUrl: this.client.chain?.rpcUrls.default.http[0],
-    })
-
-    this.testClient = createTestClient({
-      chain: this.client.chain,
-      mode: 'anvil',
-      transport: http(`http://${this.anvil.host}:${this.anvil.port}`, {
-        timeout: 60000,
-      }),
-    }).extend(publicActions)
 
     this.cache = new TracerCache(
       this.chainId,
@@ -74,13 +58,30 @@ export class TransactionTracer {
     }
   }
 
+  private startAnvilFork = (anvilConfig?: { blockNumber?: number }) => {
+    const anvil = createAnvil({
+      chainId: this.chainId,
+      forkUrl: this.client.chain?.rpcUrls.default.http[0],
+      forkBlockNumber: anvilConfig?.blockNumber,
+    })
+
+    const testClient = createTestClient({
+      chain: this.client.chain,
+      mode: 'anvil',
+      transport: http(`http://${anvil.host}:${anvil.port}`, {
+        timeout: 60000,
+      }),
+    }).extend(publicActions) as PublicClient
+
+    return { testClient, anvil }
+  }
+
   public traceCall = async ({
     stateOverride,
     gasProfiler = false,
     ...args
   }: TraceCallParameters) => {
     this.startProgressBar()
-    if (args.useAnvil) await this.anvil.start()
     const [traceError, trace] = await this.callTraceRequest({
       stateOverride,
       ...args,
@@ -160,7 +161,14 @@ export class TransactionTracer {
     stateOverride,
     ...args
   }: TraceCallParameters) => {
-    const client = args.useAnvil ? this.testClient : this.client
+    let client = this.client
+    if (args.useAnvil) {
+      const { testClient, anvil } = this.startAnvilFork({
+        blockNumber: Number(args.blockNumber),
+      })
+      client = testClient
+      await anvil.start()
+    }
     const account_ = args.account ?? client.account
     const account = account_ ? parseAccount(account_) : null
 
