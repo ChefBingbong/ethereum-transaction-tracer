@@ -1,3 +1,8 @@
 {
-  "extends": "@evm-tt/typescript-config/base.json"
+  "extends": "@evm-tt/typescript-config/base.json",
+  "compilerOptions": {
+    "paths": {
+      "@evm-tt/tracer/*": ["../packages/tracer/src/*"]
+    }
+  }
 }
