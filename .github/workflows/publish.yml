@@ -19,6 +19,9 @@ jobs:
       - name: Install (bun/pnpm/etc)
         uses: ./.github/actions/install
 
+      - name: Build
+        run: bun run build:packages
+
       - name: Create Release PR or Publish
         id: changesets
         uses: changesets/action@v1
