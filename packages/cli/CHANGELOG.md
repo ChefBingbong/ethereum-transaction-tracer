@@ -1,5 +1,11 @@
 # @evm-tt/cli
 
+## 0.13.0
+
+### Minor Changes
+
+- 3843d6e: improve cli
+
 ## 0.12.1
 
 ### Patch Changes
