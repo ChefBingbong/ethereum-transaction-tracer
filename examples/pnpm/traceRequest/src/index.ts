@@ -80,7 +80,7 @@ const tracer = new TransactionTracer(client, {
 async function main() {
   const [error, trace] = await tracer.traceCall({
     account: SENDER,
-    // blockNumber: 23212888n,
+    blockNumber: 23212888n,
     gasProfiler: false,
     to: TO,
     kzg: undefined,
