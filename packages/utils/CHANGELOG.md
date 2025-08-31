@@ -1,5 +1,11 @@
 # @evm-tt/utils
 
+## 0.6.0
+
+### Minor Changes
+
+- 04a3493: improve builds and add new features
+
 ## 0.5.0
 
 ### Minor Changes
