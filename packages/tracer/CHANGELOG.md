@@ -1,5 +1,16 @@
 # @evm-tt/tracer
 
+## 0.9.0
+
+### Minor Changes
+
+- 75f92a5: add prepare script
+
+### Patch Changes
+
+- Updated dependencies [75f92a5]
+  - @evm-tt/utils@0.7.0
+
 ## 0.8.0
 
 ### Minor Changes
