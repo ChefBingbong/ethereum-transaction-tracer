@@ -1,5 +1,11 @@
 # @evm-tt/tracer
 
+## 0.8.0
+
+### Minor Changes
+
+- 563d6d1: fix anvil
+
 ## 0.7.0
 
 ### Minor Changes
