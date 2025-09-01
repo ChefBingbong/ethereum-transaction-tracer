@@ -8,7 +8,10 @@ import {
 import { extract, getTransactionError, parseAccount } from 'viem/utils'
 import { TracerCache } from '../cache'
 import { Decoder } from '../decoder'
-import { coerceUnsupportedTraceError } from '../errors'
+import {
+  coerceUnsupportedTraceError,
+  UnsupportedTraceMethodError,
+} from '../errors'
 import { TracePrettyPrinter } from '../format'
 import {
   LogVerbosity,
@@ -67,7 +70,9 @@ export class TransactionTracer {
           progress,
         )
         if (traceError) {
-          return safeError(new Error(traceError.message))
+          if (traceError instanceof UnsupportedTraceMethodError) {
+            return safeError(new Error(traceError.message))
+          } else return safeError(traceError)
         }
 
         const printer = TracePrettyPrinter.createTracer(
@@ -97,43 +102,50 @@ export class TransactionTracer {
   public traceTransactionHash = async (
     { txHash }: TraceTxParameters,
     run: {
+      env?: Environment
       showProgressBar?: boolean
       streamLogs?: boolean
       gasProfiler?: boolean
     } = {},
   ) => {
     const progress = makeProgress(run.showProgressBar)
-    return this.withClient({ kind: 'rpc' }, progress, async (client) => {
-      const [traceError, trace] = await this.callTraceTxHash(
-        client,
-        { txHash },
-        progress,
-      )
-      if (traceError) {
-        return safeError(new Error(traceError.message))
-      }
+    return this.withClient(
+      run.env ?? { kind: 'rpc' },
+      progress,
+      async (client) => {
+        const [traceError, trace] = await this.callTraceTxHash(
+          client,
+          { txHash },
+          progress,
+        )
+        if (traceError) {
+          if (traceError instanceof UnsupportedTraceMethodError) {
+            return safeError(new Error(traceError.message))
+          } else return safeError(traceError)
+        }
 
-      const printer = TracePrettyPrinter.createTracer(
-        this.cache,
-        this.decoder,
-        {
-          verbosity: this.verbosity,
-          logStream: !!run.streamLogs,
-        },
-      )
+        const printer = TracePrettyPrinter.createTracer(
+          this.cache,
+          this.decoder,
+          {
+            verbosity: this.verbosity,
+            logStream: !!run.streamLogs,
+          },
+        )
 
-      const [formatError, lines] = await printer.formatTrace(trace, {
-        showReturnData: true,
-        showLogs: true,
-        gasProfiler: !!run.gasProfiler,
-        progress: {
-          onUpdate: (v: number) => progress.inc(v),
-          includeLogs: true,
-        },
-      })
+        const [formatError, lines] = await printer.formatTrace(trace, {
+          showReturnData: true,
+          showLogs: true,
+          gasProfiler: !!run.gasProfiler,
+          progress: {
+            onUpdate: (v: number) => progress.inc(v),
+            includeLogs: true,
+          },
+        })
 
-      return formatError ? safeError(formatError) : safeResult(lines)
-    })
+        return formatError ? safeError(formatError) : safeResult(lines)
+      },
+    )
   }
 
   private async withClient<T>(
