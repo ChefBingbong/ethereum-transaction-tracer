@@ -1,5 +1,5 @@
 import { createAnvil } from '@viem/anvil'
-import { createTestClient, http, type PublicClient, publicActions } from 'viem'
+import { createTestClient, http, publicActions, type PublicClient } from 'viem'
 
 export type Environment =
   | { kind: 'rpc' }
@@ -40,7 +40,7 @@ export class DefaultClientProvider implements ClientProvider {
 
     const testClient = createTestClient({
       chain: this.base.chain,
-      mode: 'hardhat',
+      mode: 'anvil',
       transport: http(`http://${anvil.host}:${anvil.port}`, {
         timeout: 60_000,
       }),
