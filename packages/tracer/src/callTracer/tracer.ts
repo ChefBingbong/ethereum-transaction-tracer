@@ -1,19 +1,14 @@
-import { safeError, safeResult, safeTry } from '@evm-tt/utils'
-import { ProgressBar } from '@opentf/cli-pbar'
-import { createAnvil } from '@viem/anvil'
+import { makeProgress, safeError, safeResult, safeTry } from '@evm-tt/utils'
 import {
   type BaseError,
-  createTestClient,
   formatTransactionRequest,
-  http,
   numberToHex,
   type PublicClient,
-  publicActions,
-  type TransactionRequest,
 } from 'viem'
 import { extract, getTransactionError, parseAccount } from 'viem/utils'
 import { TracerCache } from '../cache'
 import { Decoder } from '../decoder'
+import { coerceUnsupportedTraceError } from '../errors'
 import { TracePrettyPrinter } from '../format'
 import {
   LogVerbosity,
@@ -23,24 +18,26 @@ import {
   type TraceTxParameters,
   type TraceTxRpcSchema,
 } from '../types'
+import {
+  type ClientProvider,
+  DefaultClientProvider,
+  type Environment,
+} from './clientProvider'
+
+type TraceClient = PublicClient
 
 export class TransactionTracer {
   public cache: TracerCache
   public decoder: Decoder
   public chainId?: number
-  private client: PublicClient
-  private progressBar: ProgressBar | undefined
+  private provider: ClientProvider
   private verbosity = LogVerbosity.Highest
-  private pbCount = 0
 
-  constructor(client: PublicClient, args: TraaceOptions) {
-    this.client = client
-    this.chainId = client.chain?.id
+  constructor(base: PublicClient | ClientProvider, args: TraaceOptions) {
+    this.provider = isProvider(base) ? base : new DefaultClientProvider(base)
+    this.chainId = !isProvider(base) ? base.chain?.id : undefined
+    if (!this.chainId) throw new Error('[Tracer]: Unable to detect chainId')
     if (args.verbosity) this.verbosity = args.verbosity
-
-    if (!this.chainId) {
-      throw new Error('[Tracer]: Unable to detect chainId from client')
-    }
 
     this.cache = new TracerCache(
       this.chainId,
@@ -48,152 +45,149 @@ export class TransactionTracer {
       args.cacheOptions,
     )
     this.decoder = new Decoder(this.cache)
-    if (args.showProgressBar) {
-      this.progressBar = new ProgressBar({
-        prefix: 'tracing Transaction',
-        showPercent: false,
-        showCount: true,
-      })
-      this.pbCount = 0
-    }
   }
 
-  private startAnvilFork = (anvilConfig?: {
-    blockNumber?: bigint | undefined
-  }) => {
-    const anvil = createAnvil({
-      chainId: this.chainId,
-      forkUrl: this.client.chain?.rpcUrls.default.http[0],
-      forkBlockNumber: anvilConfig?.blockNumber ?? undefined,
-    })
+  public traceCall = async (
+    { stateOverride, ...args }: TraceCallParameters,
+    run: {
+      env?: Environment
+      showProgressBar?: boolean
+      streamLogs?: boolean
+      gasProfiler?: boolean
+    } = {},
+  ) => {
+    const progress = makeProgress(run.showProgressBar)
+    return this.withClient(
+      run.env ?? { kind: 'rpc' },
+      progress,
+      async (client) => {
+        const [traceError, trace] = await this.callTraceRequest(
+          client,
+          { stateOverride, ...args },
+          progress,
+        )
+        if (traceError) {
+          return safeError(new Error(traceError.message))
+        }
 
-    const testClient = createTestClient({
-      chain: this.client.chain,
-      mode: 'anvil',
-      transport: http(`http://${anvil.host}:${anvil.port}`, {
-        timeout: 60000,
-      }),
-    }).extend(publicActions) as PublicClient
+        const printer = TracePrettyPrinter.createTracer(
+          this.cache,
+          this.decoder,
+          {
+            verbosity: this.verbosity,
+            logStream: !!run.streamLogs,
+          },
+        )
 
-    return { testClient, anvil }
-  }
+        const [formatError, lines] = await printer.formatTrace(trace, {
+          showReturnData: true,
+          showLogs: true,
+          gasProfiler: !!run.gasProfiler,
+          progress: {
+            onUpdate: (v: number) => progress.inc(v),
+            includeLogs: true,
+          },
+        })
 
-  public traceCall = async ({
-    stateOverride,
-    gasProfiler = false,
-    useAnvil = true,
-    ...args
-  }: TraceCallParameters) => {
-    this.startProgressBar()
-    const [traceError, trace] = await this.callTraceRequest({
-      stateOverride,
-      ...args,
-    })
-
-    if (traceError) {
-      return safeError(
-        getTransactionError(traceError as BaseError, {
-          ...args,
-          account: null,
-          chain: this.client.chain,
-        }),
-      )
-    }
-    const printer = TracePrettyPrinter.createTracer(this.cache, this.decoder, {
-      verbosity: this.verbosity,
-      logStream: !!args.streamLogs,
-    })
-
-    const [formatError, lines] = await printer.formatTrace(trace, {
-      showReturnData: true,
-      showLogs: true,
-      gasProfiler,
-      progress: {
-        onUpdate: (value: number) => {
-          if (args.showProgressBar) {
-            this.updateProgressBar(value)
-          }
-        },
-        includeLogs: true,
+        return formatError ? safeError(formatError) : safeResult(lines)
       },
-    })
-    return formatError ? safeError(formatError) : safeResult(lines)
+    )
   }
 
-  public traceTransactionHash = async ({
-    txHash,
-    showProgressBar,
-    streamLogs,
-    gasProfiler,
-  }: TraceTxParameters) => {
-    this.startProgressBar()
-    const [error, trace] = await this.callTraceTxHash({
-      txHash,
-    })
-
-    if (error) {
-      return safeError(
-        getTransactionError(error as BaseError, {
-          account: null,
-          chain: this.client.chain,
-        }),
+  public traceTransactionHash = async (
+    { txHash }: TraceTxParameters,
+    run: {
+      showProgressBar?: boolean
+      streamLogs?: boolean
+      gasProfiler?: boolean
+    } = {},
+  ) => {
+    const progress = makeProgress(run.showProgressBar)
+    return this.withClient({ kind: 'rpc' }, progress, async (client) => {
+      const [traceError, trace] = await this.callTraceTxHash(
+        client,
+        { txHash },
+        progress,
       )
-    }
-    const printer = TracePrettyPrinter.createTracer(this.cache, this.decoder, {
-      verbosity: this.verbosity,
-      logStream: !!streamLogs,
-    })
-    const [formatError, lines] = await printer.formatTrace(trace, {
-      showReturnData: true,
-      showLogs: true,
-      gasProfiler: !!gasProfiler,
-      progress: {
-        onUpdate: (value: number) => {
-          if (showProgressBar) {
-            this.updateProgressBar(value)
-          }
-        },
-        includeLogs: true,
-      },
-    })
+      if (traceError) {
+        return safeError(new Error(traceError.message))
+      }
 
-    return formatError ? safeError(formatError) : safeResult(lines)
+      const printer = TracePrettyPrinter.createTracer(
+        this.cache,
+        this.decoder,
+        {
+          verbosity: this.verbosity,
+          logStream: !!run.streamLogs,
+        },
+      )
+
+      const [formatError, lines] = await printer.formatTrace(trace, {
+        showReturnData: true,
+        showLogs: true,
+        gasProfiler: !!run.gasProfiler,
+        progress: {
+          onUpdate: (v: number) => progress.inc(v),
+          includeLogs: true,
+        },
+      })
+
+      return formatError ? safeError(formatError) : safeResult(lines)
+    })
   }
 
-  private callTraceRequest = async ({
-    stateOverride,
-    ...args
-  }: TraceCallParameters) => {
-    let client = this.client
-    if (args.useAnvil) {
-      const { testClient, anvil } = this.startAnvilFork({
-        blockNumber: args?.blockNumber,
-      })
-      client = testClient
-      await anvil.start()
+  private async withClient<T>(
+    env: Environment,
+    progress: ReturnType<typeof makeProgress>,
+    fn: (client: TraceClient) => Promise<T>,
+  ): Promise<T> {
+    const lease = await this.provider.lease(env)
+    try {
+      return await fn(lease.client as TraceClient)
+    } finally {
+      progress.done()
+      if (lease.dispose) await lease.dispose()
     }
+  }
+
+  private callTraceRequest = async (
+    client: TraceClient,
+    { stateOverride, ...args }: TraceCallParameters,
+    progress: ReturnType<typeof makeProgress>,
+  ) => {
     const account_ = args.account ?? client.account
     const account = account_ ? parseAccount(account_) : null
 
     const [error, txRequest] = await safeTry(() =>
-      (client as PublicClient).prepareTransactionRequest({
+      client.prepareTransactionRequest({
         ...args,
         stateOverride,
         parameters: ['blobVersionedHashes', 'chainId', 'fees', 'nonce', 'type'],
       }),
     )
-
-    this.updateProgressBar(2)
+    progress.inc(2)
 
     if (error) {
+      const custom = coerceUnsupportedTraceError(
+        'debug_traceCall',
+        'traceCall',
+        error,
+        {
+          chainId: client.chain?.id,
+          chainName: client.chain?.name,
+        },
+      )
+      if (custom) return safeError(custom)
+
       return safeError(
         getTransactionError(error as BaseError, {
           ...args,
-          account,
-          chain: this.client.chain,
+          account: null,
+          chain: client.chain,
         }),
       )
     }
+
     const {
       accessList,
       authorizationList,
@@ -232,10 +226,10 @@ export class TransactionTracer {
       maxFeePerGas,
       maxPriorityFeePerGas,
       nonce,
-      to: tx.to,
+      to: (tx as any).to,
       value,
       stateOverride,
-    } as TransactionRequest)
+    } as any)
 
     const [traceError, trace] = await safeTry(() =>
       client.request<TraceCallRpcSchema>(
@@ -246,10 +240,7 @@ export class TransactionTracer {
             block,
             {
               tracer: 'callTracer',
-              tracerConfig: {
-                onlyTopCall: false,
-                withLog: true,
-              },
+              tracerConfig: { onlyTopCall: false, withLog: true },
               ...(stateOverride && { stateOverrides: { ...stateOverride } }),
             },
           ],
@@ -259,30 +250,26 @@ export class TransactionTracer {
     )
 
     if (traceError) {
-      return safeError(
-        getTransactionError(traceError as BaseError, {
-          ...args,
-          account,
-          chain: this.client.chain,
-        }),
-      )
+      return safeError(traceError)
     }
 
-    this.updateProgressBar(2)
+    progress.inc(2)
 
     const calls = this.cache.getUnknownAbisFromCall(trace)
-    const [fetchError, _] = await safeTry(() => {
-      return this.cache.prefetchUnknownAbis(calls, this.updateProgressBar)
-    })
-
-    this.stopProgressBar()
+    const [fetchError] = await safeTry(() =>
+      this.cache.prefetchUnknownAbis(calls, (v) => progress.inc(v)),
+    )
 
     return fetchError ? safeError(fetchError) : safeResult(trace)
   }
 
-  private callTraceTxHash = async ({ txHash }: TraceTxParameters) => {
+  private callTraceTxHash = async (
+    client: TraceClient,
+    { txHash }: TraceTxParameters,
+    progress: ReturnType<typeof makeProgress>,
+  ) => {
     const [error, trace] = await safeTry(() =>
-      this.client.request<TraceTxRpcSchema>(
+      client.request<TraceTxRpcSchema>(
         {
           method: 'debug_traceTransaction',
           params: [
@@ -299,41 +286,36 @@ export class TransactionTracer {
         { retryCount: 0 },
       ),
     )
-    this.updateProgressBar(6)
+    progress.inc(6)
 
     if (error) {
+      const custom = coerceUnsupportedTraceError(
+        'debug_traceTransaction',
+        'traceTransactionHash',
+        error,
+        { chainId: client.chain?.id, chainName: client.chain?.name },
+      )
+      if (custom) return safeError(custom)
+
       return safeError(
         getTransactionError(error as BaseError, {
           account: null,
-          chain: this.client.chain,
+          chain: client.chain,
         }),
       )
     }
 
-    const calls = this.cache.getUnknownAbisFromCall(trace)
-    const [fetchError, _] = await safeTry(() => {
-      return this.cache.prefetchUnknownAbis(calls, this.updateProgressBar)
-    })
+    progress.inc(2)
 
-    this.stopProgressBar()
+    const calls = this.cache.getUnknownAbisFromCall(trace)
+    const [fetchError] = await safeTry(() =>
+      this.cache.prefetchUnknownAbis(calls, (v) => progress.inc(v)),
+    )
 
     return fetchError ? safeError(fetchError) : safeResult(trace)
   }
+}
 
-  private updateProgressBar = (value: number) => {
-    if (!this.progressBar) return
-    this.progressBar.update({ value: this.pbCount })
-    this.pbCount += value
-  }
-
-  private stopProgressBar = () => {
-    if (!this.progressBar) return
-    this.progressBar.update({ value: 100 })
-    this.progressBar.stop()
-  }
-
-  private startProgressBar = () => {
-    if (!this.progressBar) return
-    this.progressBar.start({ total: 100 })
-  }
+function isProvider(x: unknown): x is ClientProvider {
+  return !!x && typeof (x as any).lease === 'function'
 }
