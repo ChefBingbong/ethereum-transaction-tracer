@@ -1,5 +1,5 @@
 import { createAnvil } from '@viem/anvil'
-import { createTestClient, http, publicActions, type PublicClient } from 'viem'
+import { createTestClient, http, type PublicClient, publicActions } from 'viem'
 
 export type Environment =
   | { kind: 'rpc' }
