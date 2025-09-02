@@ -44,12 +44,7 @@ export class Decoder {
     if (!selector) return safeErrorStr('no abi selector in cache')
 
     const abiItem =
-      typeof selector === 'string'
-        ? parseAbi(
-            // @ts-ignore
-            [selector],
-          )
-        : [selector]
+      typeof selector === 'string' ? parseAbi([selector]) : [selector]
 
     const [error, data] = safeSyncTry(() =>
       decodeFunctionData({
