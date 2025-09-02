@@ -1,6 +1,11 @@
-import { join } from 'node:path'
-import { AddressMap, safeSyncTry } from '@evm-tt/utils'
+import {
+  AddressMap,
+  reliableFetchJson,
+  safeError,
+  safeSyncTry,
+} from '@evm-tt/utils'
 import fs from 'fs-extra'
+import { join } from 'node:path'
 import {
   type Abi,
   type AbiEvent,
@@ -14,7 +19,7 @@ import {
   toBytes,
   toFunctionSelector,
 } from 'viem'
-import { ETHERSCAN_RATE_LIMIT } from '../constants'
+import { ETHERSCAN_RATE_LIMIT, OPENCHAIN_BASE_URL } from '../constants'
 import type {
   AbiError,
   AbiInfo,
@@ -23,6 +28,7 @@ import type {
   RpcCallTrace,
 } from '../types'
 import { getAbiFromEtherscan } from './abiSources'
+import { openChainAbiSchema } from './schemas'
 
 const sleep = async (ms: number) =>
   await new Promise((resolve) => setTimeout(resolve, ms))
@@ -240,58 +246,43 @@ export class TracerCache {
   }
 
   async getAllUnknownSignatures(trace: RpcCallTrace) {
-    const unknownFunctionSelectors =
-      this.getCallTraceUnknownFunctionSelectors(trace)
-    const unknownEventSelectors = this.getCallTraceUnknownEventSelectors(trace)
+    const fnSelectors = this.getUnknownFnSelectors(trace)
+    const EvSelectors = this.getUnknownEvSelectors(trace)
 
-    if (unknownFunctionSelectors || unknownEventSelectors) {
+    if (EvSelectors || fnSelectors) {
       const searchParams = new URLSearchParams({ filter: 'false' })
-      if (unknownFunctionSelectors)
-        searchParams.append('function', unknownFunctionSelectors)
-      if (unknownEventSelectors)
-        searchParams.append('event', unknownEventSelectors)
 
-      const lookupRes = await fetch(
-        `https://api.openchain.xyz/signature-database/v1/lookup?${searchParams.toString()}`,
+      if (fnSelectors) searchParams.append('function', fnSelectors)
+      if (EvSelectors) searchParams.append('event', EvSelectors)
+
+      const [error, response] = await reliableFetchJson(
+        openChainAbiSchema,
+        new Request(
+          `${OPENCHAIN_BASE_URL}/signature-database/v1/lookup?${searchParams.toString()}`,
+        ),
       )
-      const lookup: any = await lookupRes.json()
+      if (error) return safeError(new Error(error.message))
 
-      if (lookup.ok) {
-        Object.entries<{ name: string; filtered: boolean }[]>(
-          lookup.result.function,
-          // biome-ignore lint/suspicious/useIterableCallbackReturn: <explanation>
-        ).map(([sig, results]) => {
-          const match = results.find(({ filtered }) => !filtered)?.name
-          if (!match) return
-
-          this.signatureDir.set(sig as Hex, `function ${match}`)
+      if (response.result.function) {
+        Object.entries(response.result.function).forEach(([sig, results]) => {
+          const match = results?.find(({ filtered }) => !filtered)?.name
+          if (match) this.signatureDir.set(sig as Hex, `function ${match}`)
         })
-        Object.entries<{ name: string; filtered: boolean }[]>(
-          lookup.result.event,
-          // biome-ignore lint/suspicious/useIterableCallbackReturn: <explanation>
-        ).map(([sig, results]) => {
-          const match = results.find(({ filtered }) => !filtered)?.name
-          if (!match) return
-
-          this.signatureEvDir.set(sig as Hex, `event ${match}`)
+      }
+      if (response.result.function) {
+        Object.entries(response.result.event).forEach(([sig, results]) => {
+          const match = results?.find(({ filtered }) => !filtered)?.name
+          if (match) this.signatureEvDir.set(sig as Hex, `event ${match}`)
         })
-      } else {
-        console.warn(
-          `Failed to fetch signatures for unknown selectors: ${unknownFunctionSelectors}`,
-          lookup.error,
-          '\n',
-        )
       }
     }
   }
 
   getSelector = (input: Hex) => slice(input, 0, 4)
 
-  getCallTraceUnknownFunctionSelectors = (trace: RpcCallTrace): string => {
+  getUnknownFnSelectors = (trace: RpcCallTrace): string => {
     const rest = (trace.calls ?? [])
-      .flatMap((subtrace) =>
-        this.getCallTraceUnknownFunctionSelectors(subtrace),
-      )
+      .flatMap((subtrace) => this.getUnknownFnSelectors(subtrace))
       .filter(Boolean)
 
     if (trace.input) {
@@ -303,9 +294,9 @@ export class TracerCache {
     return rest.join(',')
   }
 
-  getCallTraceUnknownEventSelectors = (trace: RpcCallTrace): string => {
+  getUnknownEvSelectors = (trace: RpcCallTrace): string => {
     const rest = (trace.calls ?? [])
-      .flatMap((subtrace) => this.getCallTraceUnknownEventSelectors(subtrace))
+      .flatMap((subtrace) => this.getUnknownEvSelectors(subtrace))
       .filter(Boolean)
 
     if (trace.logs) {
