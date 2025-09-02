@@ -35,7 +35,7 @@ npm install -g @evm-tt/cli
 # Usage
 ## Transaction Trace
 
-to use evm-tt in your backend application simply import the main `TransactionTracer` entity and create and instance for your needs. Note that your prc provider must support the `debug_tracecall` JSON RPC method.
+to use evm-tt in your backend application simply import the main `TransactionTracer` entity and create and instance for your needs. Note that it is recommened that your prc provider must support the `debug_tracecall` and `debug_traceTransaction` JSON RPC method for the best developer experience.
 ```ts
 const client = getPublicClient(RPC_URL)
 
@@ -57,6 +57,20 @@ const tracer = new TransactionTracer(client, {
 })
 
 ```
+
+the `TransactionTracer` class accepts a few optional configration.
+
+
+| Option         | Type                                                    | Description                                                                                                                                                                     |
+| -------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cachePath`    | `string` (directory path)                               | Directory where ABI signatures and decoded items are cached for faster subsequent decoding.                                                                                     |
+| `cacheOptions` | `object`                                                | Decoder helpers made of known ABIs that will be used when decoding calls within traces.                                                                                         |
+| `byAddress`    | `Record<string, { name?: string; abi?: Abi \| Abi[] }>` | Map contract addresses to a display name and ABI. When a mapped contract appears in a trace, its `name` is shown instead of the raw address and its `abi` is used for decoding. |
+| `extraAbis`    | `Abi[]`                                                 | Additional ABIs not tied to a specific address or name but available to the decoder.                                                                                            |
+
+
+## Etherscan API KEY
+to access extra abis under the hood, evm-tt uses etherscans api. to use this you will need an API key. this is no issue as you can get them for free by simply signing into `https://etherscan.io` and navigating to your dashboard. it is highly recommnded that you use an etherscan abi key for the best results, otherwise you will need to rely on the `cacheOptions` ABI configuration to get the same level of readable results.
 
 see the [Documentation](https://github.com/ChefBingbong/ethereum-transaction-tracer/blob/main/docs/DOCUMENTATION.md) to learn more about what how each config option affetcs usage and results. Thern to visualise a trace simply evoke the method and wait for the trace to log in your terminal
 
@@ -92,6 +106,20 @@ const [error, trace] = await tracer.traceTransactionHash(
     },
   )
 ```
+
+the `tracer.traceCall` and `tracer.traceTransactionHash` methods accept two arguments. the first is a simple `viem TransactionRequest` object, or if you tracing a txHash, you just pass the hash. the second object has options to let you configure thing sliek whether or not to show a gasProfile etx
+
+
+| Option         | Type                                                    | Description                                                                                                                                                                     |
+| -------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `gasProfiler`    | `boolean`                                             | Whether or not to show the full trace or the gasPorfiler of the trace and the gas cost of each inner call                                                                                   |
+| `showProgressbar` | `voolean`                                                |Whether or not to show a progress bar of your traces progress                                                                                      |
+| `env`    | `env: { kind: 'fork', blockNumber: number }`                 | Supported only by `traceCall`, spins up a forked envionrment and runs the simulation with the fork. this is needed when your prc provider does not support `debugTraceCall` |                                                                                         |
+
+## Forking With Anvil
+
+if your RPC Provider does not support the `debug_traceCall` method, make sure you pass in the env kind option as `fork`. this way an anvil forked instance is spawned from you rpc url and its used to do the traceCall simulation. this lets you still do traces with the likes of public rpcUrls which dont support `debugTraceCall` out of the box
+
 
 ### Result
 
