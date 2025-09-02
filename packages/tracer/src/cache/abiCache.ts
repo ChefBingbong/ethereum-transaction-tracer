@@ -1,3 +1,4 @@
+import { join } from 'node:path'
 import {
   AddressMap,
   reliableFetchJson,
@@ -5,7 +6,6 @@ import {
   safeSyncTry,
 } from '@evm-tt/utils'
 import fs from 'fs-extra'
-import { join } from 'node:path'
 import {
   type Abi,
   type AbiEvent,
