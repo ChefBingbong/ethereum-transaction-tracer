@@ -1,5 +1,11 @@
 # @evm-tt/typescript-config
 
+## 0.3.0
+
+### Minor Changes
+
+- 567db71: improve dev ex
+
 ## 0.2.0
 
 ### Minor Changes

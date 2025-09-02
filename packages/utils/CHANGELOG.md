@@ -1,5 +1,11 @@
 # @evm-tt/utils
 
+## 0.8.0
+
+### Minor Changes
+
+- 567db71: improve dev ex
+
 ## 0.7.0
 
 ### Minor Changes
