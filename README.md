@@ -61,21 +61,36 @@ const tracer = new TransactionTracer(client, {
 see the [Documentation](https://github.com/ChefBingbong/ethereum-transaction-tracer/blob/main/docs/DOCUMENTATION.md) to learn more about what how each config option affetcs usage and results. Thern to visualise a trace simply evoke the method and wait for the trace to log in your terminal
 
 ```ts
-const [error, trace] = await tracer.traceCall({
-    account: SENDER,
-    blockNumber: 9451543n,
-    to: TO,
-    data: '0x83643.....',
-    chain: client.chain,
-    stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
-
-})
+const [error, trace] = await tracer.traceCall(
+   {
+      account: SENDER,
+      blockNumber: 9451543n,
+      to: TO,
+      data: '0x83643.....',
+      chain: client.chain,
+      stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
+  },
+  {
+      env: { kind: 'fork', blockNumber: 23212888 }, // use this option if your rpc doesnt support debugTracecall
+      gasProfiler: false,
+      showProgressBar: false,
+      streamLogs: true,
+ },
+  )
 
 // OR TRACE TX HASH
 
-const [error, trace] = await tracer.traceCall({
-    txHash: '0xf4a91c18dad36c9a0717da2375aef02b14bcd0e89dd5f1fc8f19d7952cdb5649,
-})
+const [error, trace] = await tracer.traceTransactionHash(
+    {
+      txHash:
+        '0xf4a91c18dad36c9a0717da2375aef02b14bcd0e89dd5f1fc8f19d7952cdb5649',
+    },
+    {
+      gasProfiler: false,
+      showProgressBar: false,
+      streamLogs: true,
+    },
+  )
 ```
 
 ### Result
@@ -88,15 +103,19 @@ const [error, trace] = await tracer.traceCall({
 you can also get a traces gas profile, which outputs the gas spent by each call made in a request. This method is very useful for seeing how much gas is being spent by different external contract calls. To evoke this method run
 
 ```ts
-  const [error, trace] = await tracer.traceGasCall({
-    account: SENDER,
-    blockNumber: 9451543n,
-    to: TO,
-    data: '0xd46cad.....',
-    chain: client.chain,
-    stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
-  })
-})
+ const [error, trace] = await tracer.traceCall(
+   {
+      account: SENDER,
+      blockNumber: 9451543n,
+      to: TO,
+      data: '0x83643.....',
+      chain: client.chain,
+      stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
+  },
+  {
+      gasProfiler: true, // set this option to true
+ },
+  )
 ```
 
 ### Result
