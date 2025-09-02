@@ -268,6 +268,7 @@ export class TransactionTracer {
     progress.inc(2)
 
     const calls = this.cache.getUnknownAbisFromCall(trace)
+    await this.cache.getAllUnknownSignatures(trace)
     const [fetchError] = await safeTry(() =>
       this.cache.prefetchUnknownAbis(calls, (v) => progress.inc(v)),
     )
@@ -320,6 +321,7 @@ export class TransactionTracer {
     progress.inc(2)
 
     const calls = this.cache.getUnknownAbisFromCall(trace)
+    await this.cache.getAllUnknownSignatures(trace)
     const [fetchError] = await safeTry(() =>
       this.cache.prefetchUnknownAbis(calls, (v) => progress.inc(v)),
     )

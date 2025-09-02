@@ -1,6 +1,6 @@
-import { join } from 'node:path'
 import { AddressMap, safeSyncTry } from '@evm-tt/utils'
 import fs from 'fs-extra'
+import { join } from 'node:path'
 import {
   type Abi,
   type AbiEvent,
@@ -9,6 +9,7 @@ import {
   getAddress,
   type Hex,
   keccak256,
+  slice,
   stringToHex,
   toBytes,
   toFunctionSelector,
@@ -26,11 +27,18 @@ import { getAbiFromEtherscan } from './abiSources'
 const sleep = async (ms: number) =>
   await new Promise((resolve) => setTimeout(resolve, ms))
 
+export interface SignaturesCache {
+  events: Record<Hex, string>
+  functions: Record<Hex, string>
+}
 export class TracerCache {
   public contractNames = new AddressMap<string>()
   public fourByteDir = new AddressMap<AbiFunction>()
   public errorDir = new AddressMap<AbiError>()
   public eventsDir = new AddressMap<AbiEvent>()
+  public signatureDir = new AddressMap<string>()
+  public signatureEvDir = new AddressMap<string>()
+
   public extraAbis: Abi[] = []
   private cachePath: string | undefined
 
@@ -84,6 +92,12 @@ export class TracerCache {
     json.errorDir?.forEach(([key, v]) => {
       this.errorDir.set(key, v)
     })
+    json.signatureDir?.forEach(([key, v]) => {
+      this.signatureDir.set(key, v)
+    })
+    json.signatureEvDir?.forEach(([key, v]) => {
+      this.signatureEvDir.set(key, v)
+    })
   }
 
   public save() {
@@ -96,6 +110,8 @@ export class TracerCache {
           fourByteDir: Array.from(this.fourByteDir.entries()),
           eventsDir: Array.from(this.eventsDir.entries()),
           errorDir: Array.from(this.errorDir.entries()),
+          signatureDir: Array.from(this.signatureDir.entries()),
+          signatureEvDir: Array.from(this.signatureEvDir.entries()),
         },
         { spaces: 2 },
       ),
@@ -116,7 +132,7 @@ export class TracerCache {
 
   public abiItemFromSelector(input: Hex) {
     const selector = input.slice(0, 10) as Hex
-    return this.fourByteDir.get(selector)
+    return this.fourByteDir.get(selector) ?? this.signatureDir.get(selector)
   }
 
   public abiEventFromTopic(topic0: Hex) {
@@ -221,5 +237,85 @@ export class TracerCache {
     for (let i = 0; i < children.length; i++) {
       this.aggregateCallInputs(children[i], depth + 1, calls)
     }
+  }
+
+  async getAllUnknownSignatures(trace: RpcCallTrace) {
+    const unknownFunctionSelectors =
+      this.getCallTraceUnknownFunctionSelectors(trace)
+    const unknownEventSelectors = this.getCallTraceUnknownEventSelectors(trace)
+
+    if (unknownFunctionSelectors || unknownEventSelectors) {
+      const searchParams = new URLSearchParams({ filter: 'false' })
+      if (unknownFunctionSelectors)
+        searchParams.append('function', unknownFunctionSelectors)
+      if (unknownEventSelectors)
+        searchParams.append('event', unknownEventSelectors)
+
+      const lookupRes = await fetch(
+        `https://api.openchain.xyz/signature-database/v1/lookup?${searchParams.toString()}`,
+      )
+      const lookup: any = await lookupRes.json()
+
+      if (lookup.ok) {
+        Object.entries<{ name: string; filtered: boolean }[]>(
+          lookup.result.function,
+          // biome-ignore lint/suspicious/useIterableCallbackReturn: <explanation>
+        ).map(([sig, results]) => {
+          const match = results.find(({ filtered }) => !filtered)?.name
+          if (!match) return
+
+          this.signatureDir.set(sig as Hex, `function ${match}`)
+        })
+        Object.entries<{ name: string; filtered: boolean }[]>(
+          lookup.result.event,
+          // biome-ignore lint/suspicious/useIterableCallbackReturn: <explanation>
+        ).map(([sig, results]) => {
+          const match = results.find(({ filtered }) => !filtered)?.name
+          if (!match) return
+
+          this.signatureEvDir.set(sig as Hex, `event ${match}`)
+        })
+      } else {
+        console.warn(
+          `Failed to fetch signatures for unknown selectors: ${unknownFunctionSelectors}`,
+          lookup.error,
+          '\n',
+        )
+      }
+    }
+  }
+
+  getSelector = (input: Hex) => slice(input, 0, 4)
+
+  getCallTraceUnknownFunctionSelectors = (trace: RpcCallTrace): string => {
+    const rest = (trace.calls ?? [])
+      .flatMap((subtrace) =>
+        this.getCallTraceUnknownFunctionSelectors(subtrace),
+      )
+      .filter(Boolean)
+
+    if (trace.input) {
+      const inputSelector = this.getSelector(trace.input)
+
+      if (!this.signatureDir.has(inputSelector)) rest.push(inputSelector)
+    }
+
+    return rest.join(',')
+  }
+
+  getCallTraceUnknownEventSelectors = (trace: RpcCallTrace): string => {
+    const rest = (trace.calls ?? [])
+      .flatMap((subtrace) => this.getCallTraceUnknownEventSelectors(subtrace))
+      .filter(Boolean)
+
+    if (trace.logs) {
+      for (const log of trace.logs) {
+        const selector = log.topics[0]!
+
+        if (!this.signatureEvDir.has(selector)) rest.push(selector)
+      }
+    }
+
+    return rest.join(',')
   }
 }
