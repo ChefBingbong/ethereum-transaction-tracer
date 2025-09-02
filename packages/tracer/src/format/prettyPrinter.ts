@@ -7,7 +7,17 @@ import {
   truncate,
 } from '@evm-tt/utils'
 import pc from 'picocolors'
-import type { Address, Hex } from 'viem'
+import {
+  type Abi,
+  type AbiFunction,
+  type Address,
+  erc20Abi,
+  erc721Abi,
+  erc1155Abi,
+  erc4626Abi,
+  type Hex,
+  multicall3Abi,
+} from 'viem'
 import type { TracerCache } from '../cache'
 import type { Decoder } from '../decoder'
 import { LogVerbosity, type RpcCallTrace } from '../types'
@@ -145,9 +155,20 @@ export class TraceFormatter {
     if (callError)
       return `${returnLabel} ${node.output ? truncate(node.output) : dim('()')}`
 
-    if (decodedCall.fnItem) {
+    const functionAbi = (erc20Abi as Abi)
+      .concat(decodedCall.fnItem)
+      .concat(erc721Abi)
+      .concat(erc1155Abi)
+      .concat(erc4626Abi)
+      .concat(multicall3Abi)
+      .find(
+        (abi): abi is AbiFunction =>
+          abi.type === 'function' && abi.name === decodedCall.fnName,
+      )
+
+    if (functionAbi) {
       const [returnError, decodedReturn] = this.decoder.decodeReturnPretty(
-        decodedCall.fnItem,
+        functionAbi,
         node.output,
       )
       if (returnError) return `${returnLabel} ${truncate(node.output)}`

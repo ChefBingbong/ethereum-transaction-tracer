@@ -19,6 +19,7 @@ import {
   decodeFunctionData,
   decodeFunctionResult,
   getAbiItem,
+  parseAbi,
 } from 'viem'
 import type { TracerCache } from '../cache'
 import type { RpcCallTrace } from '../types'
@@ -35,22 +36,29 @@ export class Decoder {
       }),
     )
     if (error) return safeError(error)
-    return safeResult(stringify(data))
+    return safeResult(data ? stringify(data) : output)
   }
 
   public decodeCallWithNames = (_address: Address, input: Hex) => {
     const selector = this.cache.abiItemFromSelector(input)
     if (!selector) return safeErrorStr('no abi selector in cache')
 
+    const abiItem =
+      typeof selector === 'string' ? parseAbi([selector]) : [selector]
+
     const [error, data] = safeSyncTry(() =>
       decodeFunctionData({
-        abi: [selector],
+        abi: abiItem,
         data: input,
       }),
     )
+
     if (error) return safeError(error)
 
-    const item = getAbiItem({ abi: [selector], name: data.functionName })
+    const item = getAbiItem({
+      abi: abiItem,
+      name: data.functionName,
+    })
     return safeResult({
       fnName: data.functionName,
       prettyArgs: data.args ?? [],

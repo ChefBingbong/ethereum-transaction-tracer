@@ -41,6 +41,8 @@ export type CacheJson = {
   contractAbi?: [string, Abi][]
   eventsDir?: [Hex, AbiEvent][]
   errorDir?: [Hex, AbiError][]
+  signatureDir?: [Hex, string][]
+  signatureEvDir?: [Hex, string][]
 
   extraAbis?: Abi[]
   undefinedSignatures?: Address[]

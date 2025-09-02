@@ -62,7 +62,7 @@ export function addrLabelStyled(
 export function nameFromSelector(input: Hex | undefined, cache: TracerCache) {
   if (!input || input.length < 10) return undefined
   const fn = cache.abiItemFromSelector(input)
-  if (!fn) return undefined
+  if (!fn || typeof fn === 'string') return undefined
   const sig = `${fn.name}(${(fn.inputs ?? []).map((i) => i.type).join(',')})`
   return sig
 }

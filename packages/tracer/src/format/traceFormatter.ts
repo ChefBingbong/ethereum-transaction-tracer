@@ -49,6 +49,7 @@ export class TracePrettyPrinter {
       return this.processInnerGasCalls(root, true, 0)
     })
     if (error) return safeError(error)
+    await this.cache.save()
     return safeResult(this.lines.join('\n'))
   }
 

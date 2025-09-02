@@ -1,5 +1,10 @@
 import { join } from 'node:path'
-import { AddressMap, safeSyncTry } from '@evm-tt/utils'
+import {
+  AddressMap,
+  reliableFetchJson,
+  safeError,
+  safeSyncTry,
+} from '@evm-tt/utils'
 import fs from 'fs-extra'
 import {
   type Abi,
@@ -9,11 +14,12 @@ import {
   getAddress,
   type Hex,
   keccak256,
+  slice,
   stringToHex,
   toBytes,
   toFunctionSelector,
 } from 'viem'
-import { ETHERSCAN_RATE_LIMIT } from '../constants'
+import { ETHERSCAN_RATE_LIMIT, OPENCHAIN_BASE_URL } from '../constants'
 import type {
   AbiError,
   AbiInfo,
@@ -22,15 +28,23 @@ import type {
   RpcCallTrace,
 } from '../types'
 import { getAbiFromEtherscan } from './abiSources'
+import { openChainAbiSchema } from './schemas'
 
 const sleep = async (ms: number) =>
   await new Promise((resolve) => setTimeout(resolve, ms))
 
+export interface SignaturesCache {
+  events: Record<Hex, string>
+  functions: Record<Hex, string>
+}
 export class TracerCache {
   public contractNames = new AddressMap<string>()
   public fourByteDir = new AddressMap<AbiFunction>()
   public errorDir = new AddressMap<AbiError>()
   public eventsDir = new AddressMap<AbiEvent>()
+  public signatureDir = new AddressMap<string>()
+  public signatureEvDir = new AddressMap<string>()
+
   public extraAbis: Abi[] = []
   private cachePath: string | undefined
 
@@ -84,6 +98,12 @@ export class TracerCache {
     json.errorDir?.forEach(([key, v]) => {
       this.errorDir.set(key, v)
     })
+    json.signatureDir?.forEach(([key, v]) => {
+      this.signatureDir.set(key, v)
+    })
+    json.signatureEvDir?.forEach(([key, v]) => {
+      this.signatureEvDir.set(key, v)
+    })
   }
 
   public save() {
@@ -96,6 +116,8 @@ export class TracerCache {
           fourByteDir: Array.from(this.fourByteDir.entries()),
           eventsDir: Array.from(this.eventsDir.entries()),
           errorDir: Array.from(this.errorDir.entries()),
+          signatureDir: Array.from(this.signatureDir.entries()),
+          signatureEvDir: Array.from(this.signatureEvDir.entries()),
         },
         { spaces: 2 },
       ),
@@ -116,7 +138,7 @@ export class TracerCache {
 
   public abiItemFromSelector(input: Hex) {
     const selector = input.slice(0, 10) as Hex
-    return this.fourByteDir.get(selector)
+    return this.fourByteDir.get(selector) ?? this.signatureDir.get(selector)
   }
 
   public abiEventFromTopic(topic0: Hex) {
@@ -221,5 +243,70 @@ export class TracerCache {
     for (let i = 0; i < children.length; i++) {
       this.aggregateCallInputs(children[i], depth + 1, calls)
     }
+  }
+
+  async getAllUnknownSignatures(trace: RpcCallTrace) {
+    const fnSelectors = this.getUnknownFnSelectors(trace)
+    const EvSelectors = this.getUnknownEvSelectors(trace)
+
+    if (EvSelectors || fnSelectors) {
+      const searchParams = new URLSearchParams({ filter: 'false' })
+
+      if (fnSelectors) searchParams.append('function', fnSelectors)
+      if (EvSelectors) searchParams.append('event', EvSelectors)
+
+      const [error, response] = await reliableFetchJson(
+        openChainAbiSchema,
+        new Request(
+          `${OPENCHAIN_BASE_URL}/signature-database/v1/lookup?${searchParams.toString()}`,
+        ),
+      )
+      if (error) return safeError(new Error(error.message))
+
+      if (response.result.function) {
+        Object.entries(response.result.function).forEach(([sig, results]) => {
+          const match = results?.find(({ filtered }) => !filtered)?.name
+          if (match) this.signatureDir.set(sig as Hex, `function ${match}`)
+        })
+      }
+      if (response.result.function) {
+        Object.entries(response.result.event).forEach(([sig, results]) => {
+          const match = results?.find(({ filtered }) => !filtered)?.name
+          if (match) this.signatureEvDir.set(sig as Hex, `event ${match}`)
+        })
+      }
+    }
+  }
+
+  getSelector = (input: Hex) => slice(input, 0, 4)
+
+  getUnknownFnSelectors = (trace: RpcCallTrace): string => {
+    const rest = (trace.calls ?? [])
+      .flatMap((subtrace) => this.getUnknownFnSelectors(subtrace))
+      .filter(Boolean)
+
+    if (trace.input) {
+      const inputSelector = this.getSelector(trace.input)
+
+      if (!this.signatureDir.has(inputSelector)) rest.push(inputSelector)
+    }
+
+    return rest.join(',')
+  }
+
+  getUnknownEvSelectors = (trace: RpcCallTrace): string => {
+    const rest = (trace.calls ?? [])
+      .flatMap((subtrace) => this.getUnknownEvSelectors(subtrace))
+      .filter(Boolean)
+
+    if (trace.logs) {
+      for (const log of trace.logs) {
+        const selector = log.topics[0]!
+
+        if (!this.signatureEvDir.has(selector)) rest.push(selector)
+      }
+    }
+
+    return rest.join(',')
   }
 }
