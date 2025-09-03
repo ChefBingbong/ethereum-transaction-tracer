@@ -1,5 +1,13 @@
 # @evm-tt/cli
 
+## 0.16.1
+
+### Patch Changes
+
+- Updated dependencies [9c5bd65]
+  - @evm-tt/utils@0.9.0
+  - @evm-tt/tracer@0.10.1
+
 ## 0.16.0
 
 ### Minor Changes
