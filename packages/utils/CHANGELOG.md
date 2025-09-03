@@ -1,5 +1,11 @@
 # @evm-tt/utils
 
+## 0.10.0
+
+### Minor Changes
+
+- 8efa791: add chalk
+
 ## 0.9.0
 
 ### Minor Changes
