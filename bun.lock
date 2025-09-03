@@ -17,11 +17,11 @@
     },
     "config/typescript": {
       "name": "@evm-tt/typescript-config",
-      "version": "0.2.0",
+      "version": "0.3.0",
     },
     "packages/cli": {
       "name": "@evm-tt/cli",
-      "version": "0.15.0",
+      "version": "0.16.0",
       "bin": {
         "evm-tt": "./dist/index.js",
       },
@@ -45,9 +45,9 @@
     },
     "packages/tracer": {
       "name": "@evm-tt/tracer",
-      "version": "0.9.0",
+      "version": "0.10.0",
       "dependencies": {
-        "@evm-tt/utils": "0.7.0",
+        "@evm-tt/utils": "0.8.0",
         "@opentf/cli-pbar": "^0.7.2",
         "@viem/anvil": "^0.0.10",
         "fs-extra": "^11.3.1",
@@ -66,8 +66,9 @@
     },
     "packages/utils": {
       "name": "@evm-tt/utils",
-      "version": "0.7.0",
+      "version": "0.8.0",
       "dependencies": {
+        "@commander-js/extra-typings": "^14.0.0",
         "@opentf/cli-pbar": "^0.7.2",
         "abitype": "^1.0.9",
         "pino": "9.6.0",
