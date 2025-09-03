@@ -1,5 +1,11 @@
 # @evm-tt/utils
 
+## 0.9.0
+
+### Minor Changes
+
+- 9c5bd65: add commander to utils
+
 ## 0.8.0
 
 ### Minor Changes
