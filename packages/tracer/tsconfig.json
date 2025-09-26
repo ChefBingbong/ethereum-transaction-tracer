@@ -1,7 +1,6 @@
 {
   "extends": "@evm-tt/typescript-config/base.json",
   "exclude": ["node_modules", "dist"],
-  "include": ["test"],
   "compilerOptions": {
     "noEmit": true,          
     "allowJs": false
