@@ -580,4 +580,4 @@ export const CFG = [
     stateMutability: 'payable',
     type: 'receive',
   },
-]
+] as const
