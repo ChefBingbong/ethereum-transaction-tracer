@@ -1,5 +1,4 @@
 import fs from 'node:fs'
-import { safeSyncTry } from '@evm-tt/utils'
 import { createPublicClient, http } from 'viem'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
@@ -32,9 +31,9 @@ describe('TransactionTracer – integration (mainnet fork)', () => {
   })
 
   afterAll(() => {
-    safeSyncTry(() => {
+    try {
       return fs.rmSync(TEST_CACHE_DIR, { recursive: true, force: true })
-    })
+    } catch {}
   })
 
   it('formats a real mainnet transaction trace', async () => {
