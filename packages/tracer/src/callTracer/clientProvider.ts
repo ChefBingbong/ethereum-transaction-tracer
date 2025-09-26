@@ -1,5 +1,5 @@
 import { createAnvil } from '@viem/anvil'
-import { createTestClient, http, type PublicClient, publicActions } from 'viem'
+import { createTestClient, http, publicActions, type PublicClient } from 'viem'
 
 export type Environment =
   | { kind: 'rpc' }
@@ -27,7 +27,7 @@ export interface ClientProvider {
 }
 
 export class DefaultClientProvider implements ClientProvider {
-  constructor(private readonly base: PublicClient) {}
+  constructor(public readonly base: PublicClient) {}
 
   async lease(env: Environment): Promise<ClientLease> {
     if (env.kind === 'rpc') return { client: this.base }

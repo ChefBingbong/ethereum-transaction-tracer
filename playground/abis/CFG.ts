@@ -3,7 +3,17 @@ export const CFG = [
     inputs: [
       {
         internalType: 'address',
-        name: 'ward',
+        name: '_deployer',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_factory',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_WETH9',
         type: 'address',
       },
     ],
@@ -12,212 +22,12 @@ export const CFG = [
   },
   {
     inputs: [],
-    name: 'DelegatesExpiredSignature',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'FileUnrecognizedWhat',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'InsufficientAllowance',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'InsufficientBalance',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'InvalidAddress',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'InvalidDelegationNonce',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'InvalidPermit',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'InvalidSignature',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'InvalidSigner',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'NotAuthorized',
-    type: 'error',
-  },
-  {
-    inputs: [],
-    name: 'PermitExpired',
-    type: 'error',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'owner',
-        type: 'address',
-      },
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'spender',
-        type: 'address',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'value',
-        type: 'uint256',
-      },
-    ],
-    name: 'Approval',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'delegatee',
-        type: 'address',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'oldVotes',
-        type: 'uint256',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'newVotes',
-        type: 'uint256',
-      },
-    ],
-    name: 'DelegatedVotingPowerChanged',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'delegator',
-        type: 'address',
-      },
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'oldDelegatee',
-        type: 'address',
-      },
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'newDelegatee',
-        type: 'address',
-      },
-    ],
-    name: 'DelegateeChanged',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'user',
-        type: 'address',
-      },
-    ],
-    name: 'Deny',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'bytes32',
-        name: 'what',
-        type: 'bytes32',
-      },
-      {
-        indexed: false,
-        internalType: 'string',
-        name: 'data',
-        type: 'string',
-      },
-    ],
-    name: 'File',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'user',
-        type: 'address',
-      },
-    ],
-    name: 'Rely',
-    type: 'event',
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'from',
-        type: 'address',
-      },
-      {
-        indexed: true,
-        internalType: 'address',
-        name: 'to',
-        type: 'address',
-      },
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'value',
-        type: 'uint256',
-      },
-    ],
-    name: 'Transfer',
-    type: 'event',
-  },
-  {
-    inputs: [],
-    name: 'DELEGATION_TYPEHASH',
+    name: 'WETH9',
     outputs: [
       {
-        internalType: 'bytes32',
+        internalType: 'address',
         name: '',
-        type: 'bytes32',
+        type: 'address',
       },
     ],
     stateMutability: 'view',
@@ -225,25 +35,12 @@ export const CFG = [
   },
   {
     inputs: [],
-    name: 'DOMAIN_SEPARATOR',
+    name: 'deployer',
     outputs: [
       {
-        internalType: 'bytes32',
+        internalType: 'address',
         name: '',
-        type: 'bytes32',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'PERMIT_TYPEHASH',
-    outputs: [
-      {
-        internalType: 'bytes32',
-        name: '',
-        type: 'bytes32',
+        type: 'address',
       },
     ],
     stateMutability: 'view',
@@ -252,125 +49,47 @@ export const CFG = [
   {
     inputs: [
       {
-        internalType: 'address',
-        name: '',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
-        name: '',
-        type: 'address',
+        components: [
+          {
+            internalType: 'bytes',
+            name: 'path',
+            type: 'bytes',
+          },
+          {
+            internalType: 'address',
+            name: 'recipient',
+            type: 'address',
+          },
+          {
+            internalType: 'uint256',
+            name: 'deadline',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'amountIn',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'amountOutMinimum',
+            type: 'uint256',
+          },
+        ],
+        internalType: 'struct ISwapRouter.ExactInputParams',
+        name: 'params',
+        type: 'tuple',
       },
     ],
-    name: 'allowance',
+    name: 'exactInput',
     outputs: [
       {
         internalType: 'uint256',
-        name: '',
+        name: 'amountOut',
         type: 'uint256',
       },
     ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: 'spender',
-        type: 'address',
-      },
-      {
-        internalType: 'uint256',
-        name: 'value',
-        type: 'uint256',
-      },
-    ],
-    name: 'approve',
-    outputs: [
-      {
-        internalType: 'bool',
-        name: '',
-        type: 'bool',
-      },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: 'user',
-        type: 'address',
-      },
-    ],
-    name: 'balanceOf',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'uint256',
-        name: 'value',
-        type: 'uint256',
-      },
-    ],
-    name: 'burn',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: 'from',
-        type: 'address',
-      },
-      {
-        internalType: 'uint256',
-        name: 'value',
-        type: 'uint256',
-      },
-    ],
-    name: 'burn',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'decimals',
-    outputs: [
-      {
-        internalType: 'uint8',
-        name: '',
-        type: 'uint8',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: 'newDelegatee',
-        type: 'address',
-      },
-    ],
-    name: 'delegate',
-    outputs: [],
-    stateMutability: 'nonpayable',
+    stateMutability: 'payable',
     type: 'function',
   },
   {
@@ -379,130 +98,176 @@ export const CFG = [
         components: [
           {
             internalType: 'address',
-            name: 'delegatee',
+            name: 'tokenIn',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'tokenOut',
+            type: 'address',
+          },
+          {
+            internalType: 'uint24',
+            name: 'fee',
+            type: 'uint24',
+          },
+          {
+            internalType: 'address',
+            name: 'recipient',
             type: 'address',
           },
           {
             internalType: 'uint256',
-            name: 'nonce',
+            name: 'deadline',
             type: 'uint256',
           },
           {
             internalType: 'uint256',
-            name: 'expiry',
+            name: 'amountIn',
             type: 'uint256',
           },
+          {
+            internalType: 'uint256',
+            name: 'amountOutMinimum',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint160',
+            name: 'sqrtPriceLimitX96',
+            type: 'uint160',
+          },
         ],
-        internalType: 'struct Delegation',
-        name: 'delegation',
+        internalType: 'struct ISwapRouter.ExactInputSingleParams',
+        name: 'params',
         type: 'tuple',
       },
+    ],
+    name: 'exactInputSingle',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: 'amountOut',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
       {
         components: [
           {
-            internalType: 'uint8',
-            name: 'v',
-            type: 'uint8',
+            internalType: 'bytes',
+            name: 'path',
+            type: 'bytes',
           },
           {
-            internalType: 'bytes32',
-            name: 'r',
-            type: 'bytes32',
+            internalType: 'address',
+            name: 'recipient',
+            type: 'address',
           },
           {
-            internalType: 'bytes32',
-            name: 's',
-            type: 'bytes32',
+            internalType: 'uint256',
+            name: 'deadline',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'amountOut',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'amountInMaximum',
+            type: 'uint256',
           },
         ],
-        internalType: 'struct Signature',
-        name: 'signature',
+        internalType: 'struct ISwapRouter.ExactOutputParams',
+        name: 'params',
         type: 'tuple',
       },
     ],
-    name: 'delegateWithSig',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: '',
-        type: 'address',
-      },
-    ],
-    name: 'delegatedVotingPower',
+    name: 'exactOutput',
     outputs: [
       {
         internalType: 'uint256',
-        name: '',
+        name: 'amountIn',
         type: 'uint256',
       },
     ],
-    stateMutability: 'view',
+    stateMutability: 'payable',
     type: 'function',
   },
   {
     inputs: [
       {
-        internalType: 'address',
-        name: '',
-        type: 'address',
+        components: [
+          {
+            internalType: 'address',
+            name: 'tokenIn',
+            type: 'address',
+          },
+          {
+            internalType: 'address',
+            name: 'tokenOut',
+            type: 'address',
+          },
+          {
+            internalType: 'uint24',
+            name: 'fee',
+            type: 'uint24',
+          },
+          {
+            internalType: 'address',
+            name: 'recipient',
+            type: 'address',
+          },
+          {
+            internalType: 'uint256',
+            name: 'deadline',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'amountOut',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint256',
+            name: 'amountInMaximum',
+            type: 'uint256',
+          },
+          {
+            internalType: 'uint160',
+            name: 'sqrtPriceLimitX96',
+            type: 'uint160',
+          },
+        ],
+        internalType: 'struct ISwapRouter.ExactOutputSingleParams',
+        name: 'params',
+        type: 'tuple',
       },
     ],
-    name: 'delegatee',
-    outputs: [
-      {
-        internalType: 'address',
-        name: '',
-        type: 'address',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: '',
-        type: 'address',
-      },
-    ],
-    name: 'delegationNonce',
+    name: 'exactOutputSingle',
     outputs: [
       {
         internalType: 'uint256',
-        name: '',
+        name: 'amountIn',
         type: 'uint256',
       },
     ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: 'user',
-        type: 'address',
-      },
-    ],
-    name: 'deny',
-    outputs: [],
-    stateMutability: 'nonpayable',
+    stateMutability: 'payable',
     type: 'function',
   },
   {
     inputs: [],
-    name: 'deploymentChainId',
+    name: 'factory',
     outputs: [
       {
-        internalType: 'uint256',
+        internalType: 'address',
         name: '',
-        type: 'uint256',
+        type: 'address',
       },
     ],
     stateMutability: 'view',
@@ -511,114 +276,57 @@ export const CFG = [
   {
     inputs: [
       {
-        internalType: 'bytes32',
-        name: 'what',
-        type: 'bytes32',
-      },
-      {
-        internalType: 'string',
+        internalType: 'bytes[]',
         name: 'data',
-        type: 'string',
+        type: 'bytes[]',
       },
     ],
-    name: 'file',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: 'to',
-        type: 'address',
-      },
-      {
-        internalType: 'uint256',
-        name: 'value',
-        type: 'uint256',
-      },
-    ],
-    name: 'mint',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'name',
+    name: 'multicall',
     outputs: [
       {
-        internalType: 'string',
-        name: '',
-        type: 'string',
+        internalType: 'bytes[]',
+        name: 'results',
+        type: 'bytes[]',
       },
     ],
-    stateMutability: 'view',
+    stateMutability: 'payable',
     type: 'function',
   },
   {
     inputs: [
       {
-        internalType: 'address',
-        name: '',
-        type: 'address',
-      },
-    ],
-    name: 'nonces',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: 'owner',
-        type: 'address',
+        internalType: 'int256',
+        name: 'amount0Delta',
+        type: 'int256',
       },
       {
-        internalType: 'address',
-        name: 'spender',
-        type: 'address',
-      },
-      {
-        internalType: 'uint256',
-        name: 'value',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: 'deadline',
-        type: 'uint256',
+        internalType: 'int256',
+        name: 'amount1Delta',
+        type: 'int256',
       },
       {
         internalType: 'bytes',
-        name: 'signature',
+        name: '_data',
         type: 'bytes',
       },
     ],
-    name: 'permit',
+    name: 'pancakeV3SwapCallback',
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'refundETH',
+    outputs: [],
+    stateMutability: 'payable',
     type: 'function',
   },
   {
     inputs: [
       {
         internalType: 'address',
-        name: 'owner',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
-        name: 'spender',
+        name: 'token',
         type: 'address',
       },
       {
@@ -647,55 +355,92 @@ export const CFG = [
         type: 'bytes32',
       },
     ],
-    name: 'permit',
+    name: 'selfPermit',
     outputs: [],
-    stateMutability: 'nonpayable',
+    stateMutability: 'payable',
     type: 'function',
   },
   {
     inputs: [
       {
         internalType: 'address',
-        name: 'user',
+        name: 'token',
         type: 'address',
       },
-    ],
-    name: 'rely',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'symbol',
-    outputs: [
-      {
-        internalType: 'string',
-        name: '',
-        type: 'string',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
-    inputs: [],
-    name: 'totalSupply',
-    outputs: [
       {
         internalType: 'uint256',
-        name: '',
+        name: 'nonce',
         type: 'uint256',
       },
+      {
+        internalType: 'uint256',
+        name: 'expiry',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint8',
+        name: 'v',
+        type: 'uint8',
+      },
+      {
+        internalType: 'bytes32',
+        name: 'r',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32',
+        name: 's',
+        type: 'bytes32',
+      },
     ],
-    stateMutability: 'view',
+    name: 'selfPermitAllowed',
+    outputs: [],
+    stateMutability: 'payable',
     type: 'function',
   },
   {
     inputs: [
       {
         internalType: 'address',
-        name: 'to',
+        name: 'token',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: 'nonce',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: 'expiry',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint8',
+        name: 'v',
+        type: 'uint8',
+      },
+      {
+        internalType: 'bytes32',
+        name: 'r',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32',
+        name: 's',
+        type: 'bytes32',
+      },
+    ],
+    name: 'selfPermitAllowedIfNecessary',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'token',
         type: 'address',
       },
       {
@@ -703,64 +448,136 @@ export const CFG = [
         name: 'value',
         type: 'uint256',
       },
-    ],
-    name: 'transfer',
-    outputs: [
       {
-        internalType: 'bool',
-        name: 'success',
-        type: 'bool',
+        internalType: 'uint256',
+        name: 'deadline',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint8',
+        name: 'v',
+        type: 'uint8',
+      },
+      {
+        internalType: 'bytes32',
+        name: 'r',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'bytes32',
+        name: 's',
+        type: 'bytes32',
       },
     ],
-    stateMutability: 'nonpayable',
+    name: 'selfPermitIfNecessary',
+    outputs: [],
+    stateMutability: 'payable',
     type: 'function',
   },
   {
     inputs: [
       {
         internalType: 'address',
-        name: 'from',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
-        name: 'to',
+        name: 'token',
         type: 'address',
       },
       {
         internalType: 'uint256',
-        name: 'value',
+        name: 'amountMinimum',
         type: 'uint256',
       },
-    ],
-    name: 'transferFrom',
-    outputs: [
       {
-        internalType: 'bool',
-        name: 'success',
-        type: 'bool',
+        internalType: 'address',
+        name: 'recipient',
+        type: 'address',
       },
     ],
-    stateMutability: 'nonpayable',
+    name: 'sweepToken',
+    outputs: [],
+    stateMutability: 'payable',
     type: 'function',
   },
   {
     inputs: [
       {
         internalType: 'address',
-        name: '',
+        name: 'token',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: 'amountMinimum',
+        type: 'uint256',
+      },
+      {
+        internalType: 'address',
+        name: 'recipient',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: 'feeBips',
+        type: 'uint256',
+      },
+      {
+        internalType: 'address',
+        name: 'feeRecipient',
         type: 'address',
       },
     ],
-    name: 'wards',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
+    name: 'sweepTokenWithFee',
+    outputs: [],
+    stateMutability: 'payable',
     type: 'function',
   },
-] as const
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'amountMinimum',
+        type: 'uint256',
+      },
+      {
+        internalType: 'address',
+        name: 'recipient',
+        type: 'address',
+      },
+    ],
+    name: 'unwrapWETH9',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'amountMinimum',
+        type: 'uint256',
+      },
+      {
+        internalType: 'address',
+        name: 'recipient',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: 'feeBips',
+        type: 'uint256',
+      },
+      {
+        internalType: 'address',
+        name: 'feeRecipient',
+        type: 'address',
+      },
+    ],
+    name: 'unwrapWETH9WithFee',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    stateMutability: 'payable',
+    type: 'receive',
+  },
+]

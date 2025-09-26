@@ -8,10 +8,7 @@ import {
 import { extract, getTransactionError, parseAccount } from 'viem/utils'
 import { TracerCache } from '../cache'
 import { Decoder } from '../decoder'
-import {
-  coerceUnsupportedTraceError,
-  UnsupportedTraceMethodError,
-} from '../errors'
+import { coerceUnsupportedTraceError } from '../errors'
 import { TracePrettyPrinter } from '../format'
 import {
   LogVerbosity,
@@ -39,6 +36,7 @@ export class TransactionTracer {
   constructor(base: PublicClient | ClientProvider, args: TraaceOptions) {
     this.provider = isProvider(base) ? base : new DefaultClientProvider(base)
     this.chainId = !isProvider(base) ? base.chain?.id : undefined
+
     if (!this.chainId) throw new Error('[Tracer]: Unable to detect chainId')
     if (args.verbosity) this.verbosity = args.verbosity
 
@@ -69,11 +67,7 @@ export class TransactionTracer {
           { stateOverride, ...args },
           progress,
         )
-        if (traceError) {
-          if (traceError instanceof UnsupportedTraceMethodError) {
-            return safeError(new Error(traceError.message))
-          } else return safeError(traceError)
-        }
+        if (traceError) return safeError(traceError)
 
         const printer = TracePrettyPrinter.createTracer(
           this.cache,
@@ -94,7 +88,8 @@ export class TransactionTracer {
           },
         })
 
-        return formatError ? safeError(formatError) : safeResult(lines)
+        const out = { traceRaw: trace, traceFormatted: lines }
+        return formatError ? safeError(formatError) : safeResult(out)
       },
     )
   }
@@ -102,50 +97,42 @@ export class TransactionTracer {
   public traceTransactionHash = async (
     { txHash }: TraceTxParameters,
     run: {
-      env?: Environment
       showProgressBar?: boolean
       streamLogs?: boolean
       gasProfiler?: boolean
     } = {},
   ) => {
     const progress = makeProgress(run.showProgressBar)
-    return this.withClient(
-      run.env ?? { kind: 'rpc' },
-      progress,
-      async (client) => {
-        const [traceError, trace] = await this.callTraceTxHash(
-          client,
-          { txHash },
-          progress,
-        )
-        if (traceError) {
-          if (traceError instanceof UnsupportedTraceMethodError) {
-            return safeError(new Error(traceError.message))
-          } else return safeError(traceError)
-        }
+    return this.withClient({ kind: 'rpc' }, progress, async (client) => {
+      const [traceError, trace] = await this.callTraceTxHash(
+        client,
+        { txHash },
+        progress,
+      )
+      if (traceError) return safeError(traceError)
 
-        const printer = TracePrettyPrinter.createTracer(
-          this.cache,
-          this.decoder,
-          {
-            verbosity: this.verbosity,
-            logStream: !!run.streamLogs,
-          },
-        )
+      const printer = TracePrettyPrinter.createTracer(
+        this.cache,
+        this.decoder,
+        {
+          verbosity: this.verbosity,
+          logStream: !!run.streamLogs,
+        },
+      )
 
-        const [formatError, lines] = await printer.formatTrace(trace, {
-          showReturnData: true,
-          showLogs: true,
-          gasProfiler: !!run.gasProfiler,
-          progress: {
-            onUpdate: (v: number) => progress.inc(v),
-            includeLogs: true,
-          },
-        })
+      const [formatError, lines] = await printer.formatTrace(trace, {
+        showReturnData: true,
+        showLogs: true,
+        gasProfiler: !!run.gasProfiler,
+        progress: {
+          onUpdate: (v: number) => progress.inc(v),
+          includeLogs: true,
+        },
+      })
 
-        return formatError ? safeError(formatError) : safeResult(lines)
-      },
-    )
+      const out = { traceRaw: trace, traceFormatted: lines }
+      return formatError ? safeError(formatError) : safeResult(out)
+    })
   }
 
   private async withClient<T>(
@@ -262,7 +249,23 @@ export class TransactionTracer {
     )
 
     if (traceError) {
-      return safeError(traceError)
+      const custom = coerceUnsupportedTraceError(
+        'debug_traceCall',
+        'traceCall',
+        traceError,
+        {
+          chainId: client.chain?.id,
+          chainName: client.chain?.name,
+        },
+      )
+      if (custom) return safeError(custom)
+
+      return safeError(
+        getTransactionError(traceError as BaseError, {
+          account: null,
+          chain: client.chain,
+        }),
+      )
     }
 
     progress.inc(2)

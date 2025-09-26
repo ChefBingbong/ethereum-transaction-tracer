@@ -1,4 +1,3 @@
-import { join } from 'node:path'
 import {
   AddressMap,
   reliableFetchJson,
@@ -6,6 +5,7 @@ import {
   safeSyncTry,
 } from '@evm-tt/utils'
 import fs from 'fs-extra'
+import { join } from 'node:path'
 import {
   type Abi,
   type AbiEvent,
@@ -54,6 +54,8 @@ export class TracerCache {
   constructor(chainId: number, cachePath: string, input?: CacheOptions) {
     this.input = input
     this.chainId = chainId
+
+    if (!cachePath) throw new Error('[Abi Cache]: no cache path provided')
     this.setCachePath(cachePath)
 
     if (input?.byAddress) {
