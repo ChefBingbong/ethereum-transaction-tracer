@@ -27,7 +27,7 @@ export interface ClientProvider {
 }
 
 export class DefaultClientProvider implements ClientProvider {
-  constructor(private readonly base: PublicClient) {}
+  constructor(public readonly base: PublicClient) {}
 
   async lease(env: Environment): Promise<ClientLease> {
     if (env.kind === 'rpc') return { client: this.base }

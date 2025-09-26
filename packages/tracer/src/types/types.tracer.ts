@@ -104,3 +104,8 @@ export type TraceTxParameters = {
   streamLogs?: boolean
   gasProfiler?: boolean
 }
+
+export type TraceResult = {
+  traceRaw: RpcCallTrace
+  traceFormatted: string | undefined
+}

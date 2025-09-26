@@ -29,24 +29,12 @@ export class UnsupportedTraceMethodError extends BaseError {
             'Or run a local fork (Anvil/Hardhat) and use `traceCall` with `env: { kind: "fork", ... }`.',
           ]
 
-    const meta: string[] = [
-      ...(args.providerUrl ? [`URL: ${args.providerUrl}`] : []),
-      ...(args.chainId != null
-        ? [`Chain: ${args.chainName ?? 'Unknown'} (id: ${args.chainId})`]
-        : []),
-      `Method: ${args.method}`,
-      '',
-      'Suggested fixes:',
-      ...suggestions.map((s) => `  • ${s}`),
-    ]
-
-    // viem’s BaseError prints `shortMessage`, meta, details, etc. into `message`.
-    const message = [short, '', ...meta].join('\n')
+    const message = short
 
     super(message, args.cause as any)
 
     this.shortMessage = short
-    this.metaMessages = meta
+    this.metaMessages = suggestions.map((s) => `  • ${s}`)
     this.details =
       'The upstream RPC returned a “method not supported” style error.'
   }
