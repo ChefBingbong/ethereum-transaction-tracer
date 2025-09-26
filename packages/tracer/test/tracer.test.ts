@@ -1,6 +1,6 @@
+import fs from 'node:fs'
 import { LogVerbosity, TransactionTracer } from '@evm-tt/tracer'
 import { safeSyncTry } from '@evm-tt/utils'
-import fs from 'node:fs'
 import { createPublicClient, http } from 'viem'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { getUnlimitedBalanceAndApprovalStateOverrides } from '../src'
