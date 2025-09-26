@@ -1,5 +1,5 @@
-import { safeSyncTry } from '@evm-tt/utils'
 import fs from 'node:fs'
+import { safeSyncTry } from '@evm-tt/utils'
 import { createPublicClient, http } from 'viem'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import {
