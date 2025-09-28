@@ -8,7 +8,7 @@ import {
 import { extract, getTransactionError, parseAccount } from 'viem/utils'
 import { TracerCache } from '../cache'
 import { coerceUnsupportedTraceError } from '../errors'
-import { TracePrettyPrinter } from '../format'
+import { formatTrace } from '../format'
 import {
   LogVerbosity,
   type TraceCallParameters,
@@ -39,7 +39,7 @@ export const traceCall = async (
       )
       if (traceError) return safeError(traceError)
 
-      const [formatError, lines] = await TracePrettyPrinter.formatTrace(trace, {
+      const [formatError, lines] = await formatTrace(trace, {
         cache,
         verbosity: LogVerbosity.Highest,
         logStream: !!run.streamLogs,
