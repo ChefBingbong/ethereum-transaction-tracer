@@ -42,4 +42,4 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/install
       - name: Run Evm Tx Tracer tests
-        run: bun run test
+        run: bun test
