@@ -1,12 +1,13 @@
 import {
-  type Progress,
-  type SafePromise,
+  makeProgress,
   safeError,
   safeResult,
   safeTimeoutPromise,
+  type Progress,
+  type SafePromise,
 } from '@evm-tt/utils'
 import { createAnvil } from '@viem/anvil'
-import { createTestClient, http, type PublicClient, publicActions } from 'viem'
+import { createTestClient, http, publicActions, type PublicClient } from 'viem'
 
 export type Environment =
   | { kind: 'rpc' }
@@ -65,4 +66,18 @@ export class DefaultClientProvider implements ClientProvider {
       },
     })
   }
+}
+
+export async function withClient<T>(
+  env: Environment,
+  progress: ReturnType<typeof makeProgress>,
+  client: PublicClient,
+  traceCallback: (client: TraceClient) => SafePromise<T>,
+): SafePromise<T> {
+  const provider = new DefaultClientProvider(client)
+  const [error, lease] = await provider.lease(env)
+  if (error) return safeError(error)
+  const traceResult = await traceCallback(lease.client)
+  await lease.dispose?.(progress)
+  return traceResult
 }

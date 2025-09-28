@@ -11,9 +11,7 @@
     "check": "tsc --pretty --noEmit",
     "clean": "rm -rf .turbo && rm -rf node_modules",
     "trace:tx": "bun run ./src/traceTxHash.example.ts",
-    "trace:tx-gas": "bun run ./src/traceTxHashGas.example.ts",
     "trace:request": "bun run ./src/traceTxRequest.example.ts",
-    "trace:request-gas": "bun run ./src/traceTxRequestGas.example.ts",
     "prepare": "lefthook install"
   },
   "devDependencies": {

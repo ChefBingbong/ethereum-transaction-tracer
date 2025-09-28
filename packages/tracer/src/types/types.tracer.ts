@@ -7,6 +7,8 @@ import type {
   PrepareTransactionRequestParameters,
   RpcTransactionRequest,
 } from 'viem'
+import type { TracerCache } from '../cache'
+import type { Environment } from '../callTracer/client/clientProvider'
 import type { CacheOptions } from './types.cache'
 
 export type TraaceOptions = {
@@ -16,7 +18,21 @@ export type TraaceOptions = {
   logDebug?: boolean
   verbosity?: LogVerbosity
 }
-export type PrinterArgs = { verbosity: LogVerbosity; logStream: boolean }
+export type PrinterArgs = {
+  verbosity: LogVerbosity
+  logStream: boolean
+  cache: TracerCache
+  showGas?: boolean
+  showReturnData?: boolean
+  showLogs?: boolean
+  hexGas?: boolean
+  maxData?: number
+  gasProfiler: boolean
+  progress?: {
+    onUpdate(done: number, total: number): void
+    includeLogs?: boolean
+  }
+}
 
 export enum LogVerbosity {
   Low = 0,
@@ -87,11 +103,13 @@ export type TraceTxRpcSchema = {
 }
 
 export type TraceCallParameters = PrepareTransactionRequestParameters & {
-  showProgressBar?: boolean
-  streamLogs?: boolean
-  useAnvil?: boolean
+  run: {
+    env?: Environment
+    showProgressBar?: boolean
+    streamLogs?: boolean
+  }
+  cache: CacheOptions & { cachePath: string }
   account?: Account | Address | undefined
-  gasProfiler?: boolean
   stateOverride?: StateOverrides
 } & (
     | { blockNumber?: bigint | undefined; blockTag?: undefined }
@@ -100,9 +118,12 @@ export type TraceCallParameters = PrepareTransactionRequestParameters & {
 
 export type TraceTxParameters = {
   txHash: Hex
-  showProgressBar?: boolean
-  streamLogs?: boolean
-  gasProfiler?: boolean
+  run: {
+    env?: Environment
+    showProgressBar?: boolean
+    streamLogs?: boolean
+  }
+  cache: CacheOptions & { cachePath: string }
 }
 
 export type TraceResult = {

@@ -30,79 +30,70 @@ import { dim, retLabel } from './theme'
 export class TracePrettyPrinter {
   private readonly sink: LineSink
   public lines: string[] = []
-  private summary: GasTally
+  private lastStack: boolean[] = []
+
+  private summary: GasTally = {
+    topLevelTotal: 0n,
+    topLevelFrames: 0,
+    ok: 0,
+    fail: 0,
+  }
 
   private constructor(
     private readonly cache: TracerCache,
     public verbosity: LogVerbosity,
-    private logStream: boolean,
+    private readonly logStream: boolean,
   ) {
     this.sink = (line: string) => {
-      if (this.logStream) {
-        console.log(line)
-        return
-      }
-      this.lines.push(line)
-    }
-    this.summary = {
-      topLevelTotal: 0n,
-      topLevelFrames: 0,
-      ok: 0,
-      fail: 0,
+      if (this.logStream) console.log(line)
+      else this.lines.push(line)
     }
   }
 
-  static createTracer(cache: TracerCache, args: PrinterArgs) {
-    return new TracePrettyPrinter(cache, args.verbosity, args.logStream)
+  static async formatTrace(root: RpcCallTrace, opts: PrinterArgs) {
+    const tracer = new TracePrettyPrinter(
+      opts.cache,
+      opts.verbosity,
+      opts.logStream,
+    )
+    return tracer.processTrace(root, opts)
   }
 
-  public async formatTrace(root: RpcCallTrace, opts: PrettyOpts) {
+  private async processTrace(root: RpcCallTrace, opts: PrettyOpts) {
     const [error] = await safeTry(() => {
-      if (!opts.gasProfiler) return this.processInnerCalls(root, true, 0)
-      return this.processInnerGasCalls(root, true, 0)
+      if (!opts.gasProfiler) return this.walkCalls(root, true)
+      return this.walkGas(root, true, 0)
     })
     if (error) return safeError(error)
     await this.cache.save()
     return safeResult(this.lines.join('\n'))
   }
 
-  private async processInnerCalls(
-    node: RpcCallTrace,
-    isLast: boolean,
-    depth: number,
-    prefix = '',
-  ): Promise<void> {
-    const branch = depth === 0 ? '' : prefix + (isLast ? '└─ ' : '├─ ')
-    const nextPrefix = prefix + (isLast ? '   ' : '│  ')
-    const logs = node.logs ?? []
-    const calls = node.calls ?? []
-
+  private async walkCalls(node: RpcCallTrace, isLast: boolean): Promise<void> {
+    const { branch, childPrefix } = this.prefixesFor(isLast)
     this.writeLine(branch + this.formatTraceCall(node).trimEnd())
 
+    const logs = node.logs ?? []
+    const calls = node.calls ?? []
     for (let i = 0; i < logs.length; i++) {
       const lastLog = i === logs.length - 1 && calls.length === 0
-      this.writeLine(printLog(lastLog, logs[i], this.cache, nextPrefix))
+      this.writeLine(printLog(lastLog, logs[i], this.cache, childPrefix))
     }
 
+    this.lastStack.push(isLast)
     for (let i = 0; i < calls.length; i++) {
-      await this.processInnerCalls(
-        calls[i],
-        i === calls.length - 1,
-        depth + 1,
-        nextPrefix,
-      )
+      await this.walkCalls(calls[i], i === calls.length - 1)
     }
-    this.writeLine(this.formatTraceReturn(node, nextPrefix).trimEnd())
+    this.lastStack.pop()
+    this.writeLine(this.formatTraceReturn(node, childPrefix).trimEnd())
   }
 
-  private async processInnerGasCalls(
+  private async walkGas(
     node: RpcCallTrace,
     isLast: boolean,
     depth: number,
-    prefix = '',
-  ) {
-    const branch = depth === 0 ? '' : prefix + (isLast ? '└─ ' : '├─ ')
-    const nextPrefix = prefix + (isLast ? '   ' : '│  ')
+  ): Promise<void> {
+    const { branch } = this.prefixesFor(isLast)
     const usedHere = hexToBig(node.gasUsed)
 
     if (depth === 1) {
@@ -113,17 +104,24 @@ export class TracePrettyPrinter {
 
     this.writeLine(branch + this.formatTraceGasCall(node, depth))
 
+    this.lastStack.push(isLast)
     const children = node.calls ?? []
     for (let i = 0; i < children.length; i++) {
-      await this.processInnerGasCalls(
-        children[i],
-        i === children.length - 1,
-        depth + 1,
-        nextPrefix,
-      )
+      await this.walkGas(children[i], i === children.length - 1, depth + 1)
     }
+    this.lastStack.pop()
 
     this.formatGasTraceSummary(!!node?.error, depth)
+  }
+
+  private prefixesFor(isLast: boolean) {
+    let prefix = ''
+    for (const last of this.lastStack) prefix += last ? '   ' : '│  '
+
+    const depth = this.lastStack.length
+    const branch = depth === 0 ? '' : prefix + (isLast ? '└─ ' : '├─ ')
+    const childPrefix = prefix + (isLast ? '   ' : '│  ')
+    return { branch, childPrefix }
   }
 
   private formatTraceReturn(node: RpcCallTrace, nextPrefix: string) {
@@ -133,64 +131,49 @@ export class TracePrettyPrinter {
     }
     if (node?.error) return printRevert(node, this.cache, nextPrefix)
 
-    const callInputSelector = this.cache.abiItemFromSelector2(node.input)
-    if (!callInputSelector)
+    const sel = this.cache.abiItemFromSelector2(node.input)
+    if (!sel)
       return `${nextPrefix}${retLabel('[Return]')} ${node.output ?? '('}`
-
-    return printReturn(node, callInputSelector, nextPrefix)
+    return printReturn(node, sel, nextPrefix)
   }
 
   private formatTraceCall(node: RpcCallTrace): string {
     if (isPrecompileSource(node.to))
       return printPrecompileCall(node, this.cache)
 
-    const callInputSelector = this.cache.abiItemFromSelector2(node.input)
-    if (!callInputSelector) return dim('()')
+    const sel = this.cache.abiItemFromSelector2(node.input)
+    if (!sel) return dim('()')
 
     switch (node.type) {
-      case 'CALL': {
-        return printCall(node, this.cache, callInputSelector)
-      }
-      case 'STATICCALL': {
-        return printCall(node, this.cache, callInputSelector)
-      }
-      case 'CALLCODE': {
-        return printDelegateCall(node, this.cache, callInputSelector)
-      }
-      case 'DELEGATECALL': {
-        return printDelegateCall(node, this.cache, callInputSelector)
-      }
-      case 'CREATE': {
+      case 'CALL':
+      case 'STATICCALL':
+        return printCall(node, this.cache, sel)
+      case 'CALLCODE':
+      case 'DELEGATECALL':
+        return printDelegateCall(node, this.cache, sel)
+      case 'CREATE':
+      case 'CREATE2':
         return printCreateCall(node, this.cache)
-      }
-      case 'CREATE2': {
-        return printCreateCall(node, this.cache)
-      }
-      case 'SELFDESTRUCT': {
+      case 'SELFDESTRUCT':
         return printSeltDestructCall(node, this.cache)
-      }
-      default: {
+      default:
         return printDefault(node, this.cache)
-      }
     }
   }
 
   private formatTraceGasCall(node: RpcCallTrace, depth: number): string {
-    const callInputSelector = this.cache.abiItemFromSelector2(node.input)
-    if (!callInputSelector) return dim('()')
-
-    return printGasCall(node, this.cache, callInputSelector, depth)
+    const sel = this.cache.abiItemFromSelector2(node.input)
+    if (!sel) return dim('()')
+    return printGasCall(node, this.cache, sel, depth)
   }
 
-  private formatGasTraceSummary = (hasError: boolean, depth: number) => {
-    const { topLevelFrames, topLevelTotal, ok, fail, abortedAt } = this.summary
+  private formatGasTraceSummary(hasError: boolean, depth: number) {
     if (depth !== 0) return
+    const { topLevelFrames, topLevelTotal, ok, fail } = this.summary
     this.writeLine(pc.bold('\n— Gas summary —'))
     this.writeLine(`frames: ${topLevelFrames}   ok: ${ok}   fail: ${fail}`)
     this.writeLine(`total used : ${pc.bold(Number(topLevelTotal))}`)
-
-    if (hasError)
-      this.writeLine(`${pc.red('reverted at')}: ${pc.red(abortedAt)}`)
+    if (hasError) this.writeLine(pc.red('reverted'))
   }
 
   private writeLine(line = '') {
