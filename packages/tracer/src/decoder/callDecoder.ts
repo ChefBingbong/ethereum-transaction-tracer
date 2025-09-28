@@ -48,9 +48,12 @@ export const safeDecodeCallData = (abiItem: AbiFunction[], input: Hex) => {
     name: data.functionName,
   })
   return safeResult({
-    fnName: data.functionName,
-    prettyArgs: data.args ?? [],
-    fnItem: item,
+    ...data,
+    item,
+    args: (data.args ?? []).map((a, i) => {
+      if (!item.inputs[i].name) return ['', a]
+      return [item.inputs[i].name, a]
+    }),
   })
 }
 

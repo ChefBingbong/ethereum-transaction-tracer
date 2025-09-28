@@ -1,7 +1,7 @@
 import {
   makeProgress,
-  type SafePromise,
   safeError,
+  type SafePromise,
   safeResult,
   safeTry,
 } from '@evm-tt/utils'
@@ -13,7 +13,6 @@ import {
 } from 'viem'
 import { extract, getTransactionError, parseAccount } from 'viem/utils'
 import { TracerCache } from '../cache'
-import { Decoder } from '../decoder'
 import { coerceUnsupportedTraceError } from '../errors'
 import { TracePrettyPrinter } from '../format'
 import {
@@ -33,7 +32,6 @@ import {
 
 export class TransactionTracer {
   public cache: TracerCache
-  public decoder: Decoder
   public chainId?: number
   private provider: ClientProvider
   private verbosity = LogVerbosity.Highest
@@ -50,7 +48,6 @@ export class TransactionTracer {
       args.cachePath,
       args.cacheOptions,
     )
-    this.decoder = new Decoder(this.cache)
   }
 
   public traceCall = async (
@@ -74,14 +71,10 @@ export class TransactionTracer {
         )
         if (traceError) return safeError(traceError)
 
-        const printer = TracePrettyPrinter.createTracer(
-          this.cache,
-          this.decoder,
-          {
-            verbosity: this.verbosity,
-            logStream: !!run.streamLogs,
-          },
-        )
+        const printer = TracePrettyPrinter.createTracer(this.cache, {
+          verbosity: this.verbosity,
+          logStream: !!run.streamLogs,
+        })
 
         const [formatError, lines] = await printer.formatTrace(trace, {
           showReturnData: true,
@@ -116,14 +109,10 @@ export class TransactionTracer {
       )
       if (traceError) return safeError(traceError)
 
-      const printer = TracePrettyPrinter.createTracer(
-        this.cache,
-        this.decoder,
-        {
-          verbosity: this.verbosity,
-          logStream: !!run.streamLogs,
-        },
-      )
+      const printer = TracePrettyPrinter.createTracer(this.cache, {
+        verbosity: this.verbosity,
+        logStream: !!run.streamLogs,
+      })
 
       const [formatError, lines] = await printer.formatTrace(trace, {
         showReturnData: true,

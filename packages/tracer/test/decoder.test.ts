@@ -7,26 +7,16 @@ import {
   stringify,
   zeroAddress,
 } from 'viem'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
-  Decoder,
   safeDecodeCallData,
   safeDecodeCallResult,
   safeDecodeCallRevert,
   safeDecodeEvent,
-  TracerCache,
 } from '../src'
 import { Permit2 } from './abis/Permit2.abi'
 
 describe('Decoder integration', () => {
-  let cache: TracerCache
-  let decoder: Decoder
-
-  beforeAll(() => {
-    cache = new TracerCache(1, './cache', { extraAbis: [erc20Abi, Permit2] })
-    decoder = new Decoder(cache)
-  })
-
   it('safeDecodeCallResult: decodes function return', () => {
     const encoded = encodeFunctionResult({
       abi: erc20Abi,
@@ -37,15 +27,9 @@ describe('Decoder integration', () => {
     const balanceOfAbiItem = getAbiItem({ abi: erc20Abi, name: 'balanceOf' })
 
     const [err, res] = safeDecodeCallResult(balanceOfAbiItem, encoded)
-    const [err1, res1] = decoder.decodeReturnPretty(balanceOfAbiItem, encoded)
 
     expect(err).toBeUndefined()
     expect(res).toBe('100000')
-
-    expect(err1).toBeUndefined()
-    expect(res1).toBe('100000')
-
-    expect(res1).toEqual(res)
   })
 
   it('safeDecodeCallData: decodes function data', () => {
@@ -58,16 +42,12 @@ describe('Decoder integration', () => {
     const balanceOfAbiItem = getAbiItem({ abi: erc20Abi, name: 'balanceOf' })
 
     const [err, res] = safeDecodeCallData([balanceOfAbiItem], encoded)
-    const [err1, res1] = decoder.decodeCallWithNames(zeroAddress, encoded)
 
     expect(err).toBeUndefined()
-    expect(err1).toBeUndefined()
 
-    expect(res).toHaveProperty('fnName', 'balanceOf')
-    expect(res).toHaveProperty('prettyArgs', [zeroAddress])
-
-    expect(res1).toHaveProperty('fnName', 'balanceOf')
-    expect(res1).toHaveProperty('prettyArgs', [zeroAddress])
+    expect(res).toHaveProperty('functionName', 'balanceOf')
+    expect(res).toHaveProperty('args', [['account', zeroAddress]])
+    expect(res).toMatchSnapshot('safeDecodeCallData')
   })
 
   it('safeDecodeRevert: decodes revert data', () => {
@@ -76,13 +56,11 @@ describe('Decoder integration', () => {
     } as const
 
     const [err, res] = safeDecodeCallRevert(Permit2, node.output)
-    const [err1, res1] = decoder.decodeRevertPrettyFromFrame(node as any)
 
     expect(err).toBeUndefined()
-    expect(err1).toBeUndefined()
 
     expect(res).toHaveProperty('errorName', 'InvalidNonce')
-    expect(res1).toEqual('InvalidNonce()')
+    expect(res).toMatchSnapshot('safeDecodeRevert')
   })
   it('safeDecodeEvent: decodes event name and args', () => {
     const data =
@@ -96,14 +74,12 @@ describe('Decoder integration', () => {
 
     const eventAbi = getAbiItem({ abi: Permit2, name: 'Permit' })
     const [err, res] = safeDecodeEvent(eventAbi, topics, data)
-    const [err1, res1] = decoder.safeDecodeEvent(topics, data)
 
     expect(err).toBeUndefined()
-    expect(err1).toBeUndefined()
 
     expect(res).toHaveProperty('eventName', 'Permit')
-    expect(res1).toHaveProperty('name', 'Permit')
 
     expect(stringify(res?.args)).toEqual(stringify(res?.args))
+    expect(res).toMatchSnapshot('safeDecodeEvent')
   })
 })

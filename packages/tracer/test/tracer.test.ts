@@ -93,6 +93,7 @@ describe('TransactionTracer – integration (mainnet fork)', () => {
       },
     )
 
+    console.log(res?.traceRaw.calls)
     expect(error).toBeUndefined()
     expect(res).toBeDefined()
     expect(res?.traceFormatted).toMatchSnapshot('traceRaw:summary')
