@@ -1,0 +1,109 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Decoder integration > safeDecodeCallData: decodes function data > safeDecodeCallData 1`] = `
+{
+  "args": [
+    [
+      "account",
+      "0x0000000000000000000000000000000000000000",
+    ],
+  ],
+  "functionName": "balanceOf",
+  "item": {
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+      },
+    ],
+    "name": "balanceOf",
+    "outputs": [
+      {
+        "type": "uint256",
+      },
+    ],
+    "stateMutability": "view",
+    "type": "function",
+  },
+}
+`;
+
+exports[`Decoder integration > safeDecodeEvent: decodes event name and args > safeDecodeEvent 1`] = `
+{
+  "args": {
+    "amount": 1461501637330902918203684832716283019655932542975n,
+    "expiration": 1758653774,
+    "nonce": 2,
+    "owner": "0xda8A8833E938192781AdE161d4b46c4973A40402",
+    "spender": "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af",
+    "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  },
+  "eventName": "Permit",
+}
+`;
+
+exports[`Decoder integration > safeDecodeRevert: decodes revert data > safeDecodeRevert 1`] = `
+{
+  "abiItem": {
+    "inputs": [],
+    "name": "InvalidNonce",
+    "type": "error",
+  },
+  "args": undefined,
+  "errorName": "InvalidNonce",
+}
+`;
+
+exports[`Decoder integration safeDecodeCallData: decodes function data: safeDecodeCallData 1`] = `
+{
+  "args": [
+    [
+      "account",
+      "0x0000000000000000000000000000000000000000",
+    ],
+  ],
+  "functionName": "balanceOf",
+  "item": {
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+      },
+    ],
+    "name": "balanceOf",
+    "outputs": [
+      {
+        "type": "uint256",
+      },
+    ],
+    "stateMutability": "view",
+    "type": "function",
+  },
+}
+`;
+
+exports[`Decoder integration safeDecodeRevert: decodes revert data: safeDecodeRevert 1`] = `
+{
+  "abiItem": {
+    "inputs": [],
+    "name": "InvalidNonce",
+    "type": "error",
+  },
+  "args": undefined,
+  "errorName": "InvalidNonce",
+}
+`;
+
+exports[`Decoder integration safeDecodeEvent: decodes event name and args: safeDecodeEvent 1`] = `
+{
+  "args": {
+    "amount": 1461501637330902918203684832716283019655932542975n,
+    "expiration": 1758653774,
+    "nonce": 2,
+    "owner": "0xda8A8833E938192781AdE161d4b46c4973A40402",
+    "spender": "0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af",
+    "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  },
+  "eventName": "Permit",
+}
+`;

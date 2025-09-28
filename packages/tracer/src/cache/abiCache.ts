@@ -14,6 +14,7 @@ import {
   getAddress,
   type Hex,
   keccak256,
+  parseAbi,
   slice,
   stringToHex,
   toBytes,
@@ -143,6 +144,17 @@ export class TracerCache {
     return this.fourByteDir.get(selector) ?? this.signatureDir.get(selector)
   }
 
+  public abiItemFromSelector2(input: Hex) {
+    const selector = input.slice(0, 10) as Hex
+    const abiItem =
+      this.fourByteDir.get(selector) ?? this.signatureDir.get(selector)
+    return !abiItem
+      ? undefined
+      : typeof abiItem === 'string'
+        ? parseAbi([abiItem])
+        : [abiItem]
+  }
+
   public abiEventFromTopic(topic0: Hex) {
     return this.eventsDir.get(topic0)
   }
@@ -158,7 +170,7 @@ export class TracerCache {
     return hash.slice(0, 10) as Hex
   }
 
-  private formatAbiItemSignature(item: AbiError | AbiEvent | AbiFunction) {
+  public formatAbiItemSignature(item: AbiError | AbiEvent | AbiFunction) {
     return `${item.name}(${(item.inputs ?? []).map((i) => i.type).join(',')})`
   }
 

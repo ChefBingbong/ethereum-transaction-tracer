@@ -52,7 +52,7 @@ export const safeTimeoutPromiseAll = async <T>(
 }
 
 export const safeTimeoutPromise = async <T>(
-  promise: Promise<T>,
+  promise: () => Promise<T>,
   ms: number,
 ): SafePromise<T> => {
   const controller = new AbortController()
@@ -62,7 +62,7 @@ export const safeTimeoutPromise = async <T>(
     controller.abort(new Error(`Timeout after ${ms}ms`))
   }, ms)
 
-  const [error, result] = await _.try(() => promise)()
+  const [error, result] = await _.try(promise)()
   if (signal.aborted) {
     return safeError(
       signal.reason instanceof Error

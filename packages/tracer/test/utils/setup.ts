@@ -1,5 +1,6 @@
-import { createPublicClient, http, type PublicClient } from 'viem'
+import { createPublicClient, http } from 'viem'
 import { mainnet } from 'viem/chains'
+import { traceActions } from '../../src/callTracer/actions/traceActions'
 
 export const SENDER = '0xda8A8833E938192781AdE161d4b46c4973A40402'
 export const TO = '0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af'
@@ -14,9 +15,14 @@ export const SAMPLE_TX_HASH =
 export const defaultTestClient = createPublicClient({
   chain: mainnet,
   transport: http(RPC_URL),
-}) as PublicClient
+}).extend(traceActions)
 
 export const publicTestClient = createPublicClient({
   chain: mainnet,
   transport: http('https://eth.llamarpc.com'),
-}) as PublicClient
+}).extend(traceActions)
+
+export const publicTestClient2 = createPublicClient({
+  chain: mainnet,
+  transport: http('https://eth.llamarpc.com'),
+}).extend(traceActions)

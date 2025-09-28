@@ -1,5 +1,5 @@
 import { logger } from '@evm-tt/utils'
-import { loadEnv } from '../configCli/env'
+import { getConfigDir, loadEnv } from '../configCli/env'
 import { resolveAndParseCliParams, traceTxArgs } from '../configCli/schema'
 import createTask from '../program'
 import { makeTracer } from '../utils/tracer'
@@ -28,12 +28,17 @@ createTask('traceTx')
       process.exit(1)
     }
 
-    const { tracer } = makeTracer(parsedArgs.data)
-    const [traceError] = await tracer.traceTransactionHash({
+    const client = makeTracer(parsedArgs.data)
+    const [traceError] = await client.traceTransactionHash({
       txHash: parsedArgs.data.hash,
-      showProgressBar: true,
-      streamLogs: true,
-      gasProfiler: !!opts.gas,
+      cache: {
+        cachePath: getConfigDir(),
+        etherscanApiKey: parsedArgs.data.etherscanKey,
+      },
+      run: {
+        showProgressBar: true,
+        streamLogs: true,
+      },
     })
 
     if (traceError) {

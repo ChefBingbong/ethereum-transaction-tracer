@@ -26,6 +26,7 @@ export const revData = pc.red
 export const dim = pc.white
 export const dark = pc.dim
 export const yellowLight = pc.dim
+export const redBold = (s: string) => pc.bold(pc.red(s))
 
 export const badgeFor = (t: RpcCallType) => typeBadge(`[${t.toLowerCase()}]`)
 
@@ -59,6 +60,22 @@ export function addrLabelStyled(
   )
 }
 
+export function addrLabelStyled2(
+  node: RpcCallTrace | undefined,
+  cache: TracerCache,
+) {
+  const paint = node?.error ? pc.red : addr
+  if (!node?.to) return paint('<unknown>')
+
+  const name = cache.contractNames.get(node.to)
+  const defaultLabel = name ? `${name}${dark('()')}` : node.to.toLowerCase()
+  return paint(
+    isAddressEqual(node.to, zeroAddress)
+      ? 'Precompile.DataCopy'
+      : pc.bold(defaultLabel),
+  )
+}
+
 export function nameFromSelector(input: Hex | undefined, cache: TracerCache) {
   if (!input || input.length < 10) return undefined
   const fn = cache.abiItemFromSelector(input)
@@ -70,10 +87,9 @@ export function nameFromSelector(input: Hex | undefined, cache: TracerCache) {
 export const getSharedBadges = (
   node: RpcCallTrace,
   verbosity: LogVerbosity,
-  hasError: boolean,
 ) => {
   const typeBadge = ` ${badgeFor(node.type)}`
-  const failBadge = hasError ? ` ${pc.red('❌')}` : ''
+  const failBadge = node.error ? ` ${pc.red('❌')}` : ''
   const valueStr = getValueString(node, verbosity)
   const gasStr = getGasString(node, verbosity)
 
