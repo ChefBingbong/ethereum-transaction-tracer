@@ -89,7 +89,7 @@ export const getSharedBadges = (
   verbosity: LogVerbosity,
 ) => {
   const typeBadge = ` ${badgeFor(node.type)}`
-  const failBadge = Boolean(node.error) ? ` ${pc.red('❌')}` : ''
+  const failBadge = node.error ? ` ${pc.red('❌')}` : ''
   const valueStr = getValueString(node, verbosity)
   const gasStr = getGasString(node, verbosity)
 

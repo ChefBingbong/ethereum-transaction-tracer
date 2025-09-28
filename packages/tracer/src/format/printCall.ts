@@ -1,6 +1,6 @@
-import { hexToBig, stringify, SUMMARY_DEPTH, truncate } from '@evm-tt/utils'
+import { hexToBig, SUMMARY_DEPTH, stringify, truncate } from '@evm-tt/utils'
 import pc from 'picocolors'
-import { type AbiFunction } from 'viem'
+import type { AbiFunction } from 'viem'
 import type { TracerCache } from '../cache'
 import { safeDecodeCallData } from '../decoder'
 import { LogVerbosity, type RpcCallTrace } from '../types'

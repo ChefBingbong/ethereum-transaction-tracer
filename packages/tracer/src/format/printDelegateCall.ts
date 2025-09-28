@@ -1,6 +1,6 @@
 import { truncate } from '@evm-tt/utils'
 import pc from 'picocolors'
-import { type AbiFunction } from 'viem'
+import type { AbiFunction } from 'viem'
 import type { TracerCache } from '../cache'
 import { safeDecodeEvent } from '../decoder'
 import { LogVerbosity, type RpcCallTrace, type RpcLogTrace } from '../types'
