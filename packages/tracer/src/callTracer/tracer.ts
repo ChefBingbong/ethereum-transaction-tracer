@@ -1,7 +1,7 @@
 import {
   makeProgress,
-  safeError,
   type SafePromise,
+  safeError,
   safeResult,
   safeTry,
 } from '@evm-tt/utils'

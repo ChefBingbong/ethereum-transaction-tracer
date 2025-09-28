@@ -4,8 +4,8 @@ import {
   formatArgsInline,
   hexToBig,
   isPrecompileSource,
-  stringify,
   SUMMARY_DEPTH,
+  stringify,
   truncate,
 } from '@evm-tt/utils'
 import pc from 'picocolors'
@@ -13,10 +13,10 @@ import {
   type Abi,
   type AbiFunction,
   type Address,
-  erc1155Abi,
   erc20Abi,
-  erc4626Abi,
   erc721Abi,
+  erc1155Abi,
+  erc4626Abi,
   type Hex,
   multicall3Abi,
   parseAbi,
