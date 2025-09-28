@@ -1,9 +1,11 @@
 import type { EventTopic } from '@evm-tt/utils'
 import {
+  defaultRevert,
+  formatArgsInline,
   hexToBig,
   isPrecompileSource,
-  SUMMARY_DEPTH,
   stringify,
+  SUMMARY_DEPTH,
   truncate,
 } from '@evm-tt/utils'
 import pc from 'picocolors'
@@ -11,15 +13,22 @@ import {
   type Abi,
   type AbiFunction,
   type Address,
-  erc20Abi,
-  erc721Abi,
   erc1155Abi,
+  erc20Abi,
   erc4626Abi,
+  erc721Abi,
   type Hex,
   multicall3Abi,
+  parseAbi,
 } from 'viem'
 import type { TracerCache } from '../cache'
-import type { Decoder } from '../decoder'
+import {
+  type Decoder,
+  safeDecodeCallData,
+  safeDecodeCallResult,
+  safeDecodeCallRevert,
+  safeDecodeEvent,
+} from '../decoder'
 import { LogVerbosity, type RpcCallTrace } from '../types'
 import {
   addrLabelStyled,
@@ -126,13 +135,19 @@ export class TraceFormatter {
     nextPrefix: string,
   ): string {
     const logPrefix = `${nextPrefix + (lastLog ? '└─ ' : '├─ ')}${emit('emit')}`
-    const [error, dec] = this.decoder.safeDecodeEvent(topics, data)
+    const eventAbi = this.cache.abiEventFromTopic(topics[0])
+    if (!eventAbi) {
+      return `${logPrefix} ${addrLabelStyled(addr, this.cache)} ${dim(
+        `topic0=${topics?.[0] ?? ''} data=${truncate(data)}`,
+      )}`
+    }
+    const [error, dec] = safeDecodeEvent(eventAbi, topics, data)
 
     if (!error) {
       const argPairs = Object.entries(dec.args ?? {}).map(
         ([k, v]) => `${eventArgVal(k)}: ${argVal(String(v))}`,
       )
-      return `${logPrefix} ${emit(dec.name)}(${argPairs.join(', ')})`
+      return `${logPrefix} ${emit(dec.eventName)}(${argPairs.join(', ')})`
     }
     return `${logPrefix} ${addrLabelStyled(addr, this.cache)} ${dim(
       `topic0=${topics?.[0] ?? ''} data=${truncate(data)}`,
@@ -148,15 +163,19 @@ export class TraceFormatter {
       return `${returnLabel} ${stringify(decodedPreCompile.outputText)}`
     }
 
-    const [callError, decodedCall] = this.decoder.decodeCallWithNames(
-      node.to,
-      node.input,
-    )
+    const selector = this.cache.abiItemFromSelector(node.input)
+    if (!selector)
+      return `${returnLabel} ${node.output ? truncate(node.output) : dim('()')}`
+
+    const abiItem =
+      typeof selector === 'string' ? parseAbi([selector]) : [selector]
+
+    const [callError, decodedCall] = safeDecodeCallData(abiItem, node.input)
     if (callError)
       return `${returnLabel} ${node.output ? truncate(node.output) : dim('()')}`
 
     const functionAbi = (erc20Abi as Abi)
-      .concat(decodedCall.fnItem)
+      .concat(abiItem)
       .concat(erc721Abi)
       .concat(erc1155Abi)
       .concat(erc4626Abi)
@@ -167,7 +186,7 @@ export class TraceFormatter {
       )
 
     if (functionAbi) {
-      const [returnError, decodedReturn] = this.decoder.decodeReturnPretty(
+      const [returnError, decodedReturn] = safeDecodeCallResult(
         functionAbi,
         node.output,
       )
@@ -179,8 +198,16 @@ export class TraceFormatter {
 
   public printRevert(node: RpcCallTrace, nextPrefix: string) {
     const revertPrefix = `${nextPrefix}${revLabel('[Revert]')}`
-    const [_, revertData] = this.decoder.decodeRevertPrettyFromFrame(node)
-    return `${revertPrefix} ${revData(revertData)}`
+    if (!node.output) return `${revertPrefix} ${revData(defaultRevert(node))}`
+    const errorSel = node.output.slice(0, 10) as Hex
+
+    const abiItem = this.cache.errorDir.get(errorSel)
+    if (!abiItem) return `${revertPrefix} ${revData(defaultRevert(node))}`
+
+    const [error, revertData] = safeDecodeCallRevert([abiItem], node.output)
+
+    if (error) return `${revertPrefix} ${revData(defaultRevert(node))}`
+    return `${revertPrefix} ${revData(`${revertData.errorName}(${revertData.args ? revertData.args.map(formatArgsInline).join(', ') : ''})`)}`
   }
 
   public printGasCall(
@@ -221,10 +248,14 @@ export class TraceFormatter {
       const decodedPreCompile = this.decoder.decodePrecompile(node)
       return `${pc.bold(decodedPreCompile.name)} ${stringify(decodedPreCompile.inputText)}`
     }
-    const [error, decodedCall] = this.decoder.decodeCallWithNames(
-      node.to,
-      node.input,
-    )
+
+    const selector = this.cache.abiItemFromSelector(node.input)
+    if (!selector) return dim('()')
+
+    const abiItem =
+      typeof selector === 'string' ? parseAbi([selector]) : [selector]
+
+    const [error, decodedCall] = safeDecodeCallData(abiItem, node.input)
     if (error) return dim('()')
 
     const fnName = decodedCall.fnName
@@ -253,7 +284,14 @@ export class TraceFormatter {
   }
 
   public formatGasCall(node: RpcCallTrace, hasError: boolean): string {
-    const [err, dec] = this.decoder.decodeCallWithNames(node.to, node.input)
+    const selector = this.cache.abiItemFromSelector(node.input)
+    if (!selector) {
+      return node.input && node.input !== '0x' ? dim('') : dim('()')
+    }
+    const abiItem =
+      typeof selector === 'string' ? parseAbi([selector]) : [selector]
+
+    const [err, dec] = safeDecodeCallData(abiItem, node.input)
     if (err) return node.input && node.input !== '0x' ? dim('') : dim('()')
 
     if (dec.fnName) {

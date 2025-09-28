@@ -1,4 +1,10 @@
-import { makeProgress, safeError, safeResult, safeTry } from '@evm-tt/utils'
+import {
+  makeProgress,
+  safeError,
+  type SafePromise,
+  safeResult,
+  safeTry,
+} from '@evm-tt/utils'
 import {
   type BaseError,
   formatTransactionRequest,
@@ -22,9 +28,8 @@ import {
   type ClientProvider,
   DefaultClientProvider,
   type Environment,
+  type TraceClient,
 } from './clientProvider'
-
-type TraceClient = PublicClient
 
 export class TransactionTracer {
   public cache: TracerCache
@@ -138,15 +143,13 @@ export class TransactionTracer {
   private async withClient<T>(
     env: Environment,
     progress: ReturnType<typeof makeProgress>,
-    fn: (client: TraceClient) => Promise<T>,
-  ): Promise<T> {
-    const lease = await this.provider.lease(env)
-    try {
-      return await fn(lease.client as TraceClient)
-    } finally {
-      progress.done()
-      if (lease.dispose) await lease.dispose()
-    }
+    traceCallback: (client: TraceClient) => SafePromise<T>,
+  ): SafePromise<T> {
+    const [error, lease] = await this.provider.lease(env)
+    if (error) return safeError(error)
+    const traceResult = await traceCallback(lease.client)
+    await lease.dispose?.(progress)
+    return traceResult
   }
 
   private callTraceRequest = async (

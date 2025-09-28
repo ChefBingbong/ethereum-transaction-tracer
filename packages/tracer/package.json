@@ -26,7 +26,7 @@
     "build:types": "tsc -p tsconfig.types.json",
     "prepublishOnly": "bun run build",
     "prepack": "bun ../../.github/replace-workspace-protocol.ts",
-    "test": "vitest run -c ./vitest.config.ts"
+    "test": "vitest run -c ./vitest.config.mjs"
   },
   "publishConfig": {
     "access": "public"

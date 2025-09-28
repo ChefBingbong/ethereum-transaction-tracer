@@ -1,5 +1,12 @@
+import {
+  type Progress,
+  type SafePromise,
+  safeError,
+  safeResult,
+  safeTimeoutPromise,
+} from '@evm-tt/utils'
 import { createAnvil } from '@viem/anvil'
-import { createTestClient, http, type PublicClient, publicActions } from 'viem'
+import { type PublicClient, createTestClient, http, publicActions } from 'viem'
 
 export type Environment =
   | { kind: 'rpc' }
@@ -19,18 +26,18 @@ export type TraceRunOptions = {
 
 export interface ClientLease {
   client: TraceClient
-  dispose?: () => Promise<void>
+  dispose?: (progress?: Progress) => Promise<void>
 }
 
 export interface ClientProvider {
-  lease(env: Environment): Promise<ClientLease>
+  lease(env: Environment): SafePromise<ClientLease>
 }
 
 export class DefaultClientProvider implements ClientProvider {
   constructor(public readonly base: PublicClient) {}
 
-  async lease(env: Environment): Promise<ClientLease> {
-    if (env.kind === 'rpc') return { client: this.base }
+  async lease(env: Environment): SafePromise<ClientLease> {
+    if (env.kind === 'rpc') return safeResult({ client: this.base })
 
     const anvil = createAnvil({
       chainId: this.base.chain?.id,
@@ -46,17 +53,16 @@ export class DefaultClientProvider implements ClientProvider {
       }),
     }).extend(publicActions) as PublicClient
 
-    await anvil.start()
+    const [error, _] = await safeTimeoutPromise(() => anvil.start(), 7000)
 
-    return {
+    if (error) return safeError(error)
+    return safeResult({
       client: testClient,
-      dispose: async () => {
-        try {
-          //   await anvil.stop()
-        } catch {
-          /* noop */
-        }
+      dispose: async (progress?: Progress) => {
+        const [error, _] = await safeTimeoutPromise(() => anvil.stop(), 7000)
+        if (error) console.log(error)
+        progress?.done()
       },
-    }
+    })
   }
 }
