@@ -10,7 +10,10 @@ import type { TracerCache } from '../cache'
 import { LogVerbosity, type RpcCallTrace } from '../types'
 import { addrLabelStyled, getSharedBadges } from './theme'
 
-export const printPrecompileCall = (node: RpcCallTrace, cache: TracerCache) => {
+export const formatPrecompileCall = (
+  node: RpcCallTrace,
+  cache: TracerCache,
+) => {
   const paint = node.error ? pc.red : undefined
   const left = addrLabelStyled(node.to, cache, paint)
   const method = decodePrecompile(node, '').inputText

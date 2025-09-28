@@ -1,4 +1,4 @@
-import { hexToBig, SUMMARY_DEPTH, stringify, truncate } from '@evm-tt/utils'
+import { hexToBig, stringify, SUMMARY_DEPTH, truncate } from '@evm-tt/utils'
 import pc from 'picocolors'
 import type { AbiFunction } from 'viem'
 import type { TracerCache } from '../cache'
@@ -16,7 +16,7 @@ import {
   sumInner,
 } from './theme'
 
-export const printCall = (
+export const formatCall = (
   node: RpcCallTrace,
   cache: TracerCache,
   abiItem: AbiFunction[],
@@ -56,14 +56,14 @@ export function formatContractCall(
   return dim(`calldata=${truncate(node.input ?? '0x')}`)
 }
 
-export function printGasCall(
+export function formatGasCall(
   node: RpcCallTrace,
   cache: TracerCache,
   abiItem: AbiFunction[],
   depth: number,
 ): string {
   const left = addrLabelStyled2(node, cache)
-  const rightLabel = formatGasCall(node, cache, abiItem)
+  const rightLabel = formatGasCallInner(node, cache, abiItem)
   const label = depth === 1 ? `${left}\n• ${rightLabel}` : `• ${rightLabel}`
 
   if (
@@ -89,7 +89,7 @@ export function printGasCall(
   }`
 }
 
-export function formatGasCall(
+export function formatGasCallInner(
   node: RpcCallTrace,
   cache: TracerCache,
 

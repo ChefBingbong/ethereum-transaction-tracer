@@ -2,10 +2,10 @@ import { defaultRevert, formatArgsInline, truncate } from '@evm-tt/utils'
 import {
   type Abi,
   type AbiFunction,
-  erc20Abi,
-  erc721Abi,
   erc1155Abi,
+  erc20Abi,
   erc4626Abi,
+  erc721Abi,
   type Hex,
   multicall3Abi,
 } from 'viem'
@@ -18,7 +18,7 @@ import {
 import type { RpcCallTrace } from '../types'
 import { dim, retData, retLabel, revData, revLabel } from './theme'
 
-export function printReturn(
+export function formatReturn(
   node: RpcCallTrace,
   abiItem: AbiFunction[],
   nextPrefix: string,
@@ -50,7 +50,7 @@ export function printReturn(
   return `${returnLabel} ${truncate(node.output)}`
 }
 
-export function printRevert(
+export function formatRevert(
   node: RpcCallTrace,
   cache: TracerCache,
 

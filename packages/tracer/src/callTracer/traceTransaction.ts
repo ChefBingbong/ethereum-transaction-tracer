@@ -3,7 +3,7 @@ import type { BaseError, PublicClient } from 'viem'
 import { getTransactionError } from 'viem/utils'
 import { TracerCache } from '../cache'
 import { coerceUnsupportedTraceError } from '../errors'
-import { formatTrace } from '../format'
+import { formatTrace } from '../print'
 import {
   LogVerbosity,
   type TraceTxParameters,

@@ -7,6 +7,21 @@ import {
 } from '@evm-tt/utils'
 import pc from 'picocolors'
 import type { TracerCache } from '../cache/index'
+import {
+  decodePrecompile,
+  dim,
+  formatCall,
+  formatCreateCall,
+  formatDefault,
+  formatDelegateCall,
+  formatGasCall,
+  formatLog,
+  formatPrecompileCall,
+  formatReturn,
+  formatRevert,
+  formatSeltDestructCall,
+  retLabel,
+} from '../format'
 import type {
   GasTally,
   LineSink,
@@ -14,17 +29,6 @@ import type {
   PrinterArgs,
   RpcCallTrace,
 } from '../types'
-import { printCall, printGasCall } from './printCall'
-import {
-  printCreateCall,
-  printDefault,
-  printDelegateCall,
-  printLog,
-  printSeltDestructCall,
-} from './printDelegateCall'
-import { decodePrecompile, printPrecompileCall } from './printPreCompile'
-import { printReturn, printRevert } from './printReturn'
-import { dim, retLabel } from './theme'
 
 export async function formatTrace(root: RpcCallTrace, opts: PrinterArgs) {
   const cache: TracerCache = opts.cache
@@ -66,7 +70,7 @@ export async function formatTrace(root: RpcCallTrace, opts: PrinterArgs) {
     const calls = node.calls ?? []
     for (let i = 0; i < logs.length; i++) {
       const lastLog = i === logs.length - 1 && calls.length === 0
-      writeLine(printLog(lastLog, logs[i], cache, childPrefix))
+      writeLine(formatLog(lastLog, logs[i], cache, childPrefix))
     }
 
     lastStack.push(isLast)
@@ -119,16 +123,16 @@ export async function formatTrace(root: RpcCallTrace, opts: PrinterArgs) {
       const returnLabel = `${nextPrefix}${retLabel('[Return]')}`
       return decodePrecompile(node, returnLabel).outputText
     }
-    if (node?.error) return printRevert(node, cache, nextPrefix)
+    if (node?.error) return formatRevert(node, cache, nextPrefix)
 
     const sel = cache.abiItemFromSelector2(node.input)
     if (!sel)
       return `${nextPrefix}${retLabel('[Return]')} ${node.output ?? '('}`
-    return printReturn(node, sel, nextPrefix)
+    return formatReturn(node, sel, nextPrefix)
   }
 
   const formatTraceCall = (node: RpcCallTrace): string => {
-    if (isPrecompileSource(node.to)) return printPrecompileCall(node, cache)
+    if (isPrecompileSource(node.to)) return formatPrecompileCall(node, cache)
 
     const sel = cache.abiItemFromSelector2(node.input)
     if (!sel) return dim('()')
@@ -136,24 +140,24 @@ export async function formatTrace(root: RpcCallTrace, opts: PrinterArgs) {
     switch (node.type) {
       case 'CALL':
       case 'STATICCALL':
-        return printCall(node, cache, sel)
+        return formatCall(node, cache, sel)
       case 'CALLCODE':
       case 'DELEGATECALL':
-        return printDelegateCall(node, cache, sel)
+        return formatDelegateCall(node, cache, sel)
       case 'CREATE':
       case 'CREATE2':
-        return printCreateCall(node, cache)
+        return formatCreateCall(node, cache)
       case 'SELFDESTRUCT':
-        return printSeltDestructCall(node, cache)
+        return formatSeltDestructCall(node, cache)
       default:
-        return printDefault(node, cache)
+        return formatDefault(node, cache)
     }
   }
 
   const formatTraceGasCall = (node: RpcCallTrace, depth: number): string => {
     const sel = cache.abiItemFromSelector2(node.input)
     if (!sel) return dim('()')
-    return printGasCall(node, cache, sel, depth)
+    return formatGasCall(node, cache, sel, depth)
   }
 
   const formatGasTraceSummary = (hasError: boolean, depth: number) => {

@@ -8,7 +8,7 @@ import {
 import { extract, getTransactionError, parseAccount } from 'viem/utils'
 import { TracerCache } from '../cache'
 import { coerceUnsupportedTraceError } from '../errors'
-import { formatTrace } from '../format'
+import { formatTrace } from '../print'
 import {
   LogVerbosity,
   type TraceCallParameters,

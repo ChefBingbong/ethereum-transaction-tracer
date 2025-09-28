@@ -4,7 +4,7 @@ import type { AbiFunction } from 'viem'
 import type { TracerCache } from '../cache'
 import { safeDecodeEvent } from '../decoder'
 import { LogVerbosity, type RpcCallTrace, type RpcLogTrace } from '../types'
-import { formatContractCall } from './printCall'
+import { formatContractCall } from './formatCall'
 import {
   addrLabelStyled,
   addrLabelStyled2,
@@ -16,7 +16,7 @@ import {
   getSharedBadges,
 } from './theme'
 
-export const printDelegateCall = (
+export const formatDelegateCall = (
   node: RpcCallTrace,
   cache: TracerCache,
   abiItem: AbiFunction[],
@@ -33,7 +33,7 @@ export const printDelegateCall = (
   return `${left}::${method} ${typeBadge} ${valueStr}${gasStr}${failBadge}`
 }
 
-export const printCreateCall = (node: RpcCallTrace, cache: TracerCache) => {
+export const formatCreateCall = (node: RpcCallTrace, cache: TracerCache) => {
   const created = addrLabelStyled2(node, cache)
   const method = node.error ? pc.bold(pc.red('create')) : fn('create')
   const initLen = `init_code_len=${node.input ? (node.input.length - 2) / 2 : 0}`
@@ -45,7 +45,7 @@ export const printCreateCall = (node: RpcCallTrace, cache: TracerCache) => {
   return `${created}::${method}(${initLen}) ${typeBadge} ${valueStr}${gasStr}${failBadge}`
 }
 
-export const printSeltDestructCall = (
+export const formatSeltDestructCall = (
   node: RpcCallTrace,
   cache: TracerCache,
 ) => {
@@ -61,7 +61,7 @@ export const printSeltDestructCall = (
   return `${target}::${method} ${typeBadge} ${valueStr}${gasStr}${failBadge}`
 }
 
-export const printDefault = (node: RpcCallTrace, cache: TracerCache) => {
+export const formatDefault = (node: RpcCallTrace, cache: TracerCache) => {
   const left = addrLabelStyled2(node, cache)
   const { typeBadge, valueStr, gasStr, failBadge } = getSharedBadges(
     node,
@@ -73,7 +73,7 @@ export const printDefault = (node: RpcCallTrace, cache: TracerCache) => {
   return `${left}::${calld} ${typeBadge} ${valueStr}${gasStr}${failBadge}`
 }
 
-export function printLog(
+export function formatLog(
   lastLog: boolean,
   log: RpcLogTrace,
   cache: TracerCache,
