@@ -82,18 +82,6 @@ exports[`Decoder integration safeDecodeCallData: decodes function data: safeDeco
 }
 `;
 
-exports[`Decoder integration safeDecodeRevert: decodes revert data: safeDecodeRevert 1`] = `
-{
-  "abiItem": {
-    "inputs": [],
-    "name": "InvalidNonce",
-    "type": "error",
-  },
-  "args": undefined,
-  "errorName": "InvalidNonce",
-}
-`;
-
 exports[`Decoder integration safeDecodeEvent: decodes event name and args: safeDecodeEvent 1`] = `
 {
   "args": {
@@ -105,5 +93,17 @@ exports[`Decoder integration safeDecodeEvent: decodes event name and args: safeD
     "token": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
   },
   "eventName": "Permit",
+}
+`;
+
+exports[`Decoder integration safeDecodeRevert: decodes revert data: safeDecodeRevert 1`] = `
+{
+  "abiItem": {
+    "inputs": [],
+    "name": "InvalidNonce",
+    "type": "error",
+  },
+  "args": undefined,
+  "errorName": "InvalidNonce",
 }
 `;

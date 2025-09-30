@@ -16,7 +16,7 @@ import {
   safeDecodeCallRevert,
 } from '../decoder'
 import type { RpcCallTrace } from '../types'
-import { dim, retData, retLabel, revData, revLabel } from './theme'
+import { retData, retLabel, revData, revLabel, white } from './theme'
 
 export function formatReturn(
   node: RpcCallTrace,
@@ -26,7 +26,7 @@ export function formatReturn(
   const returnLabel = `${nextPrefix}${retLabel('[Return]')}`
   const [callError, decodedCall] = safeDecodeCallData(abiItem, node.input)
   if (callError)
-    return `${returnLabel} ${node.output ? truncate(node.output) : dim('()')}`
+    return `${returnLabel} ${node.output ? truncate(node.output) : white('()')}`
 
   const functionAbi = (erc20Abi as Abi)
     .concat(abiItem)

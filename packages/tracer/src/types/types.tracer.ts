@@ -8,7 +8,7 @@ import type {
   RpcTransactionRequest,
 } from 'viem'
 import type { TracerCache } from '../cache'
-import type { Environment } from '../callTracer/client/clientProvider'
+import type { Environment } from '../callTracer/client/types'
 import type { CacheOptions } from './types.cache'
 
 export type TraaceOptions = {
