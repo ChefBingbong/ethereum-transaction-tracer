@@ -58,7 +58,7 @@ export const safeDecodeCallData = (abiItem: AbiFunction[], input: Hex) => {
 }
 
 export const safeDecodeEvent = (
-  event: AbiEvent,
+  event: AbiEvent | undefined,
   topics: EventTopic,
   data: Hex,
 ) => {

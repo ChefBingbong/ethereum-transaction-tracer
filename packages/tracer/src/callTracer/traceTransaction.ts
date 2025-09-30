@@ -3,13 +3,14 @@ import type { BaseError, PublicClient } from 'viem'
 import { getTransactionError } from 'viem/utils'
 import { TracerCache } from '../cache'
 import { coerceUnsupportedTraceError } from '../errors'
-import { formatTrace } from '../print'
+import { printCallTrace } from '../print'
 import {
   LogVerbosity,
   type TraceTxParameters,
   type TraceTxRpcSchema,
 } from '../types'
-import { type TraceClient, withClient } from './client/clientProvider'
+import { withClient } from './client/clientProvider'
+import type { TraceClient } from './client/types'
 
 export const traceTransactionHash = async (
   { run, cache: cacheOptions, txHash }: TraceTxParameters,
@@ -30,7 +31,7 @@ export const traceTransactionHash = async (
     )
     if (traceError) return safeError(traceError)
 
-    const [formatError, lines] = await formatTrace(trace, {
+    const [formatError, lines] = await printCallTrace(trace, {
       cache,
       verbosity: LogVerbosity.Highest,
       logStream: !!run.streamLogs,

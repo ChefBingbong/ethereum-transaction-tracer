@@ -92,6 +92,6 @@ if (import.meta.main) {
     console.log(error)
     process.exit(1)
   }
-  console.log(trace)
+  console.log(trace.traceFormatted)
   process.exit(0)
 }

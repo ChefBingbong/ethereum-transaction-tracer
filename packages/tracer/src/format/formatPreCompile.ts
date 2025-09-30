@@ -8,20 +8,23 @@ import {
 import pc from 'picocolors'
 import type { TracerCache } from '../cache'
 import { LogVerbosity, type RpcCallTrace } from '../types'
-import { addrLabelStyled, getSharedBadges } from './theme'
+import {
+  getCallOriginLabel,
+  getCallTypeLabel,
+  getGasBadge,
+  getValueBadge,
+} from './theme'
 
 export const formatPrecompileCall = (
   node: RpcCallTrace,
   cache: TracerCache,
 ) => {
-  const paint = node.error ? pc.red : undefined
-  const left = addrLabelStyled(node.to, cache, paint)
+  const left = getCallOriginLabel(node, cache)
   const method = decodePrecompile(node, '').inputText
-  const { typeBadge, valueStr, gasStr, failBadge } = getSharedBadges(
-    node,
-    LogVerbosity.Highest, //   this.verbosity,
-  )
-  return `${left}::${method} ${typeBadge} ${valueStr}${gasStr}${failBadge}`
+  const callTypeLabel = getCallTypeLabel(node.type)
+  const valueBadge = getValueBadge(node, LogVerbosity.Highest)
+  const gasBadge = getGasBadge(node, LogVerbosity.Highest)
+  return `${left}::${method} ${callTypeLabel} ${valueBadge}${gasBadge}`
 }
 
 export function decodePrecompile(node: RpcCallTrace, label: string) {
@@ -39,7 +42,7 @@ export function decodePrecompile(node: RpcCallTrace, label: string) {
       return decodePrecompileIdentity(node, label)
     }
     default: {
-      throw new Error('hhhh')
+      throw new Error('option not supported')
     }
   }
 }
