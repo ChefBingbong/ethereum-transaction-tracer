@@ -7,7 +7,7 @@ import {
   safeTimeoutPromise,
 } from '@evm-tt/utils'
 import { createAnvil } from '@viem/anvil'
-import { type PublicClient, createTestClient, http, publicActions } from 'viem'
+import { createTestClient, http, type PublicClient, publicActions } from 'viem'
 import type {
   ClientLease,
   ClientProvider,

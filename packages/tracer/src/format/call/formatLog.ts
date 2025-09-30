@@ -1,7 +1,7 @@
 import { truncate } from '@evm-tt/utils'
 import type { TracerCache } from '../../cache'
 import { safeDecodeEvent } from '../../decoder'
-import { type RpcLogTrace } from '../../types'
+import type { RpcLogTrace } from '../../types'
 import { argVal, emit, eventArgVal, getLogOriginLabel, white } from '../theme'
 
 export function formatLog(
