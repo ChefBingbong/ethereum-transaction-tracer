@@ -1,4 +1,4 @@
-import { makeProgress, safeError, safeResult, safeTry } from '@evm-tt/utils'
+import { safeError, safeResult, safeTry } from '@evm-tt/utils'
 import {
   type BaseError,
   formatTransactionRequest,
@@ -21,49 +21,37 @@ export const traceCall = async (
   { stateOverride, run, cache: cacheOptions, ...args }: TraceCallParameters,
   client: PublicClient,
 ) => {
-  const progress = makeProgress(run.showProgressBar)
   const cache = new TracerCache(
     client.chain?.id!,
     cacheOptions.cachePath,
     cacheOptions,
   )
-  return withClient(
-    run.env ?? { kind: 'rpc' },
-    progress,
-    client,
-    async (client) => {
-      const [traceError, trace] = await callTraceRequest(
-        { stateOverride, run, cache: cacheOptions, ...args },
-        client,
-        cache,
-        progress,
-      )
-      if (traceError) return safeError(traceError)
+  return withClient(run.env ?? { kind: 'rpc' }, client, async (client) => {
+    const [traceError, trace] = await callTraceRequest(
+      { stateOverride, run, cache: cacheOptions, ...args },
+      client,
+      cache,
+    )
+    if (traceError) return safeError(traceError)
 
-      const [formatError, lines] = await printCallTrace(trace, {
-        cache,
-        verbosity: LogVerbosity.Highest,
-        logStream: !!run.streamLogs,
-        showReturnData: true,
-        showLogs: true,
-        gasProfiler: false,
-        progress: {
-          onUpdate: (v: number) => progress.inc(v),
-          includeLogs: true,
-        },
-      })
+    const [formatError, lines] = await printCallTrace(trace, {
+      cache,
+      verbosity: LogVerbosity.Highest,
+      logStream: !!run.streamLogs,
+      showReturnData: true,
+      showLogs: true,
+      gasProfiler: false,
+    })
 
-      const out = { traceRaw: trace, traceFormatted: lines }
-      return formatError ? safeError(formatError) : safeResult(out)
-    },
-  )
+    const out = { traceRaw: trace, traceFormatted: lines }
+    return formatError ? safeError(formatError) : safeResult(out)
+  })
 }
 
 const callTraceRequest = async (
   { stateOverride, ...args }: TraceCallParameters,
   client: TraceClient,
   cache: TracerCache,
-  progress: ReturnType<typeof makeProgress>,
 ) => {
   const account_ = args.account ?? client.account
   const account = account_ ? parseAccount(account_) : null
@@ -75,7 +63,6 @@ const callTraceRequest = async (
       parameters: ['blobVersionedHashes', 'chainId', 'fees', 'nonce', 'type'],
     }),
   )
-  progress.inc(2)
 
   if (error) {
     const custom = coerceUnsupportedTraceError(
@@ -179,13 +166,12 @@ const callTraceRequest = async (
     )
   }
 
-  progress.inc(2)
-
   const calls = cache.getUnknownAbisFromCall(trace)
-  await cache.getAllUnknownSignatures(trace)
-  const [fetchError] = await safeTry(() =>
-    cache.prefetchUnknownAbis(calls, (v) => progress.inc(v)),
+  const [fetchSigError] = await safeTry(() =>
+    cache.getAllUnknownSignatures(trace),
   )
+  if (fetchSigError) return safeError(fetchSigError)
 
+  const [fetchError] = await safeTry(() => cache.prefetchUnknownAbis(calls))
   return fetchError ? safeError(fetchError) : safeResult(trace)
 }
