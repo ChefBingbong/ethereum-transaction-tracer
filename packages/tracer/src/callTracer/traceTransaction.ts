@@ -1,4 +1,4 @@
-import { makeProgress, safeError, safeResult, safeTry } from '@evm-tt/utils'
+import { safeError, safeResult, safeTry } from '@evm-tt/utils'
 import type { BaseError, PublicClient } from 'viem'
 import { getTransactionError } from 'viem/utils'
 import { TracerCache } from '../cache'
@@ -16,18 +16,16 @@ export const traceTransactionHash = async (
   { run, cache: cacheOptions, txHash }: TraceTxParameters,
   client: PublicClient,
 ) => {
-  const progress = makeProgress(run.showProgressBar)
   const cache = new TracerCache(
     client.chain?.id!,
     cacheOptions.cachePath,
     cacheOptions,
   )
-  return withClient({ kind: 'rpc' }, progress, client, async (client) => {
+  return withClient({ kind: 'rpc' }, client, async (client) => {
     const [traceError, trace] = await callTraceTxHash(
       { txHash, run, cache: cacheOptions },
       client,
       cache,
-      progress,
     )
     if (traceError) return safeError(traceError)
 
@@ -38,10 +36,6 @@ export const traceTransactionHash = async (
       showReturnData: true,
       showLogs: true,
       gasProfiler: false,
-      progress: {
-        onUpdate: (v: number) => progress.inc(v),
-        includeLogs: true,
-      },
     })
 
     const out = { traceRaw: trace, traceFormatted: lines }
@@ -53,7 +47,6 @@ const callTraceTxHash = async (
   { txHash }: TraceTxParameters,
   client: TraceClient,
   cache: TracerCache,
-  progress: ReturnType<typeof makeProgress>,
 ) => {
   const [error, trace] = await safeTry(() =>
     client.request<TraceTxRpcSchema>(
@@ -73,8 +66,6 @@ const callTraceTxHash = async (
       { retryCount: 0 },
     ),
   )
-  progress.inc(6)
-
   if (error) {
     const custom = coerceUnsupportedTraceError(
       'debug_traceTransaction',
@@ -92,13 +83,8 @@ const callTraceTxHash = async (
     )
   }
 
-  progress.inc(2)
-
   const calls = cache.getUnknownAbisFromCall(trace)
   await cache.getAllUnknownSignatures(trace)
-  const [fetchError] = await safeTry(() =>
-    cache.prefetchUnknownAbis(calls, (v) => progress.inc(v)),
-  )
-
+  const [fetchError] = await safeTry(() => cache.prefetchUnknownAbis(calls))
   return fetchError ? safeError(fetchError) : safeResult(trace)
 }
