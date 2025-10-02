@@ -11,7 +11,6 @@ import {
   decodeEventLog,
   decodeFunctionData,
   decodeFunctionResult,
-  getAbiItem,
 } from 'viem'
 
 export const safeDecodeCallResult = (fnItem: AbiFunction, output: Hex) => {
@@ -24,37 +23,6 @@ export const safeDecodeCallResult = (fnItem: AbiFunction, output: Hex) => {
   )
   if (error) return safeError(error)
   return safeResult(decodedCallResult ? stringify(decodedCallResult) : output)
-}
-
-export const safeDecodeCallRevert = (fnItem: Abi, output: Hex) => {
-  const [error, decodedError] = safeSyncTry(() =>
-    decodeErrorResult({ abi: fnItem, data: output }),
-  )
-  return error ? safeError(error) : safeResult(decodedError)
-}
-
-export const safeDecodeCallData = (abiItem: AbiFunction[], input: Hex) => {
-  const [error, data] = safeSyncTry(() =>
-    decodeFunctionData({
-      abi: abiItem,
-      data: input,
-    }),
-  )
-
-  if (error) return safeError(error)
-
-  const item = getAbiItem({
-    abi: abiItem,
-    name: data.functionName,
-  })
-  return safeResult({
-    ...data,
-    item,
-    args: (data.args ?? []).map((a, i) => {
-      if (!item.inputs[i].name) return ['', a]
-      return [item.inputs[i].name, a]
-    }),
-  })
 }
 
 export const safeDecodeEvent = (
@@ -71,4 +39,29 @@ export const safeDecodeEvent = (
     }),
   )
   return error ? safeError(error) : safeResult(decodedLog)
+}
+
+export const safeDecodeCallRevert = (fnItem: Abi, output: Hex) => {
+  const [error, decodedError] = safeSyncTry(() =>
+    decodeErrorResult({ abi: fnItem, data: output }),
+  )
+  return error ? safeError(error) : safeResult(decodedError)
+}
+
+export const safeDecodeCallData = (abiItem: AbiFunction[], input: Hex) => {
+  const [error, data] = safeSyncTry(() =>
+    decodeFunctionData({
+      abi: abiItem,
+      data: input,
+    }),
+  )
+  if (error) return safeError(error)
+  return safeResult({
+    ...data,
+    item: abiItem[0],
+    args: (data.args ?? []).map((a, i) => {
+      if (!abiItem[0].inputs[i].name) return ['', a]
+      return [abiItem[0].inputs[i].name, a]
+    }),
+  })
 }
