@@ -1,4 +1,6 @@
 export * from './formatCall'
+export * from './formatCallReturn'
+export * from './formatCallRevert'
 export * from './formatCreateCall'
 export * from './formatDelegateCall'
 export * from './formatLog'

@@ -6,14 +6,14 @@ import {
 } from '@evm-tt/utils'
 import type { TracerCache } from '../../cache/index'
 import {
-  decodePrecompile,
   dim,
+  formatCallRevert,
   formatCalls,
   formatLog,
   formatPrecompileCall,
   formatReturn,
-  formatRevert,
   retLabel,
+  safeDecodePrecompile,
 } from '../../format'
 import type { PrinterArgs, RpcCallTrace } from '../../types'
 import { prefixesFor } from '../utils'
@@ -58,15 +58,15 @@ export async function printCallTrace(root: RpcCallTrace, opts: PrinterArgs) {
   const formatTraceReturn = (node: RpcCallTrace, nextPrefix: string) => {
     if (isPrecompileSource(node.to)) {
       const returnLabel = `${nextPrefix}${retLabel('[Return]')}`
-      return decodePrecompile(node, returnLabel).outputText
+      return safeDecodePrecompile(node, returnLabel).outputText // merge into format return
     }
-    if (node?.error) return formatRevert(node, cache, nextPrefix)
+    if (node?.error) return formatCallRevert(node, cache, nextPrefix) // merge into format return
     const abiItem = cache.abiItemFromSelector2(node.input)
 
     if (!abiItem) {
       return `${nextPrefix}${retLabel('[Return]')} ${node.output ?? '('}`
     }
-    return formatReturn(node, abiItem, nextPrefix)
+    return formatReturn(node, cache, abiItem, nextPrefix)
   }
 
   const formatTraceCall = (node: RpcCallTrace) => {

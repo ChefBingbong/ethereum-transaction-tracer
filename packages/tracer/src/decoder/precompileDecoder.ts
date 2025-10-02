@@ -1,34 +1,11 @@
-import {
-  hexLenBytes,
-  PRECOMPILE_ADDRESS,
-  safeError,
-  safeResult,
-  trunc,
-  tryDecodePretty,
-} from '@evm-tt/utils'
+import { hexLenBytes, stringify, trunc, tryDecodePretty } from '@evm-tt/utils'
+import pc from 'picocolors'
 import type { RpcCallTrace } from '../types'
 
-export const safeDecodePrecompile = (node: RpcCallTrace) => {
-  switch (node.to) {
-    case PRECOMPILE_ADDRESS.Ecrecover: {
-      return safeResult(decodePrecompileEcRecover(node))
-    }
-    case PRECOMPILE_ADDRESS.Sha256: {
-      return safeResult(decodePrecompileSha256(node))
-    }
-    case PRECOMPILE_ADDRESS.Ripemd160: {
-      return safeResult(decodePrecompileRipemd160(node))
-    }
-    case PRECOMPILE_ADDRESS.Identity: {
-      return safeResult(decodePrecompileIdentity(node))
-    }
-    default: {
-      return safeError(new Error('Invalid precompile type'))
-    }
-  }
-}
-
-export const decodePrecompileEcRecover = (node: RpcCallTrace) => {
+export const decodePrecompileEcRecover = (
+  node: RpcCallTrace,
+  label: string,
+) => {
   const inputText =
     tryDecodePretty(
       ['bytes32 hash', 'uint256 v', 'uint256 r', 'uint256 s'],
@@ -40,33 +17,36 @@ export const decodePrecompileEcRecover = (node: RpcCallTrace) => {
     (node.output ? `signer: ${trunc(node.output)}` : undefined)
   return {
     name: 'ecrecover',
-    inputText: `recover signer for ${inputText}`,
-    outputText,
+    inputText: `${pc.bold('ecrecover')} ${stringify(`recover signer for ${inputText}`)}`,
+    outputText: `${label} ${stringify(outputText)}`,
   }
 }
 
-const decodePrecompileSha256 = (node: RpcCallTrace) => {
+export const decodePrecompileSha256 = (node: RpcCallTrace, label: string) => {
   const len = hexLenBytes(node.input)
   return {
     name: 'sha256',
-    inputText: `hash ${len} bytes (${trunc(node.input)})`,
-    outputText: node.output ? `hash: ${trunc(node.output)}` : undefined,
+    inputText: `${pc.bold('sha256')} ${stringify(`hash ${len} bytes (${trunc(node.input)})`)}`,
+    outputText: `${label} ${stringify(node.output ? `hash: ${trunc(node.output)}` : undefined)}`,
   }
 }
 
-const decodePrecompileRipemd160 = (node: RpcCallTrace) => {
+export const decodePrecompileRipemd160 = (
+  node: RpcCallTrace,
+  label: string,
+) => {
   const len = hexLenBytes(node.input)
   const out =
     tryDecodePretty(['bytes20 hash'], node.output) ??
     (node.output ? `hash: ${trunc(node.output)}` : undefined)
   return {
     name: 'ripemd160',
-    inputText: `hash ${len} bytes (${trunc(node.input)})`,
-    outputText: out,
+    inputText: `${pc.bold('ripemd160')} ${stringify(`hash ${len} bytes (${trunc(node.input)})`)}`,
+    outputText: `${label} ${stringify(out)}`,
   }
 }
 
-const decodePrecompileIdentity = (node: RpcCallTrace) => {
+export const decodePrecompileIdentity = (node: RpcCallTrace, label: string) => {
   const inLen = hexLenBytes(node.input)
   const outLen = hexLenBytes(node.output ?? '0x')
   const same =
@@ -74,9 +54,11 @@ const decodePrecompileIdentity = (node: RpcCallTrace) => {
     node.input.toLowerCase() === (node.output as string).toLowerCase()
   return {
     name: 'dataCopy',
-    inputText: `(${inLen} bytes: ${trunc(node.input)})`,
-    outputText: node.output
-      ? `output ${outLen} bytes: ${trunc(node.output)}${same ? ' (identical)' : ''}`
-      : '0x',
+    inputText: `${pc.bold('dataCopy')} ${stringify(`(${inLen} bytes: ${trunc(node.input)})`)}`,
+    outputText: `${label} ${stringify(
+      node.output
+        ? `output ${outLen} bytes: ${trunc(node.output)}${same ? ' (identical)' : ''}`
+        : '0x',
+    )}`,
   }
 }
