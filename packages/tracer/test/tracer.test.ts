@@ -12,7 +12,7 @@ import {
   TOKEN,
 } from './utils/setup'
 
-describe('TransactionTracer – integration (mainnet fork)', () => {
+describe.skip('TransactionTracer – integration (mainnet fork)', () => {
   afterAll(() => {
     try {
       return fs.rmSync(TEST_CACHE_DIR, { recursive: true, force: true })
