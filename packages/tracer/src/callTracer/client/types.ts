@@ -1,5 +1,6 @@
 import type { Progress, SafePromise } from '@evm-tt/utils'
 import type { PublicClient } from 'viem'
+import type { RpcCallTrace } from '../../types'
 
 export type Environment =
   | { kind: 'rpc' }
@@ -24,4 +25,15 @@ export interface ClientLease {
 
 export interface ClientProvider {
   lease(env: Environment): SafePromise<ClientLease>
+}
+
+export type TraceResponse = {
+  traceRaw: RpcCallTrace
+  traceFormatted: string | undefined
+}
+
+export type CustomClientArgs = {
+  env: Environment
+  client: PublicClient
+  traceCallback: (client: TraceClient) => SafePromise<TraceResponse>
 }

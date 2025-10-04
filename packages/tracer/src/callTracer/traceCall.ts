@@ -14,7 +14,7 @@ import {
   type TraceCallParameters,
   type TraceCallRpcSchema,
 } from '../types'
-import { withClient } from './client/clientProvider'
+import { traceWithCustomClient } from './client/clientProvider'
 import type { TraceClient } from './client/types'
 
 export const traceCall = async (
@@ -26,25 +26,29 @@ export const traceCall = async (
     cacheOptions.cachePath,
     cacheOptions,
   )
-  return withClient(run.env ?? { kind: 'rpc' }, client, async (client) => {
-    const [traceError, trace] = await callTraceRequest(
-      { stateOverride, run, cache: cacheOptions, ...args },
-      client,
-      cache,
-    )
-    if (traceError) return safeError(traceError)
+  return traceWithCustomClient({
+    env: run.env ?? { kind: 'rpc' },
+    client,
+    traceCallback: async (client) => {
+      const [traceError, trace] = await callTraceRequest(
+        { stateOverride, run, cache: cacheOptions, ...args },
+        client,
+        cache,
+      )
+      if (traceError) return safeError(traceError)
 
-    const [formatError, lines] = await printCallTrace(trace, {
-      cache,
-      verbosity: LogVerbosity.Highest,
-      logStream: !!run.streamLogs,
-      showReturnData: true,
-      showLogs: true,
-      gasProfiler: false,
-    })
+      const [formatError, lines] = await printCallTrace(trace, {
+        cache,
+        verbosity: LogVerbosity.Highest,
+        logStream: !!run.streamLogs,
+        showReturnData: true,
+        showLogs: true,
+        gasProfiler: false,
+      })
 
-    const out = { traceRaw: trace, traceFormatted: lines }
-    return formatError ? safeError(formatError) : safeResult(out)
+      const out = { traceRaw: trace, traceFormatted: lines }
+      return formatError ? safeError(formatError) : safeResult(out)
+    },
   })
 }
 
