@@ -31,13 +31,15 @@ createTask('traceTx')
     const client = makeTracer(parsedArgs.data)
     const [traceError] = await client.traceTransactionHash({
       txHash: parsedArgs.data.hash,
-      cache: {
-        cachePath: getConfigDir(),
-        etherscanApiKey: parsedArgs.data.etherscanKey,
-      },
-      run: {
-        showProgressBar: true,
-        streamLogs: true,
+      tracerOps: {
+        cache: {
+          cachePath: getConfigDir(),
+          etherscanApiKey: parsedArgs.data.etherscanKey,
+        },
+        run: {
+          showProgressBar: true,
+          streamLogs: true,
+        },
       },
     })
 

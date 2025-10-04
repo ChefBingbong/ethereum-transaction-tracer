@@ -12,7 +12,7 @@ import {
   TOKEN,
 } from './utils/setup'
 
-describe.skip('TransactionTracer – integration (mainnet fork)', () => {
+describe('TransactionTracer – integration (mainnet fork)', () => {
   afterAll(() => {
     try {
       return fs.rmSync(TEST_CACHE_DIR, { recursive: true, force: true })
@@ -22,14 +22,16 @@ describe.skip('TransactionTracer – integration (mainnet fork)', () => {
   it('formats a real mainnet transaction trace', async () => {
     const [error, res] = await defaultTestClient.traceTransactionHash({
       txHash: SAMPLE_TX_HASH,
-      cache: {
-        cachePath: TEST_CACHE_DIR,
-        etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
-      },
-      run: {
-        env: { kind: 'rpc' },
-        showProgressBar: false,
-        streamLogs: false,
+      tracerOps: {
+        cache: {
+          cachePath: TEST_CACHE_DIR,
+          etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
+        },
+        run: {
+          env: { kind: 'rpc' },
+          showProgressBar: false,
+          streamLogs: false,
+        },
       },
     })
 
@@ -43,14 +45,16 @@ describe.skip('TransactionTracer – integration (mainnet fork)', () => {
   it('should throw invalid rpc provider error nesecary for trace tx', async () => {
     const [error, res] = await publicTestClient.traceTransactionHash({
       txHash: SAMPLE_TX_HASH,
-      cache: {
-        cachePath: TEST_CACHE_DIR,
-        etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
-      },
-      run: {
-        env: { kind: 'rpc' },
-        showProgressBar: false,
-        streamLogs: false,
+      tracerOps: {
+        cache: {
+          cachePath: TEST_CACHE_DIR,
+          etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
+        },
+        run: {
+          env: { kind: 'rpc' },
+          showProgressBar: false,
+          streamLogs: false,
+        },
       },
     })
 
@@ -72,14 +76,16 @@ describe.skip('TransactionTracer – integration (mainnet fork)', () => {
         TOKEN,
         TO,
       ),
-      cache: {
-        cachePath: TEST_CACHE_DIR,
-        etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
-      },
-      run: {
-        env: { kind: 'fork', blockNumber: 23212888 },
-        showProgressBar: false,
-        streamLogs: false,
+      tracerOps: {
+        cache: {
+          cachePath: TEST_CACHE_DIR,
+          etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
+        },
+        run: {
+          env: { kind: 'fork', blockNumber: 23212888 },
+          showProgressBar: false,
+          streamLogs: false,
+        },
       },
     })
 
@@ -102,14 +108,16 @@ describe.skip('TransactionTracer – integration (mainnet fork)', () => {
         TOKEN,
         TO,
       ),
-      cache: {
-        cachePath: TEST_CACHE_DIR,
-        etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
-      },
-      run: {
-        env: { kind: 'rpc' },
-        showProgressBar: false,
-        streamLogs: false,
+      tracerOps: {
+        cache: {
+          cachePath: TEST_CACHE_DIR,
+          etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
+        },
+        run: {
+          env: { kind: 'rpc' },
+          showProgressBar: false,
+          streamLogs: false,
+        },
       },
     })
 

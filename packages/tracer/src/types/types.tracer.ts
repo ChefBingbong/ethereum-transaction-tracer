@@ -103,12 +103,7 @@ export type TraceTxRpcSchema = {
 }
 
 export type TraceCallParameters = PrepareTransactionRequestParameters & {
-  run: {
-    env?: Environment
-    showProgressBar?: boolean
-    streamLogs?: boolean
-  }
-  cache: CacheOptions & { cachePath: string }
+  tracerOps: TracerOps
   account?: Account | Address | undefined
   stateOverride?: StateOverrides
 } & (
@@ -116,14 +111,18 @@ export type TraceCallParameters = PrepareTransactionRequestParameters & {
     | { blockNumber?: undefined; blockTag?: BlockTag | undefined }
   )
 
-export type TraceTxParameters = {
-  txHash: Hex
+export type TracerOps = {
   run: {
     env?: Environment
     showProgressBar?: boolean
     streamLogs?: boolean
   }
   cache: CacheOptions & { cachePath: string }
+}
+
+export type TraceTxParameters = {
+  txHash: Hex
+  tracerOps: TracerOps
 }
 
 export type TraceResult = {
