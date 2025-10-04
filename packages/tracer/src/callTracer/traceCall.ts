@@ -18,7 +18,11 @@ import { traceWithCustomClient } from './client/clientProvider'
 import type { TraceClient } from './client/types'
 
 export const traceCall = async (
-  { stateOverride, run, cache: cacheOptions, ...args }: TraceCallParameters,
+  {
+    stateOverride,
+    tracerOps: { run, cache: cacheOptions },
+    ...args
+  }: TraceCallParameters,
   client: PublicClient,
 ) => {
   const cache = new TracerCache(
@@ -31,7 +35,7 @@ export const traceCall = async (
     client,
     traceCallback: async (client) => {
       const [traceError, trace] = await callTraceRequest(
-        { stateOverride, run, cache: cacheOptions, ...args },
+        { stateOverride, tracerOps: { run, cache: cacheOptions }, ...args },
         client,
         cache,
       )

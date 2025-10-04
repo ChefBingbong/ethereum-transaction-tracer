@@ -61,14 +61,16 @@ createTask('traceRequest')
               tracerArgs.to,
             )
           : undefined,
-      cache: {
-        cachePath: getConfigDir(),
-        // etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
-      },
-      run: {
-        // env: { kind: 'fork', blockNumber: 23212888 },
-        showProgressBar: false,
-        streamLogs: false,
+      tracerOps: {
+        cache: {
+          cachePath: getConfigDir(),
+          // etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
+        },
+        run: {
+          // env: { kind: 'fork', blockNumber: 23212888 },
+          showProgressBar: false,
+          streamLogs: false,
+        },
       },
     })
 

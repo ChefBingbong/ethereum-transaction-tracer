@@ -13,7 +13,7 @@ import { traceWithCustomClient } from './client/clientProvider'
 import type { TraceClient } from './client/types'
 
 export const traceTransactionHash = async (
-  { run, cache: cacheOptions, txHash }: TraceTxParameters,
+  { txHash, tracerOps: { run, cache: cacheOptions } }: TraceTxParameters,
   client: PublicClient,
 ) => {
   const cache = new TracerCache(
@@ -26,7 +26,7 @@ export const traceTransactionHash = async (
     client,
     traceCallback: async (client) => {
       const [traceError, trace] = await callTraceTxHash(
-        { txHash, run, cache: cacheOptions },
+        { txHash, tracerOps: { run, cache: cacheOptions } },
         client,
         cache,
       )
