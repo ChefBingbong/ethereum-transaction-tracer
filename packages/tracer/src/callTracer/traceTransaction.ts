@@ -9,7 +9,7 @@ import {
   type TraceTxParameters,
   type TraceTxRpcSchema,
 } from '../types'
-import { withClient } from './client/clientProvider'
+import { traceWithCustomClient } from './client/clientProvider'
 import type { TraceClient } from './client/types'
 
 export const traceTransactionHash = async (
@@ -21,25 +21,29 @@ export const traceTransactionHash = async (
     cacheOptions.cachePath,
     cacheOptions,
   )
-  return withClient({ kind: 'rpc' }, client, async (client) => {
-    const [traceError, trace] = await callTraceTxHash(
-      { txHash, run, cache: cacheOptions },
-      client,
-      cache,
-    )
-    if (traceError) return safeError(traceError)
+  return traceWithCustomClient({
+    env: { kind: 'rpc' },
+    client,
+    traceCallback: async (client) => {
+      const [traceError, trace] = await callTraceTxHash(
+        { txHash, run, cache: cacheOptions },
+        client,
+        cache,
+      )
+      if (traceError) return safeError(traceError)
 
-    const [formatError, lines] = await printCallTrace(trace, {
-      cache,
-      verbosity: LogVerbosity.Highest,
-      logStream: !!run.streamLogs,
-      showReturnData: true,
-      showLogs: true,
-      gasProfiler: false,
-    })
+      const [formatError, lines] = await printCallTrace(trace, {
+        cache,
+        verbosity: LogVerbosity.Highest,
+        logStream: !!run.streamLogs,
+        showReturnData: true,
+        showLogs: true,
+        gasProfiler: false,
+      })
 
-    const out = { traceRaw: trace, traceFormatted: lines }
-    return formatError ? safeError(formatError) : safeResult(out)
+      const out = { traceRaw: trace, traceFormatted: lines }
+      return formatError ? safeError(formatError) : safeResult(out)
+    },
   })
 }
 

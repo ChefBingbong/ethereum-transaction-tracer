@@ -5,12 +5,13 @@ import {
   safeTimeoutPromise,
 } from '@evm-tt/utils'
 import { createAnvil } from '@viem/anvil'
-import { createTestClient, http, type PublicClient, publicActions } from 'viem'
+import { type PublicClient, createTestClient, http, publicActions } from 'viem'
 import type {
   ClientLease,
   ClientProvider,
+  CustomClientArgs,
   Environment,
-  TraceClient,
+  TraceResponse,
 } from './types'
 
 export class DefaultClientProvider implements ClientProvider {
@@ -49,11 +50,11 @@ export class DefaultClientProvider implements ClientProvider {
   }
 }
 
-export async function withClient<T>(
-  env: Environment,
-  client: PublicClient,
-  traceCallback: (client: TraceClient) => SafePromise<T>,
-): SafePromise<T> {
+export async function traceWithCustomClient({
+  env,
+  client,
+  traceCallback,
+}: CustomClientArgs): SafePromise<TraceResponse> {
   const provider = new DefaultClientProvider(client)
   const [error, lease] = await provider.lease(env)
   if (error) return safeError(error)
