@@ -6,15 +6,11 @@ import {
   type PublicClient,
 } from 'viem'
 import { extract, getTransactionError, parseAccount } from 'viem/utils'
-import {
-  type AbiCache,
-  createAbiCache,
-  getAllUnknownSignatures,
-  getUnknownAbisFromCall,
-} from '../cache'
+import { createAbiCache } from '../cache'
 import { coerceUnsupportedTraceError } from '../errors'
 import { printCallTrace } from '../print'
 import {
+  type AbiCache,
   LogVerbosity,
   type TraceCallParameters,
   type TraceCallRpcSchema,
@@ -180,12 +176,6 @@ const callTraceRequest = async (
     )
   }
 
-  const calls = getUnknownAbisFromCall(cache.cache, trace)
-  const [fetchSigError] = await safeTry(() =>
-    getAllUnknownSignatures(cache.cache, trace),
-  )
-  if (fetchSigError) return safeError(fetchSigError)
-
-  const [fetchError] = await safeTry(() => cache.prefetchUnknownAbis(calls))
+  const [fetchError] = await safeTry(() => cache.prefetchAllAbisFromCall(trace))
   return fetchError ? safeError(fetchError) : safeResult(trace)
 }

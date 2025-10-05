@@ -1,7 +1,7 @@
 import { truncate } from '@evm-tt/utils'
-import type { CacheObj } from '../../cache'
+import { abiEventFromTopic } from '../../cache'
 import { safeDecodeEvent } from '../../decoder'
-import type { RpcLogTrace } from '../../types'
+import type { CacheObj, RpcLogTrace } from '../../types'
 import { argVal, emit, eventArgVal, getLogOriginLabel, white } from '../theme'
 
 export function formatLog(
@@ -12,7 +12,8 @@ export function formatLog(
 ): string {
   const logPrefix = `${nextPrefix + (lastLog ? '└─ ' : '├─ ')}${emit('emit')}`
   const logMethodBadge = getLogOriginLabel(log.address)
-  const eventAbi = cache.eventsDir.get(log.topics[0])
+  const eventAbi = abiEventFromTopic(cache, log.topics[0])
+
   const [error, dec] = safeDecodeEvent(eventAbi, log.topics, log.address)
 
   if (error) {

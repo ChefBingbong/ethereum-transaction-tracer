@@ -7,9 +7,8 @@ import type {
   PrepareTransactionRequestParameters,
   RpcTransactionRequest,
 } from 'viem'
-import type { AbiCache } from '../cache'
 import type { Environment } from '../callTracer/client/types'
-import type { CacheOptions } from './types.cache'
+import type { AbiCache, CacheOptions } from './types.cache'
 
 export type TraaceOptions = {
   cachePath: string

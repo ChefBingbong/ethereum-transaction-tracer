@@ -1,11 +1,10 @@
 import {
-  normalizeHex,
   reliableFetchJson,
   safeError,
   safeErrorStr,
   safeResult,
 } from '@evm-tt/utils'
-import type { Abi, Address, Hex } from 'viem'
+import type { Abi, Address } from 'viem'
 import { ETHERSCAN_BASE_URL, OPENCHAIN_BASE_URL } from '../constants'
 import { etherscanAbiSchema, openChainAbiSchema } from './schemas'
 
@@ -43,25 +42,19 @@ export async function getAbiFromEtherscan(
 }
 
 export async function getAbiFunctionFromOpenChain(
-  signature: Hex,
-  isFunc = true,
+  fnSelectors: string | undefined,
+  evSelectors: string | undefined,
 ) {
+  const searchParams = new URLSearchParams({ filter: 'false' })
+
+  if (fnSelectors) searchParams.append('function', fnSelectors)
+  if (evSelectors) searchParams.append('event', evSelectors)
+
   const [error, response] = await reliableFetchJson(
     openChainAbiSchema,
     new Request(
-      `${OPENCHAIN_BASE_URL}/signature-database/v1/lookup?${new URLSearchParams(
-        {
-          function: normalizeHex(signature.slice(0, 10)),
-        },
-      )}`,
+      `${OPENCHAIN_BASE_URL}/signature-database/v1/lookup?${searchParams.toString()}`,
     ),
   )
-  if (error) return safeError(new Error(error.message))
-
-  const entry = Object.values(response.result.function)[0]
-  if (!entry?.[0].name) {
-    return safeError(new Error('[OpenChain]: invalid response'))
-  }
-  if (isFunc) return safeResult(`function ${entry[0].name}`)
-  return safeResult(`${entry[0].name}`)
+  return error ? safeError(new Error(error.message)) : safeResult(response)
 }

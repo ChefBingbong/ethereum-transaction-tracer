@@ -1,9 +1,9 @@
 import { hexToBig, SUMMARY_DEPTH } from '@evm-tt/utils'
 import pc from 'picocolors'
 import type { AbiFunction } from 'viem'
-import { type CacheObj, formatAbiItemSignature } from '../../cache'
+import { formatAbiItemSignature } from '../../cache'
 import { safeDecodeCallData } from '../../decoder'
-import type { RpcCallTrace } from '../../types'
+import type { CacheObj, RpcCallTrace } from '../../types'
 import {
   dim,
   getCallOriginLabel,

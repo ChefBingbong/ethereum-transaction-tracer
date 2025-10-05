@@ -1,15 +1,11 @@
 import { safeError, safeResult, safeTry } from '@evm-tt/utils'
 import type { BaseError, PublicClient } from 'viem'
 import { getTransactionError } from 'viem/utils'
-import {
-  type AbiCache,
-  createAbiCache,
-  getAllUnknownSignatures,
-  getUnknownAbisFromCall,
-} from '../cache'
+import { createAbiCache } from '../cache'
 import { coerceUnsupportedTraceError } from '../errors'
 import { printCallTrace } from '../print'
 import {
+  type AbiCache,
   LogVerbosity,
   type TraceTxParameters,
   type TraceTxRpcSchema,
@@ -93,8 +89,6 @@ const callTraceTxHash = async (
     )
   }
 
-  const calls = getUnknownAbisFromCall(cache.cache, trace)
-  await getAllUnknownSignatures(cache.cache, trace)
-  const [fetchError] = await safeTry(() => cache.prefetchUnknownAbis(calls))
+  const [fetchError] = await safeTry(() => cache.prefetchAllAbisFromCall(trace))
   return fetchError ? safeError(fetchError) : safeResult(trace)
 }

@@ -5,37 +5,24 @@ import {
   type Abi,
   type AbiEvent,
   type AbiFunction,
-  type Address,
   getAddress,
-  type Hex,
-  keccak256,
-  stringToHex,
-  toBytes,
+  toEventSelector,
   toFunctionSelector,
 } from 'viem'
-import { ETHERSCAN_RATE_LIMIT } from '../constants'
-import type { AbiError, AbiInfo, CacheJson, CacheOptions } from '../types'
-import { getAbiFromEtherscan } from './abiSources'
-import { formatAbiItemSignature } from './cacheHelpers'
-
-export type CacheObj = {
-  contractNames: AddressMap<string>
-  fourByteDir: AddressMap<AbiFunction>
-  errorDir: AddressMap<AbiError>
-  eventsDir: AddressMap<AbiEvent>
-  signatureDir: AddressMap<string>
-  signatureEvDir: AddressMap<string>
-  extraAbis: Abi[]
-}
-
-export interface AbiCache {
-  save: () => void
-  cache: CacheObj
-  prefetchUnknownAbis: (addresses: Address[]) => Promise<void>
-}
-
-const sleep = async (ms: number) =>
-  await new Promise((resolve) => setTimeout(resolve, ms))
+import type {
+  AbiCache,
+  AbiError,
+  AbiInfo,
+  CacheJson,
+  CacheObj,
+  CacheOptions,
+  RpcCallTrace,
+} from '../types'
+import {
+  prefetchAbisFromEtherscan,
+  prefetchAbisFromOpenChain,
+  toErrorSelector,
+} from './cacheHelpers'
 
 export function createAbiCache(
   chainId: number,
@@ -153,41 +140,16 @@ export function createAbiCache(
     }
   }
 
-  const prefetchUnknownAbis = async (addresses: Address[]) => {
-    if (!input?.etherscanApiKey) return
-
-    for (let i = 0; i < addresses.length; i += ETHERSCAN_RATE_LIMIT) {
-      const results = await Promise.all(
-        addresses.slice(i, i + ETHERSCAN_RATE_LIMIT).map(async (a) => {
-          const [error, result] = await getAbiFromEtherscan(
-            a,
-            chainId,
-            input?.etherscanApiKey,
-          )
-
-          return error ? undefined : result
-        }),
+  const prefetchAllAbisFromCall = async (root: RpcCallTrace) => {
+    if (input?.etherscanApiKey) {
+      await prefetchAbisFromEtherscan(
+        cache,
+        root,
+        chainId,
+        input.etherscanApiKey,
       )
-      for (const abi of results) {
-        if (abi) indexAbiWithInfo(abi)
-      }
-
-      if (i + ETHERSCAN_RATE_LIMIT < addresses.length) {
-        await sleep(1000)
-      }
     }
+    await prefetchAbisFromOpenChain(cache, root)
   }
-
-  function toEventSelector(ev: AbiEvent): Hex {
-    const sig = formatAbiItemSignature(ev)
-    return keccak256(toBytes(sig))
-  }
-
-  function toErrorSelector(err: AbiError): Hex {
-    const sig = formatAbiItemSignature(err)
-    const hash = keccak256(stringToHex(sig))
-    return hash.slice(0, 10) as Hex
-  }
-
-  return { save, cache, prefetchUnknownAbis }
+  return { save, cache, prefetchAllAbisFromCall }
 }

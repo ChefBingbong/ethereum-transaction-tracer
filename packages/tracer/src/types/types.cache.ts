@@ -1,3 +1,4 @@
+import type { AddressMap, RpcCallTrace } from '@evm-tt/utils'
 import type {
   Abi,
   AbiEvent,
@@ -83,3 +84,19 @@ export type AbiError = {
 }
 
 export type AbiInfo = { name: string; abi: Abi; address: Address }
+
+export type CacheObj = {
+  contractNames: AddressMap<string>
+  fourByteDir: AddressMap<AbiFunction>
+  errorDir: AddressMap<AbiError>
+  eventsDir: AddressMap<AbiEvent>
+  signatureDir: AddressMap<string>
+  signatureEvDir: AddressMap<string>
+  extraAbis: Abi[]
+}
+
+export interface AbiCache {
+  save: () => void
+  cache: CacheObj
+  prefetchAllAbisFromCall: (root: RpcCallTrace) => Promise<void>
+}
