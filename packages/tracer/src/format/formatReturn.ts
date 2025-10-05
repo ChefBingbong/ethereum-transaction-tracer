@@ -1,15 +1,14 @@
-import type { AbiFunction } from 'viem'
-import type { TracerCache } from '../cache'
+import { abiItemFromSelector2, type CacheObj } from '../cache'
 import type { RpcCallTrace } from '../types'
 import { formatCallReturn, formatCallRevert } from './call'
 
 export const formatReturn = (
   node: RpcCallTrace,
-  cache: TracerCache,
-  abi: AbiFunction[],
+  cache: CacheObj,
   prefix: string,
 ) => {
   const hasError = !!node?.error
+  const abi = abiItemFromSelector2(cache, node.input)
   switch (hasError) {
     case true:
       return formatCallRevert(node, cache, prefix)

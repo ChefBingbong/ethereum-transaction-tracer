@@ -1,14 +1,6 @@
 import { hexToBig, hexToBigint } from '@evm-tt/utils'
 import pc from 'picocolors'
-import {
-  type Address,
-  formatEther,
-  formatGwei,
-  type Hex,
-  isAddressEqual,
-  zeroAddress,
-} from 'viem'
-import type { TracerCache } from '../cache'
+import { type Address, formatEther, formatGwei } from 'viem'
 import { LogVerbosity, type RpcCallTrace, type RpcCallType } from '../types'
 
 export const addr = pc.blue
@@ -70,43 +62,21 @@ export const getStyledCallLabel = (node: RpcCallTrace, fnName: string) =>
 
 export const getDefaultContractCallLabel = () => dim('()')
 
-export function addrLabelStyled(
-  address: Address | undefined,
-  cache: TracerCache,
-  color?: (s: string) => string,
-) {
-  const paint = color ?? addr
-  if (!address) return paint('<unknown>')
-
-  const name = cache.contractNames.get(address)
-  const defaultLabel = name ? `${name}${dark('()')}` : address.toLowerCase()
-  return paint(
-    isAddressEqual(address, zeroAddress)
-      ? 'Precompile.DataCopy'
-      : pc.bold(defaultLabel),
-  )
-}
-
 export const getDefaultTextColour = (error: boolean) =>
   error ? errorColour : textColour
 
-export function getCallOriginLabel(node: RpcCallTrace, cache: TracerCache) {
+export function getCallOriginLabel(node: RpcCallTrace, name?: string) {
   const theme = getDefaultTextColour(!!node?.error)
   if (!node?.to) return theme('<unknown>')
 
-  const name = cache.contractNames.get(node.to)
   const contractOriginLabel = name ? `${name}${'()'}` : node.to
   return theme(bold(contractOriginLabel))
 }
 
-export function getLogOriginLabel(
-  address: Address | undefined,
-  cache: TracerCache,
-) {
+export function getLogOriginLabel(address: Address | undefined, name?: string) {
   const theme = getDefaultTextColour(false)
   if (!address) return theme('<unknown>')
 
-  const name = cache.contractNames.get(address)
   const contractOriginLabel = name ? `${name}${'()'}` : address
   return theme(bold(contractOriginLabel))
 }
@@ -116,14 +86,6 @@ export const getCreateMethodLabel = (error: boolean) =>
 
 export const getSelfDestructMethodLabel = (error: boolean) =>
   error ? bold(errorColour('selfdestruct')) : bold(textColour('selfdestruct'))
-
-export function nameFromSelector(input: Hex | undefined, cache: TracerCache) {
-  if (!input || input.length < 10) return undefined
-  const fn = cache.abiItemFromSelector(input)
-  if (!fn || typeof fn === 'string') return undefined
-  const sig = `${fn.name}(${(fn.inputs ?? []).map((i) => i.type).join(',')})`
-  return sig
-}
 
 export const getSharedBadges = (
   node: RpcCallTrace,

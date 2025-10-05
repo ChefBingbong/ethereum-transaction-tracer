@@ -1,13 +1,10 @@
-import { getUnlimitedBalanceAndApprovalStateOverrides } from '@evm-tt/tracer'
 import { logger } from '@evm-tt/utils'
 import {
-  getConfigDir,
   loadEnv,
   resolveAndParseCliParams,
   traceRequestArgs,
 } from '../configCli'
 import createTask from '../program'
-import { makeTracer } from '../utils/tracer'
 
 createTask('traceRequest')
   .description(
@@ -36,47 +33,45 @@ createTask('traceRequest')
       logger.error(`${parsedArgs.error.issues[0].message}`)
       process.exit(1)
     }
-    const tracerArgs = parsedArgs.data
-    const client = makeTracer(parsedArgs.data)
+    // const tracerArgs = parsedArgs.data
+    // const client = makeTracer(parsedArgs.data)
 
-    const { maxFeePerGas, maxPriorityFeePerGas } =
-      await client.estimateFeesPerGas()
-    const { baseFeePerGas } = await client.getBlock()
+    // const { maxFeePerGas, maxPriorityFeePerGas } =
+    //   await client.estimateFeesPerGas()
+    // const { baseFeePerGas } = await client.getBlock()
 
-    const [traceError] = await client.traceCall({
-      account: tracerArgs.from,
-      to: tracerArgs.to,
-      data: tracerArgs.data,
-      value: BigInt(tracerArgs.value),
-      chain: client.chain,
-      // showProgressBar: true,
-      maxFeePerGas,
-      maxPriorityFeePerGas,
-      gas: baseFeePerGas ?? undefined,
-      stateOverride:
-        tracerArgs.from && tracerArgs.token
-          ? getUnlimitedBalanceAndApprovalStateOverrides(
-              tracerArgs.from,
-              tracerArgs.token,
-              tracerArgs.to,
-            )
-          : undefined,
-      tracerOps: {
-        cache: {
-          cachePath: getConfigDir(),
-          // etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
-        },
-        run: {
-          // env: { kind: 'fork', blockNumber: 23212888 },
-          showProgressBar: false,
-          streamLogs: false,
-        },
-      },
-    })
+    // const [traceError] = await client.traceCall({
+    //   account: tracerArgs.from,
+    //   to: tracerArgs.to,
+    //   data: tracerArgs.data,
+    //   value: BigInt(tracerArgs.value),
+    //   chain: client.chain,
+    //   // showProgressBar: true,
+    //   maxFeePerGas,
+    //   maxPriorityFeePerGas,
+    //   gas: baseFeePerGas ?? undefined,
+    //   stateOverride:
+    //     tracerArgs.from && tracerArgs.token
+    //       ? getUnlimitedBalanceAndApprovalStateOverrides(
+    //           tracerArgs.from,
+    //           tracerArgs.token,
+    //           tracerArgs.to,
+    //         )
+    //       : undefined,
+    //   cache: {
+    //     cachePath: getConfigDir(),
+    //     // etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
+    //   },
+    //   run: {
+    //     // env: { kind: 'fork', blockNumber: 23212888 },
+    //     showProgressBar: false,
+    //     streamLogs: false,
+    //   },
+    // })
 
-    if (traceError) {
-      logger.error(`Failed when tracing tx ${traceError.message}`)
-      process.exit(1)
-    }
+    // if (traceError) {
+    //   logger.error(`Failed when tracing tx ${traceError.message}`)
+    //   process.exit(1)
+    // }
     process.exit(1)
   })

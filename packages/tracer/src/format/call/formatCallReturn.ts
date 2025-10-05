@@ -14,10 +14,12 @@ import { retData, retLabel, white } from '../theme'
 
 export function formatCallReturn(
   node: RpcCallTrace,
-  abiItem: AbiFunction[],
+  abiItem: AbiFunction[] | undefined,
   nextPrefix: string,
 ) {
   const returnLabel = `${nextPrefix}${retLabel('[Return]')}`
+  if (!abiItem) return `${returnLabel} ${node.output ?? '()'}`
+
   const [callError, decodedCall] = safeDecodeCallData(abiItem, node.input)
   if (callError)
     return `${returnLabel} ${node.output ? truncate(node.output) : white('()')}`

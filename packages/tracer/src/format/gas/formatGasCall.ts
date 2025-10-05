@@ -1,7 +1,7 @@
 import { hexToBig, SUMMARY_DEPTH } from '@evm-tt/utils'
 import pc from 'picocolors'
 import type { AbiFunction } from 'viem'
-import type { TracerCache } from '../../cache'
+import { type CacheObj, formatAbiItemSignature } from '../../cache'
 import { safeDecodeCallData } from '../../decoder'
 import type { RpcCallTrace } from '../../types'
 import {
@@ -14,12 +14,13 @@ import {
 
 export function formatGasCall(
   node: RpcCallTrace,
-  cache: TracerCache,
+  cache: CacheObj,
   abiItem: AbiFunction[],
   depth: number,
 ): string {
-  const left = getCallOriginLabel(node, cache)
-  const rightLabel = formatGasCallInner(node, cache, abiItem)
+  const name = cache.contractNames.get(node?.to)
+  const left = getCallOriginLabel(node, name)
+  const rightLabel = formatGasCallInner(node, abiItem)
   const label = depth === 1 ? `${left}\n• ${rightLabel}` : `• ${rightLabel}`
 
   if (
@@ -45,12 +46,7 @@ export function formatGasCall(
   }`
 }
 
-export function formatGasCallInner(
-  node: RpcCallTrace,
-  cache: TracerCache,
-
-  abiItem: AbiFunction[],
-): string {
+export function formatGasCallInner(node: RpcCallTrace, abiItem: AbiFunction[]) {
   const [err, dec] = safeDecodeCallData(abiItem, node.input)
   if (err) return node.input && node.input !== '0x' ? dim('') : dim('()')
 
@@ -61,7 +57,7 @@ export function formatGasCallInner(
     return `${styled}()`
   }
 
-  const selectorSig = cache.formatAbiItemSignature(dec.item)
+  const selectorSig = formatAbiItemSignature(dec.item)
   if (selectorSig) return getStyledCallLabel(node, selectorSig)
   return node?.input !== '0x' ? dim('') : dim('()')
 }

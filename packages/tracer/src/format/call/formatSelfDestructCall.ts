@@ -1,5 +1,4 @@
-import type { TracerCache } from '../../cache'
-import { LogVerbosity, type RpcCallTrace } from '../../types'
+import { LogVerbosity, type RpcCallTrace } from '../..//types'
 import {
   getCallOriginLabel,
   getCallTypeLabel,
@@ -10,9 +9,9 @@ import {
 
 export const formatSelfDestructCall = (
   node: RpcCallTrace,
-  cache: TracerCache,
+  contractName?: string,
 ) => {
-  const createdLabel = getCallOriginLabel(node, cache)
+  const createdLabel = getCallOriginLabel(node, contractName)
   const callTypeLabel = getCallTypeLabel(node.type)
   const valueBadge = getValueBadge(node, LogVerbosity.Highest)
   const gasBadge = getGasBadge(node, LogVerbosity.Highest)

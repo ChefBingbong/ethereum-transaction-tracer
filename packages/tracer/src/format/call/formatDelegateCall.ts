@@ -1,5 +1,4 @@
 import type { AbiFunction } from 'viem'
-import type { TracerCache } from '../../cache'
 import { LogVerbosity, type RpcCallTrace } from '../../types'
 import {
   getCallOriginLabel,
@@ -11,11 +10,11 @@ import { formatContractCall } from './formatCall'
 
 export const formatDelegateCall = (
   node: RpcCallTrace,
-  cache: TracerCache,
-  abiItem: AbiFunction[],
+  abiItem: AbiFunction[] | undefined,
+  contractName?: string,
 ) => {
-  const fromLabel = getCallOriginLabel(node, cache)
-  const toLabel = getCallOriginLabel(node, cache)
+  const fromLabel = getCallOriginLabel(node, contractName)
+  const toLabel = getCallOriginLabel(node, contractName)
   const callTypeLabel = getCallTypeLabel(node.type)
   const valueBadge = getValueBadge(node, LogVerbosity.Highest)
   const gasBadge = getGasBadge(node, LogVerbosity.Highest)

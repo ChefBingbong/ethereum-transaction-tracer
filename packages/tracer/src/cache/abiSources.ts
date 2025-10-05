@@ -4,11 +4,9 @@ import {
   safeError,
   safeErrorStr,
   safeResult,
-  safeSyncTry,
 } from '@evm-tt/utils'
-import { type Abi, type Address, type Hex, parseAbiItem } from 'viem'
+import type { Abi, Address, Hex } from 'viem'
 import { ETHERSCAN_BASE_URL, OPENCHAIN_BASE_URL } from '../constants'
-import type { TracerCache } from './abiCache'
 import { etherscanAbiSchema, openChainAbiSchema } from './schemas'
 
 export async function getAbiFromEtherscan(
@@ -66,20 +64,4 @@ export async function getAbiFunctionFromOpenChain(
   }
   if (isFunc) return safeResult(`function ${entry[0].name}`)
   return safeResult(`${entry[0].name}`)
-}
-
-export async function getAbiItemFromDelector(
-  selector: Hex,
-  cache: TracerCache,
-) {
-  const cached = cache.abiItemFromSelector(selector)
-  if (cached) return safeResult([cached] as Abi)
-
-  const [errg, signature] = await getAbiFunctionFromOpenChain(selector)
-  if (errg) return safeError(errg)
-
-  const [errp, item] = safeSyncTry(() => parseAbiItem(signature))
-  if (errp) return safeError(errp)
-
-  return safeResult([item] as Abi)
 }
