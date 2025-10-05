@@ -1,5 +1,5 @@
-import { abiItemFromSelector2, type CacheObj } from '../cache'
-import type { RpcCallTrace } from '../types'
+import { abiItemFromSelector2 } from '../cache'
+import type { CacheObj, RpcCallTrace } from '../types'
 import { formatCallReturn, formatCallRevert } from './call'
 
 export const formatReturn = (

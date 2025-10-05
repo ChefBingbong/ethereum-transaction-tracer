@@ -1,11 +1,11 @@
 import { PRECOMPILE_ADDRESS } from '@evm-tt/utils'
-import type { CacheObj } from '../cache'
 import {
   decodePrecompileEcRecover,
   decodePrecompileIdentity,
   decodePrecompileRipemd160,
   decodePrecompileSha256,
 } from '../decoder'
+import type { CacheObj } from '../types'
 import { LogVerbosity, type RpcCallTrace } from '../types'
 import {
   getCallOriginLabel,

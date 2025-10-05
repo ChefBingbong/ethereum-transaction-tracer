@@ -1,22 +1,37 @@
-import { reliableFetchJson, safeError } from '@evm-tt/utils'
+import { safeError } from '@evm-tt/utils'
 import {
+  type Abi,
   type AbiEvent,
   type AbiFunction,
   type Address,
   type Hex,
+  keccak256,
   parseAbi,
+  parseAbiItem,
   slice,
+  stringToHex,
+  toEventSelector,
+  toFunctionSelector,
 } from 'viem'
-import { OPENCHAIN_BASE_URL } from '../constants'
-import type { AbiError, RpcCallTrace } from '../types'
-import type { CacheObj } from './abiCache'
-import { openChainAbiSchema } from './schemas'
+import { ETHERSCAN_RATE_LIMIT } from '../constants'
+import type { AbiError, AbiInfo, CacheObj, RpcCallTrace } from '../types'
+import { getAbiFromEtherscan, getAbiFunctionFromOpenChain } from './abiSources'
+
+const sleep = async (ms: number) =>
+  await new Promise((resolve) => setTimeout(resolve, ms))
 
 export function formatAbiItemSignature(
   item: AbiError | AbiEvent | AbiFunction,
 ) {
   return `${item.name}(${(item.inputs ?? []).map((i) => i.type).join(',')})`
 }
+
+export function toErrorSelector(err: AbiError): Hex {
+  const sig = formatAbiItemSignature(err)
+  const hash = keccak256(stringToHex(sig))
+  return hash.slice(0, 10) as Hex
+}
+
 export function abiItemFromSelector2(cache: CacheObj, input: Hex) {
   const selector = input.slice(0, 10) as Hex
   const abiItem =
@@ -29,37 +44,103 @@ export function abiItemFromSelector2(cache: CacheObj, input: Hex) {
       : [abiItem]
 }
 
-function abiItemFromSelector(cache: CacheObj, input: Hex) {
-  const selector = input.slice(0, 10) as Hex
-  return cache.fourByteDir.get(selector) ?? cache.signatureDir.get(selector)
+export function abiEventFromTopic(cache: CacheObj, topic: Hex) {
+  const eventAbi = cache.eventsDir.get(topic) ?? cache.signatureEvDir.get(topic)
+
+  return !eventAbi
+    ? undefined
+    : typeof eventAbi === 'string'
+      ? parseAbiItem([eventAbi])
+      : eventAbi
 }
 
-export const getUnknownAbisFromCall = (cache: CacheObj, root: RpcCallTrace) => {
-  const calls: Set<Address> = new Set()
+function indexAbiWithInfo(cache: CacheObj, { name, address, abi }: AbiInfo) {
+  if (!cache.contractNames.has(address)) {
+    cache.contractNames.set(address, name)
+  }
+  indexAbi(cache, abi)
+}
 
-  function aggregateCallInputs(
-    node: RpcCallTrace,
-    depth: number,
-    calls: Set<Address>,
-  ) {
-    const inputSelector = abiItemFromSelector(cache, node.input)
-    const outputSelector = abiItemFromSelector(cache, node?.output ?? '')
-
-    if (!inputSelector) calls.add(node.to)
-    if (node.error && !outputSelector) calls.add(node.to)
-    if (!cache.contractNames.has(node.to)) calls.add(node.to)
-
-    const children = node.calls ?? []
-    for (let i = 0; i < children.length; i++) {
-      aggregateCallInputs(children[i], depth + 1, calls)
+function indexAbi(cache: CacheObj, abi: Abi) {
+  for (const item of abi) {
+    switch (item.type) {
+      case 'function': {
+        const sel = toFunctionSelector(item)
+        if (cache.fourByteDir.has(sel)) break
+        cache.fourByteDir.set(sel, item)
+        break
+      }
+      case 'event': {
+        const t0 = toEventSelector(item)
+        if (cache.eventsDir.has(t0)) break
+        cache.eventsDir.set(t0, item)
+        break
+      }
+      case 'error': {
+        const errorSel = toErrorSelector(item)
+        if (cache.errorDir.has(errorSel)) break
+        cache.errorDir.set(errorSel, item)
+        break
+      }
     }
   }
-
-  aggregateCallInputs(root, 0, calls)
-  return calls.values().toArray()
 }
 
-export async function getAllUnknownSignatures(
+export const prefetchAbisFromEtherscan = async (
+  cache: CacheObj,
+  root: RpcCallTrace,
+  chainId: number,
+  etherscanApiKey: string,
+) => {
+  const getAllAddressesFromCall = (root: RpcCallTrace) => {
+    const calls: Set<Address> = new Set()
+
+    function aggregateCallInputs(
+      node: RpcCallTrace,
+      depth: number,
+      calls: Set<Address>,
+    ) {
+      const inputSelector = abiItemFromSelector2(cache, node.input)
+      const outputSelector = abiItemFromSelector2(cache, node?.output ?? '')
+
+      if (!inputSelector) calls.add(node.to)
+      if (node.error && !outputSelector) calls.add(node.to)
+      if (!cache.contractNames.has(node.to)) calls.add(node.to)
+
+      const children = node.calls ?? []
+      for (let i = 0; i < children.length; i++) {
+        aggregateCallInputs(children[i], depth + 1, calls)
+      }
+    }
+
+    aggregateCallInputs(root, 0, calls)
+    return calls.values().toArray()
+  }
+
+  const addresses = getAllAddressesFromCall(root)
+  for (let i = 0; i < addresses.length; i += ETHERSCAN_RATE_LIMIT) {
+    const results = await Promise.all(
+      addresses.slice(i, i + ETHERSCAN_RATE_LIMIT).map(async (a) => {
+        const [error, result] = await getAbiFromEtherscan(
+          a,
+          chainId,
+          etherscanApiKey,
+        )
+
+        return error ? undefined : result
+      }),
+    )
+    for (const abi of results) {
+      if (abi) indexAbiWithInfo(cache, abi)
+    }
+
+    if (i + ETHERSCAN_RATE_LIMIT < addresses.length) {
+      await sleep(1000)
+    }
+  }
+}
+
+export async function prefetchAbisFromOpenChain(
   cache: CacheObj,
   trace: RpcCallTrace,
 ) {
@@ -91,32 +172,24 @@ export async function getAllUnknownSignatures(
   }
 
   const { fns: fnSelectors, evs: EvSelectors } = getUnknownFnSelectors(trace)
+  if (!EvSelectors && !fnSelectors) return
 
-  if (EvSelectors || fnSelectors) {
-    const searchParams = new URLSearchParams({ filter: 'false' })
+  const [error, response] = await getAbiFunctionFromOpenChain(
+    fnSelectors,
+    EvSelectors,
+  )
+  if (error) return safeError(new Error(error.message))
 
-    if (fnSelectors) searchParams.append('function', fnSelectors)
-    if (EvSelectors) searchParams.append('event', EvSelectors)
-
-    const [error, response] = await reliableFetchJson(
-      openChainAbiSchema,
-      new Request(
-        `${OPENCHAIN_BASE_URL}/signature-database/v1/lookup?${searchParams.toString()}`,
-      ),
-    )
-    if (error) return safeError(new Error(error.message))
-
-    if (response.result.function) {
-      Object.entries(response.result.function).forEach(([sig, results]) => {
-        const match = results?.find(({ filtered }) => !filtered)?.name
-        if (match) cache.signatureDir.set(sig as Hex, `function ${match}`)
-      })
-    }
-    if (response.result.function) {
-      Object.entries(response.result.event).forEach(([sig, results]) => {
-        const match = results?.find(({ filtered }) => !filtered)?.name
-        if (match) cache.signatureEvDir.set(sig as Hex, `event ${match}`)
-      })
-    }
+  if (response.result.function) {
+    Object.entries(response.result.function).forEach(([sig, results]) => {
+      const match = results?.find(({ filtered }) => !filtered)?.name
+      if (match) cache.signatureDir.set(sig as Hex, `function ${match}`)
+    })
+  }
+  if (response.result.function) {
+    Object.entries(response.result.event).forEach(([sig, results]) => {
+      const match = results?.find(({ filtered }) => !filtered)?.name
+      if (match) cache.signatureEvDir.set(sig as Hex, `event ${match}`)
+    })
   }
 }
