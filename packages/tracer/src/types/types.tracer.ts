@@ -7,7 +7,7 @@ import type {
   PrepareTransactionRequestParameters,
   RpcTransactionRequest,
 } from 'viem'
-import type { TracerCache } from '../cache'
+import type { AbiCache } from '../cache'
 import type { Environment } from '../callTracer/client/types'
 import type { CacheOptions } from './types.cache'
 
@@ -21,7 +21,7 @@ export type TraaceOptions = {
 export type PrinterArgs = {
   verbosity: LogVerbosity
   logStream: boolean
-  cache: TracerCache
+  cache: AbiCache
   showGas?: boolean
   showReturnData?: boolean
   showLogs?: boolean

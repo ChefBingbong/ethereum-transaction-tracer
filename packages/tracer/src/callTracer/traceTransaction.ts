@@ -1,7 +1,12 @@
 import { safeError, safeResult, safeTry } from '@evm-tt/utils'
 import type { BaseError, PublicClient } from 'viem'
 import { getTransactionError } from 'viem/utils'
-import { TracerCache } from '../cache'
+import {
+  type AbiCache,
+  createAbiCache,
+  getAllUnknownSignatures,
+  getUnknownAbisFromCall,
+} from '../cache'
 import { coerceUnsupportedTraceError } from '../errors'
 import { printCallTrace } from '../print'
 import {
@@ -16,15 +21,16 @@ export const traceTransactionHash = async (
   { txHash, tracerOps: { run, cache: cacheOptions } }: TraceTxParameters,
   client: PublicClient,
 ) => {
-  const cache = new TracerCache(
-    client.chain?.id!,
-    cacheOptions.cachePath,
-    cacheOptions,
-  )
   return traceWithCustomClient({
     env: { kind: 'rpc' },
     client,
     traceCallback: async (client) => {
+      const cache = createAbiCache(
+        client.chain?.id!,
+        cacheOptions.cachePath,
+        cacheOptions,
+      )
+
       const [traceError, trace] = await callTraceTxHash(
         { txHash, tracerOps: { run, cache: cacheOptions } },
         client,
@@ -50,7 +56,7 @@ export const traceTransactionHash = async (
 const callTraceTxHash = async (
   { txHash }: TraceTxParameters,
   client: TraceClient,
-  cache: TracerCache,
+  cache: AbiCache,
 ) => {
   const [error, trace] = await safeTry(() =>
     client.request<TraceTxRpcSchema>(
@@ -87,8 +93,8 @@ const callTraceTxHash = async (
     )
   }
 
-  const calls = cache.getUnknownAbisFromCall(trace)
-  await cache.getAllUnknownSignatures(trace)
+  const calls = getUnknownAbisFromCall(cache.cache, trace)
+  await getAllUnknownSignatures(cache.cache, trace)
   const [fetchError] = await safeTry(() => cache.prefetchUnknownAbis(calls))
   return fetchError ? safeError(fetchError) : safeResult(trace)
 }

@@ -1,8 +1,9 @@
 import { logger } from '@evm-tt/utils'
-import { getConfigDir, loadEnv } from '../configCli/env'
+import { loadEnv } from '../configCli/env'
 import { resolveAndParseCliParams, traceTxArgs } from '../configCli/schema'
 import createTask from '../program'
-import { makeTracer } from '../utils/tracer'
+
+// import { makeTracer } from '../utils/tracer'
 
 createTask('traceTx')
   .description(
@@ -28,24 +29,22 @@ createTask('traceTx')
       process.exit(1)
     }
 
-    const client = makeTracer(parsedArgs.data)
-    const [traceError] = await client.traceTransactionHash({
-      txHash: parsedArgs.data.hash,
-      tracerOps: {
-        cache: {
-          cachePath: getConfigDir(),
-          etherscanApiKey: parsedArgs.data.etherscanKey,
-        },
-        run: {
-          showProgressBar: true,
-          streamLogs: true,
-        },
-      },
-    })
+    // const client = makeTracer(parsedArgs.data)
+    // const [traceError] = await client.traceTransactionHash({
+    //   txHash: parsedArgs.data.hash,
+    //   cache: {
+    //     cachePath: getConfigDir(),
+    //     etherscanApiKey: parsedArgs.data.etherscanKey,
+    //   },
+    //   run: {
+    //     showProgressBar: true,
+    //     streamLogs: true,
+    //   },
+    // })
 
-    if (traceError) {
-      logger.error(`Failed when tracing tx ${traceError.message}`)
-      process.exit(1)
-    }
+    // if (traceError) {
+    //   logger.error(`Failed when tracing tx ${traceError.message}`)
+    //   process.exit(1)
+    // }
     process.exit(0)
   })

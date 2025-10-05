@@ -1,5 +1,4 @@
-import type { AbiFunction } from 'viem'
-import type { TracerCache } from '../cache'
+import { abiItemFromSelector2, type CacheObj } from '../cache'
 import type { RpcCallTrace } from '../types'
 import {
   formatCall,
@@ -9,24 +8,23 @@ import {
   formatSelfDestructCall,
 } from './call'
 
-export const formatCalls = (
-  node: RpcCallTrace,
-  cache: TracerCache,
-  abiItem: AbiFunction[],
-) => {
+export const formatCalls = (node: RpcCallTrace, cache: CacheObj) => {
+  const contractName = cache.contractNames.get(node?.to)
+  const abiItem = abiItemFromSelector2(cache, node.input)
+
   switch (node.type) {
     case 'CALL':
     case 'STATICCALL':
-      return formatCall(node, cache, abiItem)
+      return formatCall(node, abiItem, contractName)
     case 'CALLCODE':
     case 'DELEGATECALL':
-      return formatDelegateCall(node, cache, abiItem)
+      return formatDelegateCall(node, abiItem, contractName)
     case 'CREATE':
     case 'CREATE2':
-      return formatCreateCall(node, cache)
+      return formatCreateCall(node, contractName)
     case 'SELFDESTRUCT':
-      return formatSelfDestructCall(node, cache)
+      return formatSelfDestructCall(node, contractName)
     default:
-      return formatDefault(node, cache)
+      return formatDefault(node, contractName)
   }
 }

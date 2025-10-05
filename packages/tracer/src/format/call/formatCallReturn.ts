@@ -2,10 +2,10 @@ import { truncate } from '@evm-tt/utils'
 import {
   type Abi,
   type AbiFunction,
-  erc20Abi,
-  erc721Abi,
   erc1155Abi,
+  erc20Abi,
   erc4626Abi,
+  erc721Abi,
   multicall3Abi,
 } from 'viem'
 import { safeDecodeCallData, safeDecodeCallResult } from '../../decoder'
@@ -14,10 +14,12 @@ import { retData, retLabel, white } from '../theme'
 
 export function formatCallReturn(
   node: RpcCallTrace,
-  abiItem: AbiFunction[],
+  abiItem: AbiFunction[] | undefined,
   nextPrefix: string,
 ) {
   const returnLabel = `${nextPrefix}${retLabel('[Return]')}`
+  if (!abiItem) return `${returnLabel} ${node.output ?? '()'}`
+
   const [callError, decodedCall] = safeDecodeCallData(abiItem, node.input)
   if (callError)
     return `${returnLabel} ${node.output ? truncate(node.output) : white('()')}`

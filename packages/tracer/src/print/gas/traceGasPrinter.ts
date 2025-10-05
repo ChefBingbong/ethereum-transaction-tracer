@@ -1,6 +1,6 @@
 import { hexToBig, safeError, safeResult, safeTry } from '@evm-tt/utils'
 import pc from 'picocolors'
-import type { TracerCache } from '../../cache/index'
+import { abiItemFromSelector2 } from '../../cache/index'
 import { dim, formatGasCall } from '../../format'
 import type { GasTally, PrinterArgs, RpcCallTrace } from '../../types'
 import { prefixesFor } from '../utils'
@@ -8,7 +8,7 @@ import { prefixesFor } from '../utils'
 export async function printGasTrace(root: RpcCallTrace, opts: PrinterArgs) {
   const lines: string[] = []
   const lastStack: boolean[] = []
-  const cache: TracerCache = opts.cache
+  const { cache, save } = opts.cache
   const summary: GasTally = {
     topLevelTotal: 0n,
     topLevelFrames: 0,
@@ -21,7 +21,7 @@ export async function printGasTrace(root: RpcCallTrace, opts: PrinterArgs) {
     const [error] = await safeTry(() => {
       return walkGas(rootNode, true, 0)
     })
-    cache.save()
+    save()
     if (error) return safeError(error)
     return safeResult(lines.join('\n'))
   }
@@ -49,7 +49,7 @@ export async function printGasTrace(root: RpcCallTrace, opts: PrinterArgs) {
   }
 
   const formatTraceGasCall = (node: RpcCallTrace, depth: number) => {
-    const sel = cache.abiItemFromSelector2(node.input)
+    const sel = abiItemFromSelector2(cache, node.input)
     if (!sel) return dim('()')
     return formatGasCall(node, cache, sel, depth)
   }

@@ -1,4 +1,3 @@
-import type { TracerCache } from '../../cache'
 import { LogVerbosity, type RpcCallTrace } from '../../types'
 import {
   getCallOriginLabel,
@@ -8,8 +7,8 @@ import {
   getValueBadge,
 } from '../theme'
 
-export const formatCreateCall = (node: RpcCallTrace, cache: TracerCache) => {
-  const createdLabel = getCallOriginLabel(node, cache)
+export const formatCreateCall = (node: RpcCallTrace, contractName?: string) => {
+  const createdLabel = getCallOriginLabel(node, contractName)
   const callTypeLabel = getCallTypeLabel(node.type)
   const valueBadge = getValueBadge(node, LogVerbosity.Highest)
   const gasBadge = getGasBadge(node, LogVerbosity.Highest)

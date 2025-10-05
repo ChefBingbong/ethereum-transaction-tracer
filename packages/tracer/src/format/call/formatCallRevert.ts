@@ -1,13 +1,13 @@
 import { defaultRevert, formatArgsInline } from '@evm-tt/utils'
 import type { Hex } from 'viem'
-import type { TracerCache } from '../../cache'
+import type { CacheObj } from '../../cache'
 import { safeDecodeCallRevert } from '../../decoder'
 import type { RpcCallTrace } from '../../types'
 import { revData, revLabel } from '../theme'
 
 export function formatCallRevert(
   node: RpcCallTrace,
-  cache: TracerCache,
+  cache: CacheObj,
   nextPrefix: string,
 ) {
   const revertPrefix = `${nextPrefix}${revLabel('[Revert]')}`

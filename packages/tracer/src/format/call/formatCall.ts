@@ -1,6 +1,5 @@
 import { stringify, truncate } from '@evm-tt/utils'
-import type { AbiFunction } from 'viem'
-import type { TracerCache } from '../../cache'
+import { type AbiFunction, slice } from 'viem'
 import { safeDecodeCallData } from '../../decoder'
 import { LogVerbosity, type RpcCallTrace } from '../../types'
 import {
@@ -16,10 +15,10 @@ import {
 
 export const formatCall = (
   node: RpcCallTrace,
-  cache: TracerCache,
-  abiItem: AbiFunction[],
+  abiItem: AbiFunction[] | undefined,
+  contractName?: string,
 ) => {
-  const originLabel = getCallOriginLabel(node, cache)
+  const originLabel = getCallOriginLabel(node, contractName)
   const callTypeLabel = getCallTypeLabel(node.type)
   const valueBadge = getValueBadge(node, LogVerbosity.Highest)
   const gasBadge = getGasBadge(node, LogVerbosity.Highest)
@@ -34,9 +33,10 @@ export const formatCall = (
 
 export function formatContractCall(
   node: RpcCallTrace,
-  abiItem: AbiFunction[],
+  abiItem: AbiFunction[] | undefined,
   verbosity: LogVerbosity,
 ) {
+  if (!abiItem) return `${slice(node.input, 0, 10)}()`
   const [error, decodedCall] = safeDecodeCallData(abiItem, node.input)
   if (error) return getDefaultContractCallLabel()
 
@@ -52,8 +52,8 @@ export function formatContractCall(
     : `${styled}(${prettifiedArgs.join(', ')})`
 }
 
-export const formatDefault = (node: RpcCallTrace, cache: TracerCache) => {
-  const left = getCallOriginLabel(node, cache)
+export const formatDefault = (node: RpcCallTrace, contractName?: string) => {
+  const left = getCallOriginLabel(node, contractName)
   const callTypeLabel = getCallTypeLabel(node.type)
   const valueBadge = getValueBadge(node, LogVerbosity.Highest)
   const gasBadge = getGasBadge(node, LogVerbosity.Highest)

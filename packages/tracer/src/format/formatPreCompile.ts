@@ -1,5 +1,5 @@
 import { PRECOMPILE_ADDRESS } from '@evm-tt/utils'
-import type { TracerCache } from '../cache'
+import type { CacheObj } from '../cache'
 import {
   decodePrecompileEcRecover,
   decodePrecompileIdentity,
@@ -14,11 +14,9 @@ import {
   getValueBadge,
 } from './theme'
 
-export const formatPrecompileCall = (
-  node: RpcCallTrace,
-  cache: TracerCache,
-) => {
-  const left = getCallOriginLabel(node, cache)
+export const formatPrecompileCall = (node: RpcCallTrace, cache: CacheObj) => {
+  const name = cache.contractNames.get(node?.to)
+  const left = getCallOriginLabel(node, name)
   const method = safeDecodePrecompile(node, '').inputText
   const callTypeLabel = getCallTypeLabel(node.type)
   const valueBadge = getValueBadge(node, LogVerbosity.Highest)

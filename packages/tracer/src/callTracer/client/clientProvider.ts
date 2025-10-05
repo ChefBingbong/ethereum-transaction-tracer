@@ -1,11 +1,6 @@
-import {
-  type SafePromise,
-  safeError,
-  safeResult,
-  safeTimeoutPromise,
-} from '@evm-tt/utils'
+import { type SafePromise, safeError, safeResult, safeTry } from '@evm-tt/utils'
 import { createAnvil } from '@viem/anvil'
-import { createTestClient, http, type PublicClient, publicActions } from 'viem'
+import { type PublicClient, createTestClient, http, publicActions } from 'viem'
 import type {
   ClientLease,
   ClientProvider,
@@ -34,9 +29,12 @@ export class DefaultClientProvider implements ClientProvider {
       }),
     }).extend(publicActions) as PublicClient
 
-    const [error, _] = await safeTimeoutPromise(() => anvil.start(), 7000)
+    const [error, _] = await safeTry(() => anvil.start())
 
-    if (error) return safeError(error)
+    if (error) {
+      anvil.stop()
+      return safeError(error)
+    }
     return safeResult({
       client: testClient,
       dispose: async () => {
@@ -58,5 +56,9 @@ export async function traceWithCustomClient({
   const provider = new DefaultClientProvider(client)
   const [error, lease] = await provider.lease(env)
   if (error) return safeError(error)
-  return await traceCallback(lease.client)
+  try {
+    return await traceCallback(lease.client)
+  } finally {
+    await lease?.dispose?.()
+  }
 }
