@@ -5,7 +5,7 @@ import {
   safeErrorStr,
   safeResult,
 } from '@evm-tt/utils'
-import { type Abi, type Address, type Hex } from 'viem'
+import type { Abi, Address, Hex } from 'viem'
 import { ETHERSCAN_BASE_URL, OPENCHAIN_BASE_URL } from '../constants'
 import { etherscanAbiSchema, openChainAbiSchema } from './schemas'
 
