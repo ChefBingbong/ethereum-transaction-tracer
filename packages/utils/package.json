@@ -1,12 +1,9 @@
 {
   "name": "@evm-tt/utils",
   "version": "0.10.0",
-  "type": "module",
   "license": "ISC",
   "sideEffects": false,
-  "main": "./dist/cjs/index.js",
-  "types": "./dist/types/index.d.ts",
-  "typings": "./dist/types/index.d.ts",
+  "types": "./dist/index.d.ts",
   "files": [
     "src",
     "dist",
@@ -21,7 +18,7 @@
   "scripts": {
     "check": "tsc --pretty --noEmit",
     "clean": "rm -rf .turbo node_modules dist",
-    "build": "bun run clean && bun run build:cjs && bun run build:esm && bun run build:types",
+    "build": "tsc",
     "build:cjs": "tsc -p tsconfig.build.json --module commonjs --moduleResolution node --outDir dist/cjs --removeComments --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > dist/cjs/package.json",
     "build:esm": "tsc -p tsconfig.build.json --module esnext --moduleResolution node --outDir dist/esm --sourceMap true && printf '{\"type\":\"module\",\"sideEffects\":false}' > dist/esm/package.json",
     "build:types": "tsc -p tsconfig.types.json",
@@ -50,25 +47,16 @@
     ".": {
       "types": "./dist/types/index.d.ts",
       "bun": "./src/index.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js",
-      "default": "./dist/esm/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./data-structures": {
       "types": "./dist/types/data-structures/index.d.ts",
       "bun": "./src/data-structures/index.ts",
-      "import": "./dist/esm/data-structures/index.js",
-      "require": "./dist/cjs/data-structures/index.js",
-      "default": "./dist/esm/data-structures/index.js"
+      "import": "./dist/data-structures/index.js",
+      "default": "./dist/data-structures/index.js"
     },
     "./package.json": "./package.json"
-  },
-  "typesVersions": {
-    "*": {
-      "data-structures": [
-        "./dist/types/data-structures/index.d.ts"
-      ]
-    }
   },
   "engines": {
     "node": ">=22"
