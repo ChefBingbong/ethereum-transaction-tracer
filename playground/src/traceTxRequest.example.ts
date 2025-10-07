@@ -12,7 +12,7 @@ const client = getPublicClient(
   'https://ethereum-mainnet.gateway.tatum.io',
 ).extend(traceActions)
 
-if (import.meta.main) {
+async function main() {
   const [error, trace] = await client.traceCall({
     account: SENDER,
     blockNumber: 23212888n,
@@ -41,3 +41,4 @@ if (import.meta.main) {
   console.log(trace.traceFormatted)
   process.exit(0)
 }
+main()

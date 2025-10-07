@@ -2,7 +2,7 @@
   "name": "@evm-tt/cli",
   "version": "0.16.2",
   "license": "ISC",
-  "type": "module",
+  "types": "./dist/index.d.ts",
   "bin": {
     "evm-tt": "./dist/index.js"
   },
@@ -17,7 +17,7 @@
     "start": "bun run src/bin.ts traceTx --hash 0xf4a91c18dad36c9a0717da2375aef02b14bcd0e89dd5f1fc8f19d7952cdb5649 --chain-id 1",
     "cli": "bun run src/bin.ts cli",
     "clean": "rm -rf .turbo node_modules dist",
-    "build": "bun run clean && bun run build:cjs",
+    "build": "tsc",
     "build:cjs": "tsc -p tsconfig.json --module commonjs --moduleResolution node --outDir ./dist --rootDir ./src --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > ./dist/package.json",
     "prepublishOnly": "bun run build",
     "prepack": "bun ../../.github/replace-workspace-protocol.ts"
@@ -44,5 +44,14 @@
   },
   "engines": {
     "node": ">=22"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "bun": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
   }
 }

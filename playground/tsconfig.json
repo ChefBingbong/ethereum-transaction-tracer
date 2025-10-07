@@ -1,15 +1,18 @@
 {
-  "extends": "@evm-tt/typescript-config/base.json",
   "compilerOptions": {
-    "declaration": true,
-    "declarationMap": true,
+    "module": "commonjs",
+    "target": "esnext",
+    "outDir": "lib",
+    "rootDir": "src",
+    "strict": true,
+    "declaration": false,
     "sourceMap": true,
-    "inlineSources": true,
-    "paths": {
-      "@evm-tt/tracer": ["../packages/tracer/src/index.ts"], 
-      "@evm-tt/tracer/*": ["../packages/tracer/src/*"],
-      "@evm-tt/utils": ["../packages/utils/src/index.ts"],
-      "@evm-tt/utils/*": ["../packages/utils/src/*"]
-    }
-  }
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

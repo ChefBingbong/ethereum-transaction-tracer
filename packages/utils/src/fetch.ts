@@ -1,4 +1,3 @@
-import type { HeadersInit } from 'bun'
 import * as _ from 'radash'
 import type z from 'zod'
 import type { RetryConfigParams, SafePromise } from './types'
@@ -19,7 +18,7 @@ export async function reliableFetch(
         clonedRequest.url,
         {
           method: clonedRequest.method,
-          headers: clonedRequest.headers as HeadersInit,
+          headers: clonedRequest.headers as any,
           body: clonedRequest.body,
         },
         timeout,
