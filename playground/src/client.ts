@@ -1,13 +1,13 @@
 import type { TracerOps } from '@evm-tt/tracer'
 import { createPublicClient, defineChain, erc20Abi, http } from 'viem'
 import { mainnet } from 'viem/chains'
-import { CFG } from '../abis/CFG'
-import { FiatTokenProxyAbi } from '../abis/FiatTokenProxy'
-import { FiatTokenProxy2 } from '../abis/FiatTokenProxyV2'
-import { Permit2 } from '../abis/Permit2'
-import { PoolManager } from '../abis/PoolManager'
-import { UniSwapPool } from '../abis/UniswapPool'
-import { UniversalRouter } from '../abis/UniversalRouter'
+import { CFG } from './abis/CFG'
+import { FiatTokenProxyAbi } from './abis/FiatTokenProxy'
+import { FiatTokenProxy2 } from './abis/FiatTokenProxyV2'
+import { Permit2 } from './abis/Permit2'
+import { PoolManager } from './abis/PoolManager'
+import { UniSwapPool } from './abis/UniswapPool'
+import { UniversalRouter } from './abis/UniversalRouter'
 
 export const hyperEvm = defineChain({
   id: 999,
