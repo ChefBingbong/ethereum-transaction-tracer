@@ -1,5 +1,16 @@
 # @evm-tt/tracer
 
+## 0.11.0
+
+### Minor Changes
+
+- e41a701: update code and change types and options
+
+### Patch Changes
+
+- Updated dependencies [e41a701]
+  - @evm-tt/utils@0.11.0
+
 ## 0.10.2
 
 ### Patch Changes

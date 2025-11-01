@@ -1,6 +1,6 @@
 {
   "name": "@evm-tt/tracer",
-  "version": "0.10.2",
+  "version": "0.11.0",
   "license": "ISC",
   "types": "./dist/index.d.ts",
   "files": [
@@ -35,7 +35,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@evm-tt/utils": "0.10.0",
+    "@evm-tt/utils": "0.11.0",
     "@opentf/cli-pbar": "^0.7.2",
     "@viem/anvil": "^0.0.10",
     "fs-extra": "^11.3.1",
