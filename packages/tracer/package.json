@@ -1,6 +1,6 @@
 {
   "name": "@evm-tt/tracer",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "license": "ISC",
   "type": "module",
   "main": "./_cjs/index.js",
@@ -42,7 +42,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@evm-tt/utils": "0.11.0",
+    "@evm-tt/utils": "0.12.0",
     "@opentf/cli-pbar": "^0.7.2",
     "@viem/anvil": "^0.0.10",
     "fs-extra": "^11.3.1",

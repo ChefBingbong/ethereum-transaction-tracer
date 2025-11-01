@@ -1,5 +1,11 @@
 # @evm-tt/utils
 
+## 0.12.0
+
+### Minor Changes
+
+- deeb792: add esm and cjs builds
+
 ## 0.11.0
 
 ### Minor Changes
