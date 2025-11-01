@@ -8,8 +8,7 @@
   "types": "./_types/index.d.ts",
   "typings": "./_types/index.d.ts",
   "files": [
-    "*",
-    "!tsconfig.json"
+    "*"
   ],
   "repository": {
     "type": "git",
