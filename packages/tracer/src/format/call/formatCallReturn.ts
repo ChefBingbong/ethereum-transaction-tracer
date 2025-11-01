@@ -39,8 +39,8 @@ export function formatCallReturn(
       functionAbi,
       node.output,
     )
-    if (returnError) return `${returnLabel} ${node.output}`
-    return `${returnLabel} ${retData(decodedReturn)}`
+    if (returnError) return `${returnLabel} ${node.output ?? ''}`
+    return `${returnLabel} ${retData(decodedReturn ?? '')}`
   }
   return `${returnLabel} ${node.output}`
 }
