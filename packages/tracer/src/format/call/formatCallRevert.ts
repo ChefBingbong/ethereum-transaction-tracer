@@ -1,8 +1,17 @@
-import { defaultRevert, formatArgsInline } from '@evm-tt/utils'
+import { formatArgsInline } from '@evm-tt/utils'
 import type { Hex } from 'viem'
 import { safeDecodeCallRevert } from '../../decoder'
 import type { CacheObj, RpcCallTrace } from '../../types'
 import { revData, revLabel } from '../theme'
+
+const defaultRevert = (node: {
+  output?: string | undefined
+  revertReason?: string | undefined
+  error?: string | undefined
+}) => {
+  const selector = node.output ? node.output.slice(0, 10) : undefined
+  return `${node.revertReason ?? node.error} ${selector}`
+}
 
 export function formatCallRevert(
   node: RpcCallTrace,

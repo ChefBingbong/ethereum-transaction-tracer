@@ -27,11 +27,7 @@ describe.skip('TransactionTracer – integration (mainnet fork)', () => {
           cachePath: TEST_CACHE_DIR,
           etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
         },
-        run: {
-          env: { kind: 'rpc' },
-          showProgressBar: false,
-          streamLogs: false,
-        },
+        env: { kind: 'rpc' },
       },
     })
 
@@ -50,11 +46,7 @@ describe.skip('TransactionTracer – integration (mainnet fork)', () => {
           cachePath: TEST_CACHE_DIR,
           etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
         },
-        run: {
-          env: { kind: 'rpc' },
-          showProgressBar: false,
-          streamLogs: false,
-        },
+        env: { kind: 'rpc' },
       },
     })
 
@@ -81,11 +73,7 @@ describe.skip('TransactionTracer – integration (mainnet fork)', () => {
           cachePath: TEST_CACHE_DIR,
           etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
         },
-        run: {
-          env: { kind: 'fork', blockNumber: 23212888 },
-          showProgressBar: false,
-          streamLogs: false,
-        },
+        env: { kind: 'fork', blockNumber: 23212888 },
       },
     })
 
@@ -112,11 +100,7 @@ describe.skip('TransactionTracer – integration (mainnet fork)', () => {
           cachePath: TEST_CACHE_DIR,
           etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
         },
-        run: {
-          env: { kind: 'rpc' },
-          showProgressBar: false,
-          streamLogs: false,
-        },
+        env: { kind: 'rpc' },
       },
     })
 

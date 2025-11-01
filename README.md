@@ -22,49 +22,65 @@ yarn add @evm-tt/tracer
 pnpm add @evm-tt/tracer
 ```
 
-## CLI Installation
-or install the cli to access all the capabilities of `evm-tt` from you command line. To install the cli. run the command below and install globally on you machne
-
-```bash
-npm install -g @evm-tt/cli
-```
-
-<img width="1092" alt="Console testing" src="https://github.com/ChefBingbong/ethereum-transaction-tracer/blob/main/assets/cli.png">
-
-
 # Usage
 ## Transaction Trace
 
-to use evm-tt in your backend application simply import the main `TransactionTracer` entity and create and instance for your needs. Note that it is recommened that your prc provider must support the `debug_tracecall` and `debug_traceTransaction` JSON RPC method for the best developer experience.
+to use evm-tt in your backend application simply import the evm-tt viem `traceActions` extension and extend your client isnatnce by it.
 ```ts
-const client = getPublicClient(RPC_URL)
+import { traceActions } from '@evm-tt/tracer'
 
-const tracer = new TransactionTracer(client, {
-  cachePath: `./tx-cache-dir`,
-  cacheOptions: {
-    etherscanApiKey: ETHERSCAN_API_KEY, // optional for async abi lookups
-    byAddress: {
-      [USDT0]: {
-        name: 'USDT',
-        abi: erc20Abi,
-      },
+const client = createPublicClient({
+    batch: {
+      multicall: true,
     },
-    extraAbis: [
-      // useful for abis that have no fixed address
-    ],
-  },
-  verbosity: LogVerbosity.Highest,
-})
+    transport: http(rpcUrl),
+    chain: mainnet,
+  }).extend(tracerActions)
 
 ```
 
-the `TransactionTracer` class accepts a few optional configration.
+the `tracerActions` allow you to access tracing capabilities directly from your normal client, so there is no ned for extra imports or any other type of boilerplate. just extend your client and your good to go. there are four `trace actions` you can avail of. `traceCall`, `traceTransactionHash`, and also the equivieltn gas porfilers  `traceGasCall`, `traceTGasransactionHash`, 
 
+```ts
+import {
+  getUnlimitedBalanceAndApprovalStateOverrides,
+} from '@evm-tt/tracer'
+
+  // for tracing calldata with state overrides
+const [error, trace] = await client.traceCall({
+    account: SENDER,
+    to: TO,
+    data: '0x3593564....',
+    stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(
+      SENDER,
+      TOKEN,
+      TO,
+    ),
+    tracerOps: DefaultTracerOptions
+})
+
+console.log(trace.traceFormatted)
+
+// For tracing transaction hashes
+const [error, trace] = await client.traceTransactionHash({
+    txHash:
+      '0xf4a91c18dad36c9a0717da2375aef02b14bcd0e89dd5f1fc8f19d7952cdb5649',
+
+    tracerOps: DefaultTracerOptions,
+})
+
+console.log(trace.traceFormatted)
+```
+Note that it is recommened that your prc provider must support the `debug_tracecall` and `debug_traceTransaction` JSON RPC method for the best developer experience.
+
+The `traceCall`, `traceTransactionHash` call accepts an optional configration. to allow you to provide known abis, etherscan api key and for tracing with an anvil fork. (useful for public RPSs that dont have support for trace_call). outside of your normal ethereum tx arguments. you can pass in two new ones. they are `cache: Cache` and `env: Enviornemnt`, which live inside a single `tracerOps: {}` object
+
+## Cache Option
 
 | Option         | Type                                                    | Description                                                                                                                                                                     |
 | -------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `cachePath`    | `string` (directory path)                               | Directory where ABI signatures and decoded items are cached for faster subsequent decoding.                                                                                     |
-| `cacheOptions` | `object`                                                | Decoder helpers made of known ABIs that will be used when decoding calls within traces.                                                                                         |
+| `etherscanApiKey` | `string`                                                | Etherscan api key for accessing async abi decoding while tracing..                                                                                         |
 | `byAddress`    | `Record<string, { name?: string; abi?: Abi \| Abi[] }>` | Map contract addresses to a display name and ABI. When a mapped contract appears in a trace, its `name` is shown instead of the raw address and its `abi` is used for decoding. |
 | `extraAbis`    | `Abi[]`                                                 | Additional ABIs not tied to a specific address or name but available to the decoder.                                                                                            |
 
@@ -75,7 +91,7 @@ to access extra abis under the hood, evm-tt uses etherscans api. to use this you
 see the [Documentation](https://github.com/ChefBingbong/ethereum-transaction-tracer/blob/main/docs/DOCUMENTATION.md) to learn more about what how each config option affetcs usage and results. Thern to visualise a trace simply evoke the method and wait for the trace to log in your terminal
 
 ```ts
-const [error, trace] = await tracer.traceCall(
+const [error, trace] = await client.traceCall(
    {
       account: SENDER,
       blockNumber: 9451543n,
@@ -83,26 +99,37 @@ const [error, trace] = await tracer.traceCall(
       data: '0x83643.....',
       chain: client.chain,
       stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
+      tracerOps: {
+        cache: {
+          cachePath: `./tx-cache-dir`,
+          byAddress: {
+            ['0xcccccccccc33d538dbc2ee4feab0a7a1ff4e8a94']: {
+              name: 'CFG',
+              abi: erc20Abi,
+            },
+            ['0xdac17f958d2ee523a2206206994597c13d831ec7']: {
+              name: 'USDT',
+              abi: erc20Abi,
+            },
+          },
+          extraAbis: [
+            Permit2,
+            UniSwapPool,
+            erc20Abi,
+          ],
+          etherscanApiKey: 'MY_ETHERSCAN_KEY',
+        },
+      env: { kind: 'fork', blockNumber: 23212888 } // use this option if your rpc doesnt support debugTracecall
+    },
   },
-  {
-      env: { kind: 'fork', blockNumber: 23212888 }, // use this option if your rpc doesnt support debugTracecall
-      gasProfiler: false,
-      showProgressBar: false,
-      streamLogs: true,
- },
   )
 
 // OR TRACE TX HASH
 
-const [error, trace] = await tracer.traceTransactionHash(
+const [error, trace] = await client.traceTransactionHash(
     {
       txHash:
         '0xf4a91c18dad36c9a0717da2375aef02b14bcd0e89dd5f1fc8f19d7952cdb5649',
-    },
-    {
-      gasProfiler: false,
-      showProgressBar: false,
-      streamLogs: true,
     },
   )
 ```
@@ -112,8 +139,6 @@ the `tracer.traceCall` and `tracer.traceTransactionHash` methods accept two argu
 
 | Option         | Type                                                    | Description                                                                                                                                                                     |
 | -------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gasProfiler`    | `boolean`                                             | Whether or not to show the full trace or the gasPorfiler of the trace and the gas cost of each inner call                                                                                   |
-| `showProgressbar` | `voolean`                                                |Whether or not to show a progress bar of your traces progress                                                                                      |
 | `env`    | `env: { kind: 'fork', blockNumber: number }`                 | Supported only by `traceCall`, spins up a forked envionrment and runs the simulation with the fork. this is needed when your prc provider does not support `debugTraceCall` |                                                                                         |
 
 ## Forking With Anvil
@@ -131,18 +156,15 @@ if your RPC Provider does not support the `debug_traceCall` method, make sure yo
 you can also get a traces gas profile, which outputs the gas spent by each call made in a request. This method is very useful for seeing how much gas is being spent by different external contract calls. To evoke this method run
 
 ```ts
- const [error, trace] = await tracer.traceCall(
+ const [error, trace] = await client.traceGasCall(
    {
       account: SENDER,
       blockNumber: 9451543n,
       to: TO,
       data: '0x83643.....',
       chain: client.chain,
-      stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
+      stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO), // state overrides
   },
-  {
-      gasProfiler: true, // set this option to true
- },
   )
 ```
 
@@ -161,11 +183,22 @@ const SENDER = '0xda8A8833E938192781AdE161d4b46c4973A40402' // Account to overri
 const TO = '0x66a9893cC07D91D95644AEDD05D03f95e1dBA8Af' // Account to grant allowance for (spender)
 const TOKEN = '0xdAC17F958D2ee523a2206206994597C13D831ec7' // Token to grant the allowance and balance overrides for
 
-const [error, trace] = await tracer.traceGasCall({
+const [error, trace] = await client.traceGasCall({
   ...
   stateOverride: getUnlimitedBalanceAndApprovalStateOverrides(SENDER, TOKEN, TO),
 })
 ```
+
+## CLI Installation
+or install the cli to access all the capabilities of `evm-tt` from you command line. To install the cli. run the command below and install globally on you machne
+
+```bash
+npm install -g @evm-tt/cli
+```
+
+<img width="1092" alt="Console testing" src="https://github.com/ChefBingbong/ethereum-transaction-tracer/blob/main/assets/cli.png">
+
+
 
 ## Try It Out
 

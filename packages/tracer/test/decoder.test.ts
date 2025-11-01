@@ -1,14 +1,14 @@
-import type { EventTopic } from '@evm-tt/utils'
+import { stringify } from '@evm-tt/utils'
 import {
   encodeFunctionData,
   encodeFunctionResult,
   erc20Abi,
   getAbiItem,
-  stringify,
   zeroAddress,
 } from 'viem'
 import { describe, expect, it } from 'vitest'
 import {
+  type EventTopic,
   safeDecodeCallData,
   safeDecodeCallResult,
   safeDecodeCallRevert,

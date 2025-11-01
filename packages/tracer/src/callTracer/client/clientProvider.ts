@@ -1,6 +1,6 @@
 import { type SafePromise, safeError, safeResult, safeTry } from '@evm-tt/utils'
 import { createAnvil } from '@viem/anvil'
-import { createTestClient, http, type PublicClient, publicActions } from 'viem'
+import { type PublicClient, createTestClient, http, publicActions } from 'viem'
 import type {
   ClientLease,
   ClientProvider,
@@ -49,7 +49,7 @@ export class DefaultClientProvider implements ClientProvider {
 }
 
 export async function traceWithCustomClient({
-  env,
+  env = { kind: 'rpc' },
   client,
   traceCallback,
 }: CustomClientArgs): SafePromise<TraceResponse> {

@@ -14,11 +14,11 @@ import { traceWithCustomClient } from './client/clientProvider'
 import type { TraceClient } from './client/types'
 
 export const traceGasTransactionHash = async (
-  { txHash, tracerOps: { run, cache: cacheOptions } }: TraceTxParameters,
+  { txHash, tracerOps: { env, cache: cacheOptions } }: TraceTxParameters,
   client: PublicClient,
 ) => {
   return traceWithCustomClient({
-    env: { kind: 'rpc' },
+    env,
     client,
     traceCallback: async (client) => {
       const cache = createAbiCache(
@@ -28,7 +28,7 @@ export const traceGasTransactionHash = async (
       )
 
       const [traceError, trace] = await callTraceTxHash(
-        { txHash, tracerOps: { run, cache: cacheOptions } },
+        { txHash, tracerOps: { cache: cacheOptions } },
         client,
         cache,
       )
@@ -37,10 +37,6 @@ export const traceGasTransactionHash = async (
       const [formatError, lines] = await printGasTrace(trace, {
         cache,
         verbosity: LogVerbosity.Highest,
-        logStream: !!run.streamLogs,
-        showReturnData: true,
-        showLogs: true,
-        gasProfiler: false,
       })
 
       const out = { traceRaw: trace, traceFormatted: lines }

@@ -1,18 +1,18 @@
-import { PRECOMPILE_ADDRESS } from '@evm-tt/utils'
 import {
   decodePrecompileEcRecover,
   decodePrecompileIdentity,
   decodePrecompileRipemd160,
   decodePrecompileSha256,
-} from '../decoder'
-import type { CacheObj } from '../types'
-import { LogVerbosity, type RpcCallTrace } from '../types'
+} from '../../decoder'
+import type { CacheObj } from '../../types'
+import { LogVerbosity, type RpcCallTrace } from '../../types'
 import {
   getCallOriginLabel,
   getCallTypeLabel,
   getGasBadge,
   getValueBadge,
-} from './theme'
+} from '../theme'
+import { PRECOMPILE_ADDRESS } from './precompile'
 
 export const formatPrecompileCall = (node: RpcCallTrace, cache: CacheObj) => {
   const name = cache.contractNames.get(node?.to)

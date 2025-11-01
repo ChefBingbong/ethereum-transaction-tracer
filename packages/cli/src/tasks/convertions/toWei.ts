@@ -1,5 +1,5 @@
 import { InvalidArgumentError } from '@commander-js/extra-typings'
-import { logger, unitsToDecimals } from '@evm-tt/utils'
+import { logger } from '@evm-tt/utils'
 import { parseUnits } from 'viem'
 import z from 'zod'
 import createTask from '../../program'
@@ -23,9 +23,9 @@ createTask('to-wei')
     validateUnits,
     'ether',
   )
-  .action((amount: number, fromUnit: Unit) => {
-    const unit = (fromUnit ?? 'ether').toLowerCase()
-    const decimals = unitsToDecimals(unit)
+  .action((amount: number, _fromUnit: Unit) => {
+    // const unit = (fromUnit ?? 'ether').toLowerCase()
+    const decimals = 18
     const wei = parseUnits(String(amount), decimals)
     logger.default(wei.toString())
   })
