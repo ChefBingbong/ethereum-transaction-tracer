@@ -18,7 +18,7 @@ async function main() {
     console.log(error)
     process.exit(1)
   }
-  console.log(trace.traceFormatted)
+  console.log(trace?.traceFormatted)
   process.exit(0)
 }
 main()
