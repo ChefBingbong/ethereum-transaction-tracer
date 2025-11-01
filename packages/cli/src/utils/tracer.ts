@@ -1,5 +1,5 @@
-import { traceActions } from '@evm-tt/tracer'
-import { type Chain, createPublicClient, http } from 'viem'
+import { TraceActions, traceActions } from '@evm-tt/tracer'
+import { type Chain, createPublicClient, http, PublicClient } from 'viem'
 import type z from 'zod'
 import type { baseTraceSchema } from '../configCli/schema'
 
@@ -7,7 +7,7 @@ export function makeClient(rpc: string, chainId: number) {
   return createPublicClient({
     transport: http(rpc),
     chain: { id: chainId } as Chain,
-  }).extend(traceActions)
+  }).extend(traceActions) as PublicClient & TraceActions
 }
 
 export function makeTracer<T extends z.infer<typeof baseTraceSchema>>(args: T) {

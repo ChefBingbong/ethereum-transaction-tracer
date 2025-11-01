@@ -15,8 +15,9 @@
     "prepare": "lefthook install"
   },
   "devDependencies": {
+    "@evm-tt/typescript-config": "workspace:*",
     "@types/bun": "latest",
-    "@evm-tt/typescript-config": "workspace:*"
+    "@types/fs-extra": "^11.0.4"
   },
   "peerDependencies": {
     "typescript": "^5"
