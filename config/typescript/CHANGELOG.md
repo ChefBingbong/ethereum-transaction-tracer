@@ -1,5 +1,11 @@
 # @evm-tt/typescript-config
 
+## 0.5.0
+
+### Minor Changes
+
+- ee594bb: fixed evm tracer to use local version
+
 ## 0.4.0
 
 ### Minor Changes

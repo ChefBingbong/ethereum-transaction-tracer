@@ -1,5 +1,16 @@
 # @evm-tt/tracer
 
+## 0.13.0
+
+### Minor Changes
+
+- ee594bb: fixed evm tracer to use local version
+
+### Patch Changes
+
+- Updated dependencies [ee594bb]
+  - @evm-tt/utils@0.13.0
+
 ## 0.12.0
 
 ### Minor Changes
