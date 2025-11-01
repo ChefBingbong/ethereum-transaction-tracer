@@ -8,6 +8,7 @@
   "types": "./_types/index.d.ts",
   "typings": "./_types/index.d.ts",
   "files": [
+    "*",
     "src",
     "dist",
     "README.md",
@@ -56,7 +57,7 @@
       "types": "./_types/index.d.ts",
       "bun": "./src/index.ts",
       "import": "./_esm/index.js",
-      "require": "./_esm/cjs/index.js",
+      "require": "./_esm/index.js",
       "default": "./_cjs/index.js"
     },
     "./cache": {
