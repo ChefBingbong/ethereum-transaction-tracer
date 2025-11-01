@@ -7,6 +7,11 @@ dist
 *.tgz
 
 dist/
+
+_cjs
+_esm
+_types
+
 *.tsbuildinfo
 src/**/*.js
 src/**/*.js.map
