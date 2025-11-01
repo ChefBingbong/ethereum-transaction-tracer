@@ -13,24 +13,11 @@ import type { AbiCache, CacheOptions } from './types.cache'
 export type TraaceOptions = {
   cachePath: string
   cacheOptions?: CacheOptions
-  showProgressBar?: boolean
-  logDebug?: boolean
   verbosity?: LogVerbosity
 }
 export type PrinterArgs = {
   verbosity: LogVerbosity
-  logStream: boolean
   cache: AbiCache
-  showGas?: boolean
-  showReturnData?: boolean
-  showLogs?: boolean
-  hexGas?: boolean
-  maxData?: number
-  gasProfiler: boolean
-  progress?: {
-    onUpdate(done: number, total: number): void
-    includeLogs?: boolean
-  }
 }
 
 export enum LogVerbosity {
@@ -111,11 +98,7 @@ export type TraceCallParameters = PrepareTransactionRequestParameters & {
   )
 
 export type TracerOps = {
-  run: {
-    env?: Environment
-    showProgressBar?: boolean
-    streamLogs?: boolean
-  }
+  env?: Environment
   cache: CacheOptions & { cachePath: string }
 }
 

@@ -1,17 +1,15 @@
+import { safeError, safeResult, safeSyncTry, stringify } from '@evm-tt/utils'
 import {
-  type EventTopic,
-  safeError,
-  safeResult,
-  safeSyncTry,
-  stringify,
-} from '@evm-tt/utils'
-import type { Abi, AbiEvent, AbiFunction, Hex } from 'viem'
-import {
+  type Abi,
+  type AbiEvent,
+  type AbiFunction,
   decodeErrorResult,
   decodeEventLog,
   decodeFunctionData,
   decodeFunctionResult,
+  type Hex,
 } from 'viem'
+import type { EventTopic } from '../types'
 
 export const safeDecodeCallResult = (fnItem: AbiFunction, output: Hex) => {
   const [error, decodedCallResult] = safeSyncTry(() =>

@@ -21,13 +21,13 @@ import type { TraceClient } from './client/types'
 export const traceGasCall = async (
   {
     stateOverride,
-    tracerOps: { run, cache: cacheOptions },
+    tracerOps: { env, cache: cacheOptions },
     ...args
   }: TraceCallParameters,
   client: PublicClient,
 ) => {
   return traceWithCustomClient({
-    env: run.env ?? { kind: 'rpc' },
+    env,
     client,
     traceCallback: async (client) => {
       const cache = createAbiCache(
@@ -37,7 +37,7 @@ export const traceGasCall = async (
       )
 
       const [traceError, trace] = await callTraceRequest(
-        { stateOverride, tracerOps: { run, cache: cacheOptions }, ...args },
+        { stateOverride, tracerOps: { cache: cacheOptions }, ...args },
         client,
         cache,
       )
@@ -46,10 +46,6 @@ export const traceGasCall = async (
       const [formatError, lines] = await printGasTrace(trace, {
         cache,
         verbosity: LogVerbosity.Highest,
-        logStream: !!run.streamLogs,
-        showReturnData: true,
-        showLogs: true,
-        gasProfiler: false,
       })
 
       const out = { traceRaw: trace, traceFormatted: lines }

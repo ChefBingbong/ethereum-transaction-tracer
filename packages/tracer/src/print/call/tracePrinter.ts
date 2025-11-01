@@ -1,9 +1,4 @@
-import {
-  isPrecompileSource,
-  safeError,
-  safeResult,
-  safeTry,
-} from '@evm-tt/utils'
+import { safeError, safeResult, safeTry } from '@evm-tt/utils'
 import {
   formatCalls,
   formatLog,
@@ -12,6 +7,7 @@ import {
   retLabel,
   safeDecodePrecompile,
 } from '../../format'
+import { isPrecompileSource } from '../../format/precompile/precompile'
 import type { PrinterArgs, RpcCallTrace } from '../../types'
 import { prefixesFor } from '../utils'
 

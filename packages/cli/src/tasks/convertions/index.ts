@@ -1,7 +1,2 @@
-import './to-asci'
-import './to-hexdata'
-import './to-utf8'
 import './toSumAddress'
-import './toUint'
-import './toUint256'
 import './toWei'

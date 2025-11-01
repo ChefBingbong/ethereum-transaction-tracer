@@ -1,6 +1,5 @@
-import { hexToBig, hexToBigint } from '@evm-tt/utils'
 import pc from 'picocolors'
-import { type Address, formatEther, formatGwei } from 'viem'
+import { type Address, formatEther, formatGwei, hexToBigInt } from 'viem'
 import { LogVerbosity, type RpcCallTrace, type RpcCallType } from '../types'
 
 export const addr = pc.blue
@@ -32,28 +31,28 @@ export const getCallTypeLabel = (t: RpcCallType) =>
 export const getValueString = (node: RpcCallTrace, verbosity: LogVerbosity) => {
   if (verbosity < LogVerbosity.Highest) return ''
   return dark(
-    `${yellowLight('value=')}${formatEther(hexToBigint(node.value ?? '0x00'))} ETH`,
+    `${yellowLight('value=')}${formatEther(hexToBigInt(node.value ?? '0x00'))} ETH`,
   )
 }
 
 export const getGasString = (node: RpcCallTrace, verbosity: LogVerbosity) => {
   if (verbosity < LogVerbosity.Highest) return ''
   return dark(
-    `(${yellowLight('gas=')}${formatGwei(hexToBigint(node.gas))} ${yellowLight('used=')}${formatGwei(hexToBigint(node.gasUsed))}) Gwei`,
+    `(${yellowLight('gas=')}${formatGwei(hexToBigInt(node.gas))} ${yellowLight('used=')}${formatGwei(hexToBigInt(node.gasUsed))}) Gwei`,
   )
 }
 
 export const getValueBadge = (node: RpcCallTrace, verbosity: LogVerbosity) => {
   if (verbosity < LogVerbosity.Highest) return ''
   return dark(
-    `${yellowLight('value=')}${formatEther(hexToBigint(node.value ?? '0x00'))} ETH`,
+    `${yellowLight('value=')}${formatEther(hexToBigInt(node.value ?? '0x00'))} ETH`,
   )
 }
 
 export const getGasBadge = (node: RpcCallTrace, verbosity: LogVerbosity) => {
   if (verbosity < LogVerbosity.Highest) return ''
   return dark(
-    `(${yellowLight('gas=')}${formatGwei(hexToBigint(node.gas))} ${yellowLight('used=')}${formatGwei(hexToBigint(node.gasUsed))}) Gwei`,
+    `(${yellowLight('gas=')}${formatGwei(hexToBigInt(node.gas))} ${yellowLight('used=')}${formatGwei(hexToBigInt(node.gasUsed))}) Gwei`,
   )
 }
 
@@ -104,7 +103,7 @@ export function sumInner(node: RpcCallTrace) {
   let count = 0
   const kids = node.calls ?? []
   for (const c of kids) {
-    const used = hexToBig(c.gasUsed)
+    const used = hexToBigInt(c.gasUsed)
     total += used
     count += 1
     const sub = sumInner(c)

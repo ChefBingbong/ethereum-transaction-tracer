@@ -1,4 +1,3 @@
-import { truncate } from '@evm-tt/utils'
 import {
   type Abi,
   type AbiFunction,
@@ -22,7 +21,7 @@ export function formatCallReturn(
 
   const [callError, decodedCall] = safeDecodeCallData(abiItem, node.input)
   if (callError)
-    return `${returnLabel} ${node.output ? truncate(node.output) : white('()')}`
+    return `${returnLabel} ${node.output ? node.output : white('()')}`
 
   const functionAbi = (erc20Abi as Abi)
     .concat(abiItem)
@@ -40,8 +39,8 @@ export function formatCallReturn(
       functionAbi,
       node.output,
     )
-    if (returnError) return `${returnLabel} ${truncate(node.output)}`
+    if (returnError) return `${returnLabel} ${node.output}`
     return `${returnLabel} ${retData(decodedReturn)}`
   }
-  return `${returnLabel} ${truncate(node.output)}`
+  return `${returnLabel} ${node.output}`
 }

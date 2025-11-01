@@ -49,7 +49,7 @@ export class DefaultClientProvider implements ClientProvider {
 }
 
 export async function traceWithCustomClient({
-  env,
+  env = { kind: 'rpc' },
   client,
   traceCallback,
 }: CustomClientArgs): SafePromise<TraceResponse> {

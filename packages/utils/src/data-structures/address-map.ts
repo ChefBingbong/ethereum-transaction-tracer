@@ -1,5 +1,7 @@
 import type { Address } from 'viem'
-import { toLowerCaseAddress } from './utils'
+
+const toLowerCaseAddress = (address: Address) =>
+  address.toLowerCase() as Address
 
 export class AddressMap<T> extends Map<Address, T> {
   constructor(values?: [Address, T][] | null) {

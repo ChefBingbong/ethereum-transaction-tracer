@@ -1,6 +1,5 @@
-import { hexToBig, SUMMARY_DEPTH } from '@evm-tt/utils'
 import pc from 'picocolors'
-import type { AbiFunction } from 'viem'
+import { type AbiFunction, hexToBigInt } from 'viem'
 import { formatAbiItemSignature } from '../../cache'
 import { safeDecodeCallData } from '../../decoder'
 import type { CacheObj, RpcCallTrace } from '../../types'
@@ -11,6 +10,8 @@ import {
   retData,
   sumInner,
 } from '../theme'
+
+const SUMMARY_DEPTH = 3
 
 export function formatGasCall(
   node: RpcCallTrace,
@@ -39,7 +40,7 @@ export function formatGasCall(
       node?.error ? ` ${pc.red('❌')}` : ''
     }`
   }
-  const usedStr = hexToBig(node.gasUsed).toString()
+  const usedStr = hexToBigInt(node.gasUsed).toString()
   const styledUsed = depth === 1 ? pc.bold(usedStr) : usedStr
   return `${label} ${pc.dim('—')} used=${styledUsed}${depth > 1 ? ' +' : ''}${
     node?.error ? ` ${pc.red('❌')}` : ''

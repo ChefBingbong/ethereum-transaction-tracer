@@ -1,4 +1,4 @@
-import { truncate } from '@evm-tt/utils'
+import { slice } from 'viem'
 import { abiEventFromTopic } from '../../cache'
 import { safeDecodeEvent } from '../../decoder'
 import type { CacheObj, RpcLogTrace } from '../../types'
@@ -18,7 +18,7 @@ export function formatLog(
 
   if (error) {
     return `${logPrefix} ${logMethodBadge} ${white(
-      `topic0=${log.topics?.[0] ?? ''} data=${truncate(log.data)}`,
+      `topic0=${log.topics?.[0] ?? ''} data=${slice(log.data, 0, 64)}`,
     )}`
   }
   const argPairs = Object.entries(dec.args ?? {}).map(

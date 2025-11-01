@@ -1,5 +1,6 @@
-import { hexToBig, safeError, safeResult, safeTry } from '@evm-tt/utils'
+import { safeError, safeResult, safeTry } from '@evm-tt/utils'
 import pc from 'picocolors'
+import { hexToBigInt } from 'viem'
 import { abiItemFromSelector2 } from '../../cache/index'
 import { dim, formatGasCall } from '../../format'
 import type { GasTally, PrinterArgs, RpcCallTrace } from '../../types'
@@ -28,7 +29,7 @@ export async function printGasTrace(root: RpcCallTrace, opts: PrinterArgs) {
 
   const walkGas = async (node: RpcCallTrace, last: boolean, depth: number) => {
     const { branch } = prefixesFor(last, lastStack)
-    const usedHere = hexToBig(node.gasUsed)
+    const usedHere = hexToBigInt(node.gasUsed)
 
     if (depth === 1) {
       summary.topLevelTotal += usedHere

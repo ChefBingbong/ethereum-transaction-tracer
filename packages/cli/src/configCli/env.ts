@@ -1,4 +1,3 @@
-import os from 'node:os'
 import path from 'node:path'
 import * as p from '@clack/prompts'
 import {
@@ -11,7 +10,8 @@ import {
   safeTry,
   stringifyEnv,
 } from '@evm-tt/utils'
-import * as fss from 'fs-extra'
+import fss from 'fs-extra'
+import os from 'os'
 import { APP_DIR, ENV_BASENAME, ETHERSCAN_BASE_URL } from '../consts'
 import { type CliEnv, etherscanAbiSchema, type RpcKey } from './schema'
 

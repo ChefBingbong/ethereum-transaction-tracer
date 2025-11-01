@@ -87,9 +87,5 @@ export const DefaultTracerOptions: TracerOps = {
     ],
     etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
   },
-  run: {
-    env: { kind: 'rpc' },
-    showProgressBar: false,
-    streamLogs: false,
-  },
+  env: { kind: 'rpc' },
 }
