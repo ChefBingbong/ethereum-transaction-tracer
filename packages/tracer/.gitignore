@@ -4,6 +4,9 @@ tx-cache-dir
 # output
 out
 dist
+_cjs
+_esm
+_types
 *.tgz
 
 cache-dir
