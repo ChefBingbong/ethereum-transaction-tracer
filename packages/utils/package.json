@@ -9,6 +9,7 @@
   "types": "./_types/index.d.ts",
   "typings": "./_types/index.d.ts",
   "files": [
+    "*",
     "src",
     "dist",
     "README.md",

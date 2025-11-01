@@ -1,5 +1,6 @@
-import { LogVerbosity, TransactionTracer } from '@evm-tt/tracer'
-import { erc20Abi } from 'viem'
+import type { TracerOps } from '@evm-tt/tracer/src'
+import { createPublicClient, erc20Abi, http } from 'viem'
+import { mainnet } from 'viem/chains'
 import { CFG } from '../abis/CFG'
 import { FiatTokenProxyAbi } from '../abis/FiatTokenProxy'
 import { FiatTokenProxy2 } from '../abis/FiatTokenProxyV2'
@@ -7,19 +8,19 @@ import { Permit2 } from '../abis/Permit2'
 import { PoolManager } from '../abis/PoolManager'
 import { UniSwapPool } from '../abis/UniswapPool'
 import { UniversalRouter } from '../abis/UniversalRouter'
-import { getPublicClient } from './client'
 
-// must use a berachain al url for this example
-const client = getPublicClient('https://ethereum-mainnet.gateway.tatum.io')
+export const getPublicClient = (rpcUrl: string) =>
+  createPublicClient({
+    batch: {
+      multicall: true,
+    },
+    transport: http(rpcUrl),
+    chain: mainnet,
+  })
 
-const tracer = new TransactionTracer(client, {
-  cachePath: `./tx-cache-dir`,
-  cacheOptions: {
-    // provinding etherscan api key, lets the package query all the contract names and methods
-
-    // etherscanApiKey: ETHERSCAN_API_KEY,
-
-    // if no api key is provided, manualy abi config is neeeded to resolve contract abi info
+export const DefaultTracerOptions: TracerOps = {
+  cache: {
+    cachePath: `./tx-cache-dir`,
     byAddress: {
       ['0xcccccccccc33d538dbc2ee4feab0a7a1ff4e8a94']: {
         name: 'CFG',
@@ -64,21 +65,7 @@ const tracer = new TransactionTracer(client, {
       UniversalRouter,
       erc20Abi,
     ],
+    etherscanApiKey: '8E6CI28EZUYCY1GG8CMZTPCCCNCVYCS8S2',
   },
-  verbosity: LogVerbosity.Highest,
-})
-
-if (import.meta.main) {
-  const [error, trace] = await tracer.traceTransactionHash({
-    gasProfiler: false,
-    txHash:
-      '0xf4a91c18dad36c9a0717da2375aef02b14bcd0e89dd5f1fc8f19d7952cdb5649',
-  })
-
-  if (error) {
-    console.log(error)
-    process.exit(1)
-  }
-  console.log(trace)
-  process.exit(0)
+  env: { kind: 'rpc' },
 }
