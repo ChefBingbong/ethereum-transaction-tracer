@@ -1,10 +1,10 @@
 import {
   type Abi,
   type AbiFunction,
-  erc1155Abi,
   erc20Abi,
-  erc4626Abi,
   erc721Abi,
+  erc1155Abi,
+  erc4626Abi,
   multicall3Abi,
 } from 'viem'
 import { safeDecodeCallData, safeDecodeCallResult } from '../../decoder'
