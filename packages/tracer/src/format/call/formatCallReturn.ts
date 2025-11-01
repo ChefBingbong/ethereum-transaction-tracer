@@ -1,10 +1,10 @@
 import {
   type Abi,
   type AbiFunction,
-  erc20Abi,
-  erc721Abi,
   erc1155Abi,
+  erc20Abi,
   erc4626Abi,
+  erc721Abi,
   multicall3Abi,
 } from 'viem'
 import { safeDecodeCallData, safeDecodeCallResult } from '../../decoder'
@@ -39,8 +39,8 @@ export function formatCallReturn(
       functionAbi,
       node.output,
     )
-    if (returnError) return `${returnLabel} ${node.output}`
-    return `${returnLabel} ${retData(decodedReturn)}`
+    if (returnError) return `${returnLabel} ${node.output ?? ''}`
+    return `${returnLabel} ${retData(decodedReturn ?? '')}`
   }
   return `${returnLabel} ${node.output}`
 }

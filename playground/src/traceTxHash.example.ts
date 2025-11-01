@@ -7,7 +7,7 @@ const client = getPublicClient(
 ).extend(traceActions)
 
 async function main() {
-  const [error, trace] = await client.profileGasTransactionHash({
+  const [error, trace] = await client.traceTransactionHash({
     txHash:
       '0xf4a91c18dad36c9a0717da2375aef02b14bcd0e89dd5f1fc8f19d7952cdb5649',
 
