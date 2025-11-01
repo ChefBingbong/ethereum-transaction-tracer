@@ -1,6 +1,6 @@
 {
   "name": "@evm-tt/cli",
-  "version": "0.16.4",
+  "version": "0.17.0",
   "license": "ISC",
   "types": "./dist/index.d.ts",
   "bin": {
