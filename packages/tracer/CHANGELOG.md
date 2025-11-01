@@ -1,5 +1,16 @@
 # @evm-tt/tracer
 
+## 0.12.0
+
+### Minor Changes
+
+- deeb792: add esm and cjs builds
+
+### Patch Changes
+
+- Updated dependencies [deeb792]
+  - @evm-tt/utils@0.12.0
+
 ## 0.11.0
 
 ### Minor Changes
