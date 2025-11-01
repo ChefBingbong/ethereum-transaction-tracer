@@ -1,3 +1,4 @@
+import path from 'node:path'
 import * as p from '@clack/prompts'
 import {
   getPublicClient,
@@ -10,7 +11,6 @@ import {
   stringifyEnv,
 } from '@evm-tt/utils'
 import fss from 'fs-extra'
-import path from 'node:path'
 import os from 'os'
 import { APP_DIR, ENV_BASENAME, ETHERSCAN_BASE_URL } from '../consts'
 import { type CliEnv, etherscanAbiSchema, type RpcKey } from './schema'

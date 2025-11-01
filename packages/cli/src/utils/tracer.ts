@@ -1,5 +1,5 @@
-import { TraceActions, traceActions } from '@evm-tt/tracer'
-import { type Chain, createPublicClient, http, PublicClient } from 'viem'
+import { type TraceActions, traceActions } from '@evm-tt/tracer'
+import { type Chain, createPublicClient, http, type PublicClient } from 'viem'
 import type z from 'zod'
 import type { baseTraceSchema } from '../configCli/schema'
 
