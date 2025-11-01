@@ -1,4 +1,4 @@
-import { type TraceActions, traceActions } from '@evm-tt/tracer/src'
+import { type TraceActions, traceActions } from '@evm-tt/tracer'
 import { DefaultTracerOptions, getPublicClient } from './client'
 
 // must use a berachain al url for this example

@@ -2,7 +2,7 @@ import {
   getUnlimitedBalanceAndApprovalStateOverrides,
   type TraceActions,
   traceActions,
-} from '@evm-tt/tracer/src'
+} from '@evm-tt/tracer'
 import { DefaultTracerOptions, getPublicClient } from './client'
 
 const SENDER = '0xda8A8833E938192781AdE161d4b46c4973A40402'

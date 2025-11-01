@@ -21,7 +21,7 @@
     },
     "packages/cli": {
       "name": "@evm-tt/cli",
-      "version": "0.17.0",
+      "version": "0.17.1",
       "bin": {
         "evm-tt": "./dist/index.js",
       },
@@ -46,7 +46,7 @@
     },
     "packages/tracer": {
       "name": "@evm-tt/tracer",
-      "version": "0.13.0",
+      "version": "0.14.0",
       "dependencies": {
         "@evm-tt/utils": "workspace:*",
         "@opentf/cli-pbar": "^0.7.2",
@@ -68,7 +68,7 @@
     },
     "packages/utils": {
       "name": "@evm-tt/utils",
-      "version": "0.13.0",
+      "version": "0.14.0",
       "dependencies": {
         "@commander-js/extra-typings": "^14.0.0",
         "@opentf/cli-pbar": "^0.7.2",
