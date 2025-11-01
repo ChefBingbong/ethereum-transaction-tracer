@@ -1,5 +1,11 @@
 # @evm-tt/utils
 
+## 0.11.0
+
+### Minor Changes
+
+- e41a701: update code and change types and options
+
 ## 0.10.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @evm-tt/typescript-config
 
+## 0.4.0
+
+### Minor Changes
+
+- e41a701: update code and change types and options
+
 ## 0.3.0
 
 ### Minor Changes
