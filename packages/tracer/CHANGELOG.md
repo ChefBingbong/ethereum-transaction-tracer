@@ -1,5 +1,16 @@
 # @evm-tt/tracer
 
+## 0.14.0
+
+### Minor Changes
+
+- 46de777: fix esm
+
+### Patch Changes
+
+- Updated dependencies [46de777]
+  - @evm-tt/utils@0.14.0
+
 ## 0.13.0
 
 ### Minor Changes

@@ -1,6 +1,6 @@
 {
   "name": "@evm-tt/tracer",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "license": "ISC",
   "main": "./_cjs/index.js",
   "module": "./_esm/index.js",
