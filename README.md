@@ -2,6 +2,8 @@
 
 _This software is in Alpha and many features for the cli are still currently being worked on_
 
+I dont maintain this anymore. i just use it locally when i need it. if you do want to use this. i made a massive breaking change to have the tracer extend the ciem public cliengt actions. so all of the docs below show the old and now incorrect usage., so if you do decide to install this you will have to figure out how it works by looking inside my playground or examples workspaces. i might get around someday to finishing the cli (lol to make it actually work) aswell as updating this to be a usable package. but then again this project was always meant for my own personal use to help me debug stuff in work
+
 evm-tt `(evm-transaction-trace)` brings tenderly and foundry like stack traces to javascript enviornments. Unlike tenderly, evm-tt supports any evm chain, supporting traces for both verified onchain transactions and calldat simulations. There is a gas profiler built in, aswell as async caching and abi lookups for indexing contract names and methods. evm-tt is an extremely useful tool for backend web3 javascript developers and makes up where tenderly and foundry fall short.
 
 installation
